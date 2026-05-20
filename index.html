@@ -3,8 +3,25 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="theme-color" content="#005CA9">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <title>CRM CNA Roma</title>
+
+<!-- Favicon browser -->
+<link rel="icon" href="favicon.ico" type="image/x-icon">
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
+<link rel="icon" type="image/svg+xml" href="icon.svg">
+
+<!-- PWA iOS -->
+<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="CRM CNA">
+
+<!-- PWA Android -->
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#005CA9">
+<meta name="mobile-web-app-capable" content="yes">
+
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
@@ -87,6 +104,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 .app-header{height:var(--header-h);background:var(--grad-primary);display:flex;align-items:center;justify-content:space-between;padding:0 16px;position:sticky;top:0;z-index:200;box-shadow:0 2px 10px rgba(0,92,169,.3);flex-shrink:0;}
 .header-left{display:flex;align-items:center;gap:10px;}
 .logo-img{height:38px;width:auto;filter:brightness(0) invert(1);}
+.logo-fallback{background:rgba(255,255,255,.2);color:#fff;font-weight:800;font-size:12px;padding:5px 10px;border-radius:var(--radius-sm);letter-spacing:.02em;align-items:center;justify-content:center;}
 .header-title{font-size:15px;font-weight:800;color:#fff;letter-spacing:-.01em;}
 .header-badge{font-size:10px;font-weight:700;color:rgba(255,255,255,.7);background:rgba(255,255,255,.15);padding:3px 8px;border-radius:var(--radius-pill);border:1px solid rgba(255,255,255,.2);}
 .header-right{display:flex;align-items:center;gap:8px;}
@@ -263,8 +281,9 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
   <!-- HEADER SEARCH/RESULTS -->
   <header class="app-header" id="hdr-main">
     <div class="header-left">
-      <img class="logo-img" src="https://raw.githubusercontent.com/alessandroparrelli/fileappoggio/17b50df8f22632eb360e1da944d997289a598012/NUOVO-LOGO-CNA-ROMA-SOLO-ROMA.png" alt="CNA" onerror="this.style.display='none'">
-      <span class="header-title">CRM CNA</span>
+      <img class="logo-img" src="https://raw.githubusercontent.com/alessandroparrelli/fileappoggio/17b50df8f22632eb360e1da944d997289a598012/NUOVO-LOGO-CNA-ROMA-SOLO-ROMA.png" alt="CNA Roma" onerror="this.style.display='none';document.getElementById('logo-fb').style.display='flex';">
+      <div id="logo-fb" class="logo-fallback" style="display:none">CNA Roma</div>
+      <span class="header-title">CRM</span>
       <span class="header-badge">Archivio Imprese</span>
     </div>
     <div class="header-right">
@@ -702,6 +721,17 @@ async function openScheda(idx){
    INIT
 ══════════════════════════════════════════════════ */
 (function(){ loadSession(); if(session) startApp(); })();
+</script>
+
+<script>
+// ── SERVICE WORKER (PWA install) ──────────────────
+if('serviceWorker' in navigator){
+  window.addEventListener('load', function(){
+    navigator.serviceWorker.register('sw.js').then(function(reg){
+      console.log('SW registrato:', reg.scope);
+    }).catch(function(e){ console.log('SW errore:', e); });
+  });
+}
 </script>
 </body>
 </html>
