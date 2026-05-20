@@ -231,6 +231,60 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 .titolare-icon{font-size:16px;}
 .titolare-name{font-size:14px;font-weight:700;color:var(--primary);}
 
+/* ── PROFILO MODAL ─────────────────────────── */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.5);backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center;z-index:10000;padding:16px;}
+.modal-bg.open{display:flex;}
+.modal-card{background:var(--surface);border-radius:var(--radius-lg);width:100%;max-width:380px;box-shadow:0 20px 60px rgba(0,0,0,.25);overflow:hidden;animation:slideUp .25s cubic-bezier(.34,1.56,.64,1);}
+@keyframes slideUp{from{opacity:0;transform:translateY(20px) scale(.97);}to{opacity:1;transform:translateY(0) scale(1);}}
+.modal-header{background:var(--grad-primary);padding:18px 20px;display:flex;align-items:center;justify-content:space-between;}
+.modal-header h3{font-size:15px;font-weight:800;color:#fff;letter-spacing:-.01em;}
+.modal-close{width:30px;height:30px;background:rgba(255,255,255,.2);border:none;color:#fff;font-size:18px;border-radius:var(--radius-sm);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:var(--tr);}
+.modal-close:hover{background:rgba(255,255,255,.3);}
+.modal-body{padding:20px;}
+.avatar-big{width:90px;height:90px;border-radius:50%;background:#E0E7FF;margin:0 auto 8px;display:flex;align-items:center;justify-content:center;overflow:hidden;border:3px solid var(--primary);cursor:pointer;position:relative;}
+.avatar-big .av-initials{font-size:28px;font-weight:700;color:var(--primary);}
+.avatar-big img{width:100%;height:100%;object-fit:cover;display:none;}
+.avatar-overlay{position:absolute;bottom:0;left:0;right:0;background:rgba(0,92,169,.75);color:#fff;font-size:9px;padding:4px 0;text-align:center;font-weight:700;letter-spacing:.3px;}
+.profilo-info{background:var(--surface2);border-radius:var(--radius-sm);padding:14px;margin-bottom:14px;}
+.profilo-row{display:flex;gap:8px;margin-bottom:8px;font-size:13px;align-items:baseline;}
+.profilo-row:last-child{margin-bottom:0;}
+.profilo-row .pl{font-size:11px;font-weight:700;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.3px;min-width:56px;}
+.profilo-row .pv{font-weight:600;color:var(--text);}
+.role-badge{display:inline-block;padding:2px 10px;border-radius:var(--radius-pill);font-size:11px;font-weight:700;background:var(--primary-glow);color:var(--primary);border:1px solid rgba(0,92,169,.2);}
+.btn-avatar-remove{width:100%;padding:9px;background:none;border:1.5px solid var(--danger);color:var(--danger);border-radius:var(--radius-sm);font-family:var(--font);font-size:12px;font-weight:700;cursor:pointer;transition:var(--tr);margin-bottom:10px;}
+.btn-avatar-remove:hover{background:rgba(239,68,68,.06);}
+.btn-modal-close{width:100%;padding:10px;background:var(--surface2);border:1.5px solid var(--border-strong);color:var(--text-secondary);border-radius:var(--radius-sm);font-family:var(--font);font-size:13px;font-weight:700;cursor:pointer;transition:var(--tr);}
+.btn-modal-close:hover{background:var(--surface3);}
+
+/* ── LOG VIEW ──────────────────────────────── */
+#view-log{overflow-y:auto;background:var(--bg);}
+.log-wrap{padding:16px;max-width:900px;width:100%;margin:0 auto;padding-bottom:32px;}
+.kpi-strip{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px;}
+.kpi-box{background:var(--surface);border-radius:var(--radius-md);border:1.5px solid var(--border);padding:14px;text-align:center;}
+.kpi-val{font-size:22px;font-weight:800;margin-bottom:3px;}
+.kpi-lbl{font-size:11px;font-weight:600;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.3px;}
+.log-filters{display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap;}
+.log-select{padding:8px 11px;border:1.5px solid var(--border-strong);border-radius:var(--radius-sm);font-family:var(--font);font-size:13px;color:var(--text);background:var(--surface);outline:none;cursor:pointer;}
+.log-table-wrap{background:var(--surface);border-radius:var(--radius-md);border:1.5px solid var(--border);overflow:hidden;margin-bottom:12px;}
+.log-table{width:100%;border-collapse:collapse;font-size:13px;}
+.log-table th{background:rgba(0,92,169,.05);padding:10px 12px;font-size:11px;font-weight:700;color:var(--primary);text-transform:uppercase;letter-spacing:.4px;border-bottom:1.5px solid var(--border);text-align:left;}
+.log-table td{padding:10px 12px;border-bottom:1px solid var(--border);vertical-align:middle;}
+.log-table tr:last-child td{border-bottom:none;}
+.log-table tr:hover td{background:var(--surface2);}
+.esito-ok{display:inline-block;padding:2px 9px;border-radius:var(--radius-pill);background:rgba(16,185,129,.12);color:#059669;font-size:11px;font-weight:700;}
+.esito-fail{display:inline-block;padding:2px 9px;border-radius:var(--radius-pill);background:rgba(239,68,68,.1);color:var(--danger);font-size:11px;font-weight:700;}
+.log-pagination{display:flex;align-items:center;gap:10px;font-size:12px;color:var(--text-secondary);}
+
+/* Mobile */
+@media(max-width:580px){
+  .kpi-strip{grid-template-columns:repeat(2,1fr);}
+  .log-table td:nth-child(5){display:none;}
+  .log-table th:nth-child(5){display:none;}
+}
+
+/* ── AVATAR nel chip header ─────────────────── */
+.chip-avatar-img{width:100%;height:100%;object-fit:cover;border-radius:50%;display:none;}
+
 /* Mobile */
 @media(max-width:580px){
   .search-grid{grid-template-columns:1fr;}
@@ -287,8 +341,11 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
       <span class="header-badge">Archivio Imprese</span>
     </div>
     <div class="header-right">
-      <div class="user-chip">
-        <div class="user-avatar" id="chip-avatar">–</div>
+      <div class="user-chip" onclick="openProfilo()" title="Profilo">
+        <div class="user-avatar" id="chip-avatar">
+          <span id="chip-initials">–</span>
+          <img id="chip-avatar-img" class="chip-avatar-img" alt="">
+        </div>
         <span class="user-name" id="chip-name">–</span>
       </div>
       <button class="btn-logout" onclick="doLogout()">Esci</button>
@@ -381,7 +438,100 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
     <div class="scheda-wrap" id="scheda-content"></div>
   </div>
 
+  <!-- HEADER LOG (solo admin) -->
+  <header class="app-header" id="hdr-log" style="display:none;">
+    <div class="header-left">
+      <button class="btn-back" onclick="goBackFromLog()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+        Indietro
+      </button>
+      <span class="header-title">Log Accessi</span>
+    </div>
+    <div class="header-right">
+      <div class="user-chip">
+        <div class="user-avatar" id="chip-avatar3">–</div>
+      </div>
+      <button class="btn-logout" onclick="doLogout()">Esci</button>
+    </div>
+  </header>
+
+  <!-- VIEW: LOG (solo admin) -->
+  <div class="view" id="view-log">
+    <div class="log-wrap">
+      <div class="kpi-strip" id="log-kpi-strip">
+        <div class="kpi-box"><div class="kpi-val" style="color:var(--primary)">–</div><div class="kpi-lbl">Accessi Totali</div></div>
+        <div class="kpi-box"><div class="kpi-val" style="color:var(--success)">–</div><div class="kpi-lbl">Successi</div></div>
+        <div class="kpi-box"><div class="kpi-val" style="color:var(--danger)">–</div><div class="kpi-lbl">Falliti</div></div>
+        <div class="kpi-box"><div class="kpi-val" style="color:var(--warning)">–</div><div class="kpi-lbl">Utenti Distinti</div></div>
+      </div>
+      <div class="log-filters">
+        <select class="log-select" id="log-filter-esito" onchange="logPage=0;loadLogs()">
+          <option value="">Tutti gli esiti</option>
+          <option value="successo">✓ Successo</option>
+          <option value="fallito">✗ Fallito</option>
+        </select>
+        <select class="log-select" id="log-filter-user" onchange="logPage=0;loadLogs()">
+          <option value="">Tutti gli utenti</option>
+        </select>
+      </div>
+      <div class="log-table-wrap">
+        <table class="log-table">
+          <thead>
+            <tr>
+              <th>Data/Ora</th>
+              <th>Nome</th>
+              <th>Email</th>
+              <th>Esito</th>
+              <th>Browser</th>
+            </tr>
+          </thead>
+          <tbody id="logs-tbody">
+            <tr><td colspan="5" style="text-align:center;padding:20px;color:var(--text-tertiary)">Caricamento…</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="log-pagination" id="log-pagination"></div>
+    </div>
+  </div>
+
 </div><!-- /app -->
+
+<!-- ═══ PROFILO MODAL ═══ -->
+<div class="modal-bg" id="modal-profilo-bg">
+  <div class="modal-card">
+    <div class="modal-header">
+      <h3>Profilo Utente</h3>
+      <button class="modal-close" onclick="closeProfilo()">×</button>
+    </div>
+    <div class="modal-body">
+      <!-- Avatar con upload -->
+      <div style="text-align:center;margin-bottom:16px;">
+        <div class="avatar-big" id="profilo-avatar-container" onclick="G('avatar-file-input').click()" title="Clicca per cambiare foto">
+          <span class="av-initials" id="profilo-initials">–</span>
+          <img id="profilo-avatar-img" alt="">
+          <div class="avatar-overlay">CAMBIA FOTO</div>
+        </div>
+        <input type="file" id="avatar-file-input" accept="image/*" style="display:none" onchange="uploadAvatar(this.files[0]);this.value='';">
+        <div style="font-size:11px;color:var(--text-tertiary);margin-top:4px;">Tocca per cambiare la foto profilo</div>
+      </div>
+      <!-- Info -->
+      <div class="profilo-info">
+        <div class="profilo-row"><span class="pl">Nome</span><span class="pv" id="profilo-nome">–</span></div>
+        <div class="profilo-row"><span class="pl">Email</span><span class="pv" id="profilo-email">–</span></div>
+        <div class="profilo-row"><span class="pl">Ruolo</span><span class="pv"><span class="role-badge" id="profilo-ruolo">–</span></span></div>
+      </div>
+      <!-- Solo admin: link ai log -->
+      <div id="profilo-admin-section" style="display:none;margin-bottom:12px;">
+        <button onclick="closeProfilo();openLog();" style="width:100%;padding:10px;background:var(--primary-glow);border:1.5px solid rgba(0,92,169,.25);color:var(--primary);border-radius:var(--radius-sm);font-family:var(--font);font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+          Visualizza Log Accessi
+        </button>
+      </div>
+      <button id="btn-rimuovi-avatar" class="btn-avatar-remove" onclick="rimuoviAvatar()" style="display:none">🗑 Rimuovi foto profilo</button>
+      <button class="btn-modal-close" onclick="closeProfilo()">Chiudi</button>
+    </div>
+  </div>
+</div>
 
 <script>
 /* ══════════════════════════════════════════════════
@@ -391,7 +541,6 @@ var SB  = 'https://ohahuqlfzqckaevaffbt.supabase.co';
 var KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9oYWh1cWxmenFja2FldmFmZmJ0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQxODI4NzQsImV4cCI6MjA4OTc1ODg3NH0.MG1N3UUIfISDAi_ArFjxN6ZlHJfk5D77vSeE7qZr020';
 var session = null;
 var lastResults = [];
-var prevView = 'search'; // per il tasto "Indietro"
 
 /* ══════════════════════════════════════════════════
    UTILS
@@ -430,26 +579,7 @@ function saveSession(u){ session=u; sessionStorage.setItem('cna_crm_s',JSON.stri
 function loadSession(){ try{ var s=sessionStorage.getItem('cna_crm_s'); if(s) session=JSON.parse(s); }catch(e){} return session; }
 function clearSession(){ session=null; sessionStorage.removeItem('cna_crm_s'); }
 
-/* ══════════════════════════════════════════════════
-   VIEW MANAGEMENT
-══════════════════════════════════════════════════ */
-function showView(name){
-  // toggle header
-  var isScheda = (name==='scheda');
-  G('hdr-main').style.display   = isScheda ? 'none' : 'flex';
-  G('hdr-scheda').style.display = isScheda ? 'flex'  : 'none';
-  // toggle views
-  ['search','results','scheda'].forEach(function(v){
-    G('view-'+v).classList.toggle('active', v===name);
-  });
-  // scroll top
-  var el = G('view-'+name);
-  if(el) el.scrollTop = 0;
-}
 
-function goBack(){
-  showView(prevView);
-}
 
 /* ══════════════════════════════════════════════════
    LOGIN / LOGOUT
@@ -481,10 +611,11 @@ function doLogout(){ clearSession(); location.reload(); }
 function startApp(){
   G('login-page').style.display='none';
   G('app').classList.add('visible');
-  var initials=((session.nome||'').charAt(0)+(session.cognome||'').charAt(0)).toUpperCase()||'–';
-  G('chip-avatar').textContent=initials;
-  G('chip-avatar2').textContent=initials;
-  G('chip-name').textContent=session.nome+' '+session.cognome;
+  G('chip-name').textContent = session.nome+' '+session.cognome;
+  var initials = ((session.nome||'').charAt(0)+(session.cognome||'').charAt(0)).toUpperCase()||'–';
+  G('chip-avatar2').textContent = initials;
+  G('chip-avatar3') && (G('chip-avatar3').textContent = initials);
+  updateChipAvatar();
   showView('search');
 }
 
@@ -716,6 +847,246 @@ async function openScheda(idx){
   } catch(e){ console.error(e); toast('Errore caricamento scheda','error'); }
   finally{ hideLoad(); }
 }
+
+/* ══════════════════════════════════════════════════
+   VIEW MANAGEMENT — aggiornato con log
+══════════════════════════════════════════════════ */
+var prevView = 'search';
+
+function showView(name){
+  var isScheda = (name==='scheda');
+  var isLog    = (name==='log');
+  G('hdr-main').style.display   = (!isScheda && !isLog) ? 'flex' : 'none';
+  G('hdr-scheda').style.display = isScheda ? 'flex' : 'none';
+  G('hdr-log').style.display    = isLog    ? 'flex' : 'none';
+  ['search','results','scheda','log'].forEach(function(v){
+    G('view-'+v).classList.toggle('active', v===name);
+  });
+  var el=G('view-'+name);
+  if(el) el.scrollTop=0;
+}
+
+function goBack(){ showView(prevView); }
+function goBackFromLog(){ showView('search'); }
+
+/* ══════════════════════════════════════════════════
+   PROFILO
+══════════════════════════════════════════════════ */
+function getInitials(){
+  return ((session.nome||'').charAt(0)+(session.cognome||'').charAt(0)).toUpperCase()||'–';
+}
+
+function updateChipAvatar(){
+  var initials = getInitials();
+  G('chip-initials').textContent = initials;
+  var img = G('chip-avatar-img');
+  if(session.avatar_base64){
+    img.src = session.avatar_base64;
+    img.style.display = 'block';
+    G('chip-initials').style.display = 'none';
+  } else {
+    img.style.display = 'none';
+    G('chip-initials').style.display = '';
+  }
+}
+
+function openProfilo(){
+  var initials = getInitials();
+  G('profilo-initials').textContent = initials;
+  G('profilo-nome').textContent = session.nome+' '+session.cognome;
+  G('profilo-email').textContent = session.email;
+  G('profilo-ruolo').textContent = session.ruolo;
+
+  var img = G('profilo-avatar-img');
+  var btnRimuovi = G('btn-rimuovi-avatar');
+  if(session.avatar_base64){
+    img.src = session.avatar_base64;
+    img.style.display = 'block';
+    G('profilo-initials').style.display = 'none';
+    btnRimuovi.style.display = 'block';
+  } else {
+    img.style.display = 'none';
+    G('profilo-initials').style.display = '';
+    btnRimuovi.style.display = 'none';
+  }
+
+  // Mostra sezione admin solo per admin
+  G('profilo-admin-section').style.display = (session.ruolo==='admin') ? 'block' : 'none';
+  G('modal-profilo-bg').classList.add('open');
+}
+
+function closeProfilo(){
+  G('modal-profilo-bg').classList.remove('open');
+}
+
+// Chiudi cliccando fuori
+G('modal-profilo-bg').addEventListener('click', function(e){
+  if(e.target===this) closeProfilo();
+});
+
+async function uploadAvatar(file){
+  if(!file||!file.type.startsWith('image/')){ toast('Seleziona un'immagine','error'); return; }
+  if(file.size>500000){ toast('Immagine troppo grande (max 500KB)','error'); return; }
+  showLoad('Caricamento foto…');
+  try {
+    var reader = new FileReader();
+    var base64 = await new Promise(function(resolve,reject){
+      reader.onload=function(){ resolve(reader.result); };
+      reader.onerror=reject;
+      reader.readAsDataURL(file);
+    });
+    var resized = await resizeImage(base64, 200);
+    var resp = await fetch(SB+'/rest/v1/cna_users?id=eq.'+encodeURIComponent(session.id),{
+      method:'PATCH',
+      headers:H({'Prefer':'return=minimal'}),
+      body:JSON.stringify({avatar_base64:resized})
+    });
+    if(!resp.ok) throw new Error('HTTP '+resp.status);
+    session.avatar_base64 = resized;
+    saveSession(session);
+    updateChipAvatar();
+    openProfilo();
+    toast('Foto profilo aggiornata!','success');
+  } catch(e){ toast('Errore caricamento foto','error'); console.error(e); }
+  finally{ hideLoad(); }
+}
+
+async function rimuoviAvatar(){
+  showLoad('Rimozione foto…');
+  try {
+    var resp = await fetch(SB+'/rest/v1/cna_users?id=eq.'+encodeURIComponent(session.id),{
+      method:'PATCH',
+      headers:H({'Prefer':'return=minimal'}),
+      body:JSON.stringify({avatar_base64:null})
+    });
+    if(!resp.ok) throw new Error('HTTP '+resp.status);
+    session.avatar_base64 = null;
+    saveSession(session);
+    updateChipAvatar();
+    openProfilo();
+    toast('Foto profilo rimossa','success');
+  } catch(e){ toast('Errore rimozione foto','error'); }
+  finally{ hideLoad(); }
+}
+
+function resizeImage(base64, maxSize){
+  return new Promise(function(resolve){
+    var img = new Image();
+    img.onload = function(){
+      var canvas = document.createElement('canvas');
+      var w=img.width, h=img.height;
+      if(w>h){ if(w>maxSize){ h=h*maxSize/w; w=maxSize; } }
+      else    { if(h>maxSize){ w=w*maxSize/h; h=maxSize; } }
+      canvas.width=w; canvas.height=h;
+      canvas.getContext('2d').drawImage(img,0,0,w,h);
+      resolve(canvas.toDataURL('image/jpeg',0.85));
+    };
+    img.src=base64;
+  });
+}
+
+/* ══════════════════════════════════════════════════
+   LOG ACCESSI (solo admin)
+══════════════════════════════════════════════════ */
+var logPage=0, logPageSize=50, logTotal=0;
+
+function escHtml(s){ return String(s||'').replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];}); }
+
+function parseUA(ua){
+  if(!ua) return '–';
+  if(ua.includes('iPhone')||ua.includes('iPad')) return '📱 iOS';
+  if(ua.includes('Android')) return '📱 Android';
+  if(ua.includes('Chrome')&&!ua.includes('Edg')) return '🌐 Chrome';
+  if(ua.includes('Firefox')) return '🦊 Firefox';
+  if(ua.includes('Safari')&&!ua.includes('Chrome')) return '🧭 Safari';
+  if(ua.includes('Edg')) return '🌐 Edge';
+  return '💻 Desktop';
+}
+
+async function openLog(){
+  if(session.ruolo!=='admin'){ toast('Accesso negato','error'); return; }
+  showView('log');
+  logPage=0;
+  await loadLogs();
+  // Popola filtro utenti
+  try {
+    var users = await fetch(SB+'/rest/v1/cna_login_logs?select=email&order=email.asc',{headers:H()}).then(function(r){return r.json();});
+    var emails = [...new Set(users.map(function(u){return u.email;}))].filter(Boolean);
+    var sel = G('log-filter-user');
+    sel.innerHTML = '<option value="">Tutti gli utenti</option>' +
+      emails.map(function(e){ return '<option value="'+escHtml(e)+'">'+escHtml(e)+'</option>'; }).join('');
+  } catch(e){}
+}
+
+async function loadLogs(){
+  try {
+    var filterUser  = G('log-filter-user') ? G('log-filter-user').value : '';
+    var filterEsito = G('log-filter-esito') ? G('log-filter-esito').value : '';
+
+    var qs = 'cna_login_logs?select=*&order=created_at.desc';
+    if(filterUser)  qs += '&email=eq.'+encodeURIComponent(filterUser);
+    if(filterEsito) qs += '&esito=eq.'+filterEsito;
+
+    // Count
+    var countUrl = SB+'/rest/v1/cna_login_logs?select=id';
+    if(filterUser)  countUrl += '&email=eq.'+encodeURIComponent(filterUser);
+    if(filterEsito) countUrl += '&esito=eq.'+filterEsito;
+    var cr_res = await fetch(countUrl,{headers:H({'Prefer':'count=exact','Range':'0-0'})});
+    var cr = cr_res.headers.get('content-range');
+    logTotal = cr ? parseInt(cr.split('/')[1])||0 : 0;
+
+    // Page
+    var from=logPage*logPageSize, to=from+logPageSize-1;
+    var rows = await fetch(SB+'/rest/v1/'+qs,{headers:H({'Range':from+'-'+to})}).then(function(r){return r.json();});
+
+    // KPI (tutti)
+    var allStats = await fetch(SB+'/rest/v1/cna_login_logs?select=esito,email',{headers:H()}).then(function(r){return r.json();});
+    var totOk   = allStats.filter(function(r){return r.esito==='successo';}).length;
+    var totFail = allStats.filter(function(r){return r.esito==='fallito';}).length;
+    var unici   = new Set(allStats.filter(function(r){return r.esito==='successo';}).map(function(r){return r.email;})).size;
+
+    var kpis = G('log-kpi-strip');
+    var kdata = [
+      {v:totOk+totFail, l:'Accessi Totali',  c:'var(--primary)'},
+      {v:totOk,         l:'Successi',         c:'var(--success)'},
+      {v:totFail,       l:'Falliti',          c:'var(--danger)'},
+      {v:unici,         l:'Utenti Distinti',  c:'var(--warning)'}
+    ];
+    kpis.innerHTML = kdata.map(function(k){
+      return '<div class="kpi-box"><div class="kpi-val" style="color:'+k.c+'">'+k.v+'</div><div class="kpi-lbl">'+k.l+'</div></div>';
+    }).join('');
+
+    // Tabella
+    var tb = G('logs-tbody');
+    if(!rows.length){
+      tb.innerHTML='<tr><td colspan="5" style="text-align:center;padding:20px;color:var(--text-tertiary)">Nessun accesso registrato</td></tr>';
+      G('log-pagination').innerHTML='';
+      return;
+    }
+    tb.innerHTML = rows.map(function(r){
+      var badge = r.esito==='successo'
+        ? '<span class="esito-ok">✓ Successo</span>'
+        : '<span class="esito-fail">✗ Fallito</span>';
+      return '<tr>'
+        +'<td style="white-space:nowrap;font-size:12px">'+escHtml(fmtDate(r.created_at))+'</td>'
+        +'<td style="font-weight:600">'+escHtml(r.nome_completo||'–')+'</td>'
+        +'<td style="font-size:12px">'+escHtml(r.email)+'</td>'
+        +'<td>'+badge+'</td>'
+        +'<td style="font-size:11px;color:var(--text-tertiary)">'+escHtml(parseUA(r.user_agent||''))+'</td>'
+        +'</tr>';
+    }).join('');
+
+    // Paginazione
+    var pages = Math.ceil(logTotal/logPageSize);
+    var pg = G('log-pagination');
+    pg.innerHTML = '<span>'+logTotal+' record — Pag. '+(logPage+1)+' di '+pages+'</span><span style="flex:1"></span>';
+    if(logPage>0)       pg.innerHTML += '<button class="btn-secondary" style="padding:6px 14px" onclick="logGoPage('+(logPage-1)+')">‹ Prec.</button>';
+    if(logPage<pages-1) pg.innerHTML += '<button class="btn-secondary" style="padding:6px 14px" onclick="logGoPage('+(logPage+1)+')">Succ. ›</button>';
+
+  } catch(e){ toast('Errore log','error'); console.error(e); }
+}
+
+function logGoPage(p){ logPage=p; loadLogs(); }
 
 /* ══════════════════════════════════════════════════
    INIT
