@@ -925,7 +925,7 @@ G('modal-profilo-bg').addEventListener('click', function(e){
 });
 
 async function uploadAvatar(file){
-  if(!file||!file.type.startsWith('image/')){ toast('Seleziona un'immagine','error'); return; }
+  if(!file||!file.type.startsWith('image/')){ toast("Seleziona un'immagine","error"); return; }
   if(file.size>500000){ toast('Immagine troppo grande (max 500KB)','error'); return; }
   showLoad('Caricamento foto…');
   try {
