@@ -1,0 +1,707 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#005CA9">
+<title>CRM CNA Roma</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+/* ═══════════════════════════════════════════════════
+   CRM CNA ROMA — Design System
+═══════════════════════════════════════════════════ */
+:root {
+  --primary: #005CA9;
+  --primary-dark: #00427A;
+  --primary-light: #1E78C8;
+  --primary-glow: rgba(0,92,169,.15);
+  --success: #10B981;
+  --warning: #F59E0B;
+  --danger: #EF4444;
+  --orange: #EA580C;
+  --bg: #F1F5F9;
+  --surface: #FFFFFF;
+  --surface2: #F8FAFC;
+  --surface3: #F1F5F9;
+  --border: #E2E8F0;
+  --border-strong: #CBD5E1;
+  --text: #0F172A;
+  --text-secondary: #475569;
+  --text-tertiary: #94A3B8;
+  --font: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  --shadow-sm: 0 2px 8px rgba(15,23,42,.06);
+  --shadow-md: 0 8px 24px rgba(15,23,42,.08);
+  --shadow-lg: 0 16px 48px rgba(15,23,42,.12);
+  --shadow-color: 0 8px 24px rgba(0,92,169,.22);
+  --grad-primary: linear-gradient(135deg,#005CA9 0%,#003D7A 100%);
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-pill: 999px;
+  --header-h: 60px;
+  --tr: all .22s cubic-bezier(0.4,0,0.2,1);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh;-webkit-font-smoothing:antialiased;}
+
+/* LOADING */
+#loading-overlay{position:fixed;inset:0;background:rgba(255,255,255,.92);display:none;align-items:center;justify-content:center;flex-direction:column;gap:12px;z-index:9999;backdrop-filter:blur(4px);}
+#loading-overlay.active{display:flex;}
+.spinner{width:36px;height:36px;border:3px solid rgba(0,92,169,.12);border-top-color:var(--primary);border-radius:50%;animation:spin .65s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.loading-msg{font-size:13px;font-weight:600;color:var(--text-secondary);}
+
+/* TOAST */
+#toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:#1E293B;color:#fff;padding:10px 20px;border-radius:var(--radius-pill);font-size:13px;font-weight:600;z-index:9998;opacity:0;transition:all .3s cubic-bezier(.34,1.56,.64,1);white-space:nowrap;box-shadow:var(--shadow-lg);}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+#toast.success{background:var(--success);}
+#toast.error{background:var(--danger);}
+
+/* LOGIN */
+#login-page{min-height:100vh;display:flex;align-items:center;justify-content:center;background:var(--bg);background-image:radial-gradient(ellipse at 20% 50%,rgba(0,92,169,.08) 0%,transparent 60%),radial-gradient(ellipse at 80% 20%,rgba(0,92,169,.06) 0%,transparent 60%);padding:20px;}
+.login-card{background:var(--surface);border-radius:var(--radius-lg);padding:38px 34px;width:100%;max-width:390px;box-shadow:var(--shadow-lg);position:relative;overflow:hidden;}
+.login-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--grad-primary);}
+.login-logo{display:flex;justify-content:center;align-items:center;margin-bottom:10px;}
+.login-logo img{height:68px;width:auto;}
+.login-title{font-size:21px;font-weight:800;text-align:center;color:var(--text);margin-bottom:4px;letter-spacing:-.02em;}
+.login-sub{font-size:13px;color:var(--text-secondary);text-align:center;margin-bottom:26px;font-weight:500;}
+.form-group{margin-bottom:13px;}
+.form-group label{display:block;font-size:11px;font-weight:700;color:var(--text-secondary);margin-bottom:5px;text-transform:uppercase;letter-spacing:.4px;}
+.form-input{width:100%;padding:11px 13px;border:1.5px solid var(--border-strong);border-radius:var(--radius-sm);font-family:var(--font);font-size:14px;font-weight:500;color:var(--text);background:var(--surface2);outline:none;transition:var(--tr);}
+.form-input:focus{border-color:var(--primary);background:#fff;box-shadow:0 0 0 3px var(--primary-glow);}
+.login-error{color:var(--danger);font-size:13px;margin-bottom:12px;background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.22);padding:9px 13px;border-radius:var(--radius-sm);display:none;font-weight:500;}
+.btn-login{width:100%;padding:13px;background:var(--primary);color:#fff;border:none;border-radius:var(--radius-pill);font-family:var(--font);font-size:14px;font-weight:700;cursor:pointer;transition:var(--tr);margin-top:6px;}
+.btn-login:hover{background:var(--primary-dark);transform:translateY(-1px);box-shadow:var(--shadow-color);}
+.btn-login:disabled{opacity:.55;transform:none;cursor:not-allowed;}
+.login-footer{margin-top:26px;padding-top:16px;border-top:1px solid var(--border);text-align:center;font-size:11px;color:var(--text-tertiary);}
+
+/* ═══ APP SHELL — VIEW STACK ═══════════════════════
+   tre viste: #view-search, #view-results, #view-scheda
+   si mostrano/nascondono via .active
+══════════════════════════════════════════════════ */
+#app{display:none;min-height:100vh;flex-direction:column;}
+#app.visible{display:flex;}
+
+/* HEADER */
+.app-header{height:var(--header-h);background:var(--grad-primary);display:flex;align-items:center;justify-content:space-between;padding:0 16px;position:sticky;top:0;z-index:200;box-shadow:0 2px 10px rgba(0,92,169,.3);flex-shrink:0;}
+.header-left{display:flex;align-items:center;gap:10px;}
+.logo-img{height:38px;width:auto;filter:brightness(0) invert(1);}
+.header-title{font-size:15px;font-weight:800;color:#fff;letter-spacing:-.01em;}
+.header-badge{font-size:10px;font-weight:700;color:rgba(255,255,255,.7);background:rgba(255,255,255,.15);padding:3px 8px;border-radius:var(--radius-pill);border:1px solid rgba(255,255,255,.2);}
+.header-right{display:flex;align-items:center;gap:8px;}
+.user-chip{display:flex;align-items:center;gap:7px;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);border-radius:var(--radius-pill);padding:4px 12px 4px 5px;cursor:pointer;transition:var(--tr);}
+.user-chip:hover{background:rgba(255,255,255,.22);}
+.user-avatar{width:26px;height:26px;border-radius:50%;background:rgba(255,255,255,.25);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#fff;border:2px solid rgba(255,255,255,.4);overflow:hidden;flex-shrink:0;}
+.user-name{font-size:12px;font-weight:600;color:#fff;}
+.btn-logout{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);color:#fff;padding:6px 12px;border-radius:var(--radius-pill);font-family:var(--font);font-size:12px;font-weight:600;cursor:pointer;transition:var(--tr);}
+.btn-logout:hover{background:rgba(255,255,255,.25);}
+
+/* BACK BUTTON nella header scheda */
+.btn-back{display:flex;align-items:center;gap:6px;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);color:#fff;padding:6px 13px;border-radius:var(--radius-pill);font-family:var(--font);font-size:12px;font-weight:700;cursor:pointer;transition:var(--tr);}
+.btn-back:hover{background:rgba(255,255,255,.25);}
+
+/* VIEWS */
+.view{display:none;flex:1;flex-direction:column;min-height:0;}
+.view.active{display:flex;}
+
+/* ── SEARCH VIEW ──────────────────────────────── */
+#view-search{overflow-y:auto;}
+.search-wrap{padding:20px 16px;max-width:860px;width:100%;margin:0 auto;}
+.search-card{background:var(--surface);border-radius:var(--radius-lg);box-shadow:var(--shadow-md);overflow:hidden;}
+.search-card-header{background:var(--grad-primary);padding:16px 20px;display:flex;align-items:center;gap:10px;}
+.search-card-header h2{font-size:15px;font-weight:800;color:#fff;letter-spacing:-.01em;}
+.search-icon{width:34px;height:34px;background:rgba(255,255,255,.2);border-radius:var(--radius-sm);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;}
+.search-body{padding:18px 20px;}
+.search-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;}
+.field-label{font-size:11px;font-weight:700;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.4px;margin-bottom:4px;display:block;}
+.search-input{width:100%;padding:9px 11px;border:1.5px solid var(--border-strong);border-radius:var(--radius-sm);font-family:var(--font);font-size:14px;font-weight:500;color:var(--text);background:var(--surface2);outline:none;transition:var(--tr);}
+.search-input:focus{border-color:var(--primary);background:#fff;box-shadow:0 0 0 3px var(--primary-glow);}
+.search-actions{display:flex;gap:9px;align-items:center;}
+.btn-primary{display:inline-flex;align-items:center;gap:6px;background:var(--primary);color:#fff;border:none;padding:10px 20px;border-radius:var(--radius-pill);font-family:var(--font);font-size:13px;font-weight:700;cursor:pointer;transition:var(--tr);}
+.btn-primary:hover{background:var(--primary-dark);transform:translateY(-1px);box-shadow:var(--shadow-color);}
+.btn-primary:disabled{opacity:.55;transform:none;cursor:not-allowed;}
+.btn-secondary{display:inline-flex;align-items:center;gap:6px;background:var(--surface2);color:var(--text-secondary);border:1.5px solid var(--border-strong);padding:9px 16px;border-radius:var(--radius-pill);font-family:var(--font);font-size:13px;font-weight:600;cursor:pointer;transition:var(--tr);}
+.btn-secondary:hover{background:var(--surface3);border-color:var(--primary);color:var(--primary);}
+
+/* ── RESULTS VIEW ─────────────────────────────── */
+#view-results{overflow-y:auto;}
+.results-wrap{padding:16px;max-width:860px;width:100%;margin:0 auto;}
+.results-bar{display:flex;align-items:center;justify-content:space-between;margin-bottom:13px;}
+.results-count{font-size:13px;font-weight:700;color:var(--primary);background:var(--primary-glow);padding:4px 12px;border-radius:var(--radius-pill);border:1px solid rgba(0,92,169,.18);}
+.btn-nuova-ricerca{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:700;color:var(--primary);background:none;border:1.5px solid var(--primary);padding:5px 13px;border-radius:var(--radius-pill);cursor:pointer;font-family:var(--font);transition:var(--tr);}
+.btn-nuova-ricerca:hover{background:var(--primary-glow);}
+
+.result-card{background:var(--surface);border-radius:var(--radius-md);border:1.5px solid var(--border);padding:13px 16px;margin-bottom:8px;cursor:pointer;transition:var(--tr);display:flex;align-items:center;gap:14px;}
+.result-card:hover{border-color:var(--primary);box-shadow:0 4px 14px rgba(0,92,169,.1);transform:translateX(3px);}
+.result-card:last-child{margin-bottom:0;}
+.result-main{flex:1;min-width:0;}
+.result-name{font-size:14px;font-weight:700;color:var(--text);margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.result-meta{display:flex;gap:12px;flex-wrap:wrap;}
+.rmi{font-size:12px;color:var(--text-secondary);font-weight:500;}
+.rmi span{color:var(--text-tertiary);font-size:11px;}
+.result-arrow{color:var(--primary);font-size:20px;flex-shrink:0;opacity:.5;transition:var(--tr);font-weight:300;}
+.result-card:hover .result-arrow{opacity:1;transform:translateX(3px);}
+
+.no-results{text-align:center;padding:40px 20px;background:var(--surface);border-radius:var(--radius-md);border:1.5px dashed var(--border-strong);}
+.no-results-icon{font-size:36px;margin-bottom:10px;}
+.no-results-text{font-size:15px;font-weight:700;color:var(--text);margin-bottom:5px;}
+.no-results-sub{font-size:13px;color:var(--text-secondary);}
+
+/* ═══ SCHEDA VIEW — PAGINA INTERA ══════════════════
+   occupa tutto lo schermo sotto l'header
+══════════════════════════════════════════════════ */
+#view-scheda{overflow-y:auto;background:var(--bg);}
+.scheda-wrap{padding:16px;max-width:860px;width:100%;margin:0 auto;padding-bottom:32px;}
+
+/* Card titolo impresa */
+.scheda-hero{background:var(--grad-primary);border-radius:var(--radius-lg);padding:18px 20px;margin-bottom:14px;display:flex;align-items:flex-start;justify-content:space-between;gap:12px;}
+.scheda-hero-left{flex:1;min-width:0;}
+.scheda-hero-logo{height:44px;width:auto;margin-bottom:10px;display:block;}
+.scheda-hero-name{font-size:18px;font-weight:800;color:#fff;line-height:1.2;margin-bottom:6px;letter-spacing:-.01em;}
+.scheda-hero-sub{font-size:12px;color:rgba(255,255,255,.7);font-weight:500;}
+.scheda-badges{display:flex;gap:0;flex-shrink:0;align-self:flex-start;margin-top:4px;}
+.sbadge{padding:6px 11px;text-align:center;}
+.sbadge:first-child{border-radius:6px 0 0 6px;}
+.sbadge:last-child{border-radius:0 6px 6px 0;}
+.sbadge:only-child{border-radius:6px;}
+.sbadge .slbl{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.3px;opacity:.85;margin-bottom:2px;}
+.sbadge .sval{font-size:11px;font-weight:800;}
+
+/* Sezione generica */
+.s-card{background:var(--surface);border-radius:var(--radius-md);border:1.5px solid var(--border);margin-bottom:10px;overflow:hidden;}
+.s-card-title{font-size:11px;font-weight:800;color:var(--primary);text-transform:uppercase;letter-spacing:.5px;padding:10px 14px;background:rgba(0,92,169,.04);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:6px;}
+
+/* ── TABELLA DATI (layout tabellare compatto) ── */
+.data-table{width:100%;border-collapse:collapse;}
+.data-table tr:not(:last-child) td{border-bottom:1px solid var(--border);}
+.data-table td{padding:8px 14px;vertical-align:top;}
+.data-table td.dt-label{font-size:11px;font-weight:700;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.3px;white-space:nowrap;width:38%;background:var(--surface2);}
+.data-table td.dt-value{font-size:13px;font-weight:500;color:var(--text);}
+.data-table td.dt-value a{color:var(--primary);text-decoration:none;font-weight:600;}
+.data-table td.dt-value a:hover{text-decoration:underline;}
+
+/* Addetti */
+.addetti-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:0;}
+.addetto-cell{padding:10px 14px;text-align:center;border-right:1px solid var(--border);}
+.addetto-cell:last-child{border-right:none;}
+.addetto-cell.tot{background:var(--primary);}
+.addetto-lbl{font-size:10px;font-weight:700;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.3px;margin-bottom:3px;}
+.addetto-val{font-size:20px;font-weight:800;color:var(--primary);}
+.addetto-cell.tot .addetto-lbl{color:rgba(255,255,255,.8);}
+.addetto-cell.tot .addetto-val{color:#fff;}
+
+/* Servizi/pillole */
+.servizi-list{padding:10px 14px;}
+.servizio-row{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border);font-size:13px;font-weight:600;color:var(--text);}
+.servizio-row:last-child{border-bottom:none;}
+.servizio-dot{width:6px;height:6px;border-radius:50%;background:var(--primary);flex-shrink:0;}
+
+/* Contratto header */
+.contratto-band{padding:9px 14px;font-size:12px;font-weight:700;color:#fff;background:var(--grad-primary);}
+.contratto-band.serv{background:linear-gradient(135deg,#EA580C,#C2410C);}
+
+/* Mappa */
+.mappa-wrap{padding:12px 14px;}
+.mappa-iframe{width:100%;height:200px;border:1px solid var(--border);border-radius:var(--radius-sm);margin-bottom:8px;}
+.mappa-addr{font-size:12px;color:var(--text-secondary);margin-bottom:5px;}
+.mappa-link{font-size:12px;color:var(--primary);font-weight:700;text-decoration:none;}
+.mappa-link:hover{text-decoration:underline;}
+
+/* Titolare hero strip */
+.titolare-strip{padding:10px 14px;background:rgba(0,92,169,.06);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;}
+.titolare-icon{font-size:16px;}
+.titolare-name{font-size:14px;font-weight:700;color:var(--primary);}
+
+/* Mobile */
+@media(max-width:580px){
+  .search-grid{grid-template-columns:1fr;}
+  .data-table td.dt-label{width:42%;}
+  .header-badge{display:none;}
+  .user-name{display:none;}
+  .scheda-hero-name{font-size:16px;}
+}
+</style>
+</head>
+<body>
+
+<!-- LOADING -->
+<div id="loading-overlay">
+  <div class="spinner"></div>
+  <div class="loading-msg" id="loading-msg">Caricamento…</div>
+</div>
+<div id="toast"></div>
+
+<!-- ═══════════ LOGIN ═══════════ -->
+<div id="login-page">
+  <div class="login-card">
+    <div class="login-logo">
+      <img src="https://raw.githubusercontent.com/alessandroparrelli/fileappoggio/17b50df8f22632eb360e1da944d997289a598012/NUOVO-LOGO-CNA-ROMA-SOLO-ROMA.png" alt="CNA Roma" onerror="this.style.display='none'">
+    </div>
+    <div class="login-title">CRM CNA Roma</div>
+    <div class="login-sub">Consulta le imprese associate</div>
+    <div class="login-error" id="login-error"></div>
+    <div class="form-group">
+      <label>Email</label>
+      <input type="email" class="form-input" id="inp-email" placeholder="email@esempio.com" autocomplete="username">
+    </div>
+    <div class="form-group">
+      <label>Password</label>
+      <input type="password" class="form-input" id="inp-pwd" placeholder="••••••••" autocomplete="current-password">
+    </div>
+    <button class="btn-login" id="btn-login" onclick="doLogin()">Accedi</button>
+    <div class="login-footer">
+      <div style="margin-bottom:3px">CRM CNA Roma v2026.05</div>
+      <div>© 2026 CNA Roma — Confederazione Nazionale dell'Artigianato</div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ APP ═══════════ -->
+<div id="app">
+
+  <!-- HEADER SEARCH/RESULTS -->
+  <header class="app-header" id="hdr-main">
+    <div class="header-left">
+      <img class="logo-img" src="https://raw.githubusercontent.com/alessandroparrelli/fileappoggio/17b50df8f22632eb360e1da944d997289a598012/NUOVO-LOGO-CNA-ROMA-SOLO-ROMA.png" alt="CNA" onerror="this.style.display='none'">
+      <span class="header-title">CRM CNA</span>
+      <span class="header-badge">Archivio Imprese</span>
+    </div>
+    <div class="header-right">
+      <div class="user-chip">
+        <div class="user-avatar" id="chip-avatar">–</div>
+        <span class="user-name" id="chip-name">–</span>
+      </div>
+      <button class="btn-logout" onclick="doLogout()">Esci</button>
+    </div>
+  </header>
+
+  <!-- HEADER SCHEDA (separato, con tasto Indietro) -->
+  <header class="app-header" id="hdr-scheda" style="display:none;">
+    <div class="header-left">
+      <button class="btn-back" onclick="goBack()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+        Indietro
+      </button>
+      <span class="header-title" id="hdr-scheda-title" style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></span>
+    </div>
+    <div class="header-right">
+      <div class="user-chip">
+        <div class="user-avatar" id="chip-avatar2">–</div>
+      </div>
+      <button class="btn-logout" onclick="doLogout()">Esci</button>
+    </div>
+  </header>
+
+  <!-- VIEW: RICERCA -->
+  <div class="view active" id="view-search">
+    <div class="search-wrap">
+      <div class="search-card">
+        <div class="search-card-header">
+          <div class="search-icon">🔍</div>
+          <h2>Cerca Impresa</h2>
+        </div>
+        <div class="search-body">
+          <div class="search-grid">
+            <div>
+              <label class="field-label">Ragione Sociale</label>
+              <input type="text" class="search-input" id="s-rs" placeholder="Es. Rossi SRL">
+            </div>
+            <div>
+              <label class="field-label">Partita IVA</label>
+              <input type="text" class="search-input" id="s-pi" placeholder="Es. 12345678901">
+            </div>
+            <div>
+              <label class="field-label">Nome Titolare</label>
+              <input type="text" class="search-input" id="s-nom" placeholder="Es. Mario">
+            </div>
+            <div>
+              <label class="field-label">Cognome Titolare</label>
+              <input type="text" class="search-input" id="s-cog" placeholder="Es. Rossi">
+            </div>
+            <div>
+              <label class="field-label">Comune</label>
+              <input type="text" class="search-input" id="s-com" placeholder="Es. Roma">
+            </div>
+            <div>
+              <label class="field-label">Codice Fiscale</label>
+              <input type="text" class="search-input" id="s-cf" placeholder="Es. RSSMRA...">
+            </div>
+          </div>
+          <div class="search-actions">
+            <button class="btn-primary" id="btn-cerca" onclick="doSearch()">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+              Cerca
+            </button>
+            <button class="btn-secondary" onclick="resetSearch()">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+              Azzera
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- VIEW: RISULTATI -->
+  <div class="view" id="view-results">
+    <div class="results-wrap">
+      <div class="results-bar">
+        <div id="results-count" class="results-count">0 risultati</div>
+        <button class="btn-nuova-ricerca" onclick="showView('search')">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+          Nuova ricerca
+        </button>
+      </div>
+      <div id="results-list"></div>
+    </div>
+  </div>
+
+  <!-- VIEW: SCHEDA -->
+  <div class="view" id="view-scheda">
+    <div class="scheda-wrap" id="scheda-content"></div>
+  </div>
+
+</div><!-- /app -->
+
+<script>
+/* ══════════════════════════════════════════════════
+   CONFIG
+══════════════════════════════════════════════════ */
+var SB  = 'https://ohahuqlfzqckaevaffbt.supabase.co';
+var KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9oYWh1cWxmenFja2FldmFmZmJ0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQxODI4NzQsImV4cCI6MjA4OTc1ODg3NH0.MG1N3UUIfISDAi_ArFjxN6ZlHJfk5D77vSeE7qZr020';
+var session = null;
+var lastResults = [];
+var prevView = 'search'; // per il tasto "Indietro"
+
+/* ══════════════════════════════════════════════════
+   UTILS
+══════════════════════════════════════════════════ */
+function G(id){ return document.getElementById(id); }
+function showLoad(m){ G('loading-msg').textContent=m||'Caricamento…'; G('loading-overlay').classList.add('active'); }
+function hideLoad(){ G('loading-overlay').classList.remove('active'); }
+function toast(m,t){ var el=G('toast'); el.textContent=m; el.className='show'+(t?' '+t:''); clearTimeout(el._t); el._t=setTimeout(function(){ el.className=''; },3400); }
+function esc(s){ if(s==null||s===undefined||s==='') return ''; return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function H(ex){ return Object.assign({'Content-Type':'application/json','apikey':KEY,'Authorization':'Bearer '+KEY},ex||{}); }
+
+/* Formatta data: accetta ISO (2024-03-15 o 2024-03-15T...) → gg/mm/aaaa */
+function fmtDate(v){
+  if(!v) return '';
+  var s = String(v).trim();
+  // già in formato gg/mm/aaaa
+  if(/^\d{2}\/\d{2}\/\d{4}$/.test(s)) return s;
+  // ISO: aaaa-mm-gg
+  var m = s.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if(m) return m[3]+'/'+m[2]+'/'+m[1];
+  // gg-mm-aaaa
+  var m2 = s.match(/^(\d{2})-(\d{2})-(\d{4})$/);
+  if(m2) return m2[1]+'/'+m2[2]+'/'+m2[3];
+  return s;
+}
+
+async function sha256hex(s){
+  var b = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(s));
+  return Array.from(new Uint8Array(b)).map(function(x){ return x.toString(16).padStart(2,'0'); }).join('');
+}
+
+/* ══════════════════════════════════════════════════
+   SESSION
+══════════════════════════════════════════════════ */
+function saveSession(u){ session=u; sessionStorage.setItem('cna_crm_s',JSON.stringify(u)); }
+function loadSession(){ try{ var s=sessionStorage.getItem('cna_crm_s'); if(s) session=JSON.parse(s); }catch(e){} return session; }
+function clearSession(){ session=null; sessionStorage.removeItem('cna_crm_s'); }
+
+/* ══════════════════════════════════════════════════
+   VIEW MANAGEMENT
+══════════════════════════════════════════════════ */
+function showView(name){
+  // toggle header
+  var isScheda = (name==='scheda');
+  G('hdr-main').style.display   = isScheda ? 'none' : 'flex';
+  G('hdr-scheda').style.display = isScheda ? 'flex'  : 'none';
+  // toggle views
+  ['search','results','scheda'].forEach(function(v){
+    G('view-'+v).classList.toggle('active', v===name);
+  });
+  // scroll top
+  var el = G('view-'+name);
+  if(el) el.scrollTop = 0;
+}
+
+function goBack(){
+  showView(prevView);
+}
+
+/* ══════════════════════════════════════════════════
+   LOGIN / LOGOUT
+══════════════════════════════════════════════════ */
+async function doLogin(){
+  var email=G('inp-email').value.trim().toLowerCase();
+  var pwd=G('inp-pwd').value;
+  var errEl=G('login-error');
+  errEl.style.display='none';
+  if(!email||!pwd){ errEl.textContent='Inserisci email e password'; errEl.style.display='block'; return; }
+  var btn=G('btn-login'); btn.disabled=true; btn.textContent='Accesso in corso…';
+  showLoad('Verifica credenziali…');
+  try {
+    var hash=await sha256hex(pwd);
+    var resp=await fetch(SB+'/functions/v1/cna-login',{method:'POST',headers:{'Content-Type':'application/json','apikey':KEY},body:JSON.stringify({email:email,password_sha256:hash})});
+    var result=await resp.json();
+    if(!resp.ok||!result.user){ errEl.textContent='Email o password non corretti'; errEl.style.display='block'; return; }
+    saveSession(result.user);
+    startApp();
+  } catch(e){ errEl.textContent='Errore di connessione. Riprova.'; errEl.style.display='block'; }
+  finally{ hideLoad(); btn.disabled=false; btn.textContent='Accedi'; }
+}
+function doLogout(){ clearSession(); location.reload(); }
+['inp-email','inp-pwd'].forEach(function(id){ G(id).addEventListener('keydown',function(e){ if(e.key==='Enter') doLogin(); }); });
+
+/* ══════════════════════════════════════════════════
+   START APP
+══════════════════════════════════════════════════ */
+function startApp(){
+  G('login-page').style.display='none';
+  G('app').classList.add('visible');
+  var initials=((session.nome||'').charAt(0)+(session.cognome||'').charAt(0)).toUpperCase()||'–';
+  G('chip-avatar').textContent=initials;
+  G('chip-avatar2').textContent=initials;
+  G('chip-name').textContent=session.nome+' '+session.cognome;
+  showView('search');
+}
+
+/* ══════════════════════════════════════════════════
+   SEARCH
+══════════════════════════════════════════════════ */
+async function doSearch(){
+  var rs=G('s-rs').value.trim(), pi=G('s-pi').value.trim(),
+      nom=G('s-nom').value.trim(), cog=G('s-cog').value.trim(),
+      com=G('s-com').value.trim(), cf=G('s-cf').value.trim();
+  if(!rs&&!pi&&!nom&&!cog&&!com&&!cf){ toast('Inserisci almeno un criterio','error'); return; }
+  showLoad('Ricerca in corso…'); G('btn-cerca').disabled=true;
+  try {
+    var params=['select=*'];
+    if(rs)  params.push('ragionesociale=ilike.*'+encodeURIComponent(rs)+'*');
+    if(pi)  params.push('partitaiva=ilike.*'+encodeURIComponent(pi)+'*');
+    if(nom) params.push('nometitolare=ilike.*'+encodeURIComponent(nom)+'*');
+    if(cog) params.push('cognometitolare=ilike.*'+encodeURIComponent(cog)+'*');
+    if(com) params.push('comune=ilike.*'+encodeURIComponent(com)+'*');
+    if(cf)  params.push('codicefiscale=ilike.*'+encodeURIComponent(cf)+'*');
+    params.push('limit=150','order=ragionesociale.asc');
+    var r=await fetch(SB+'/rest/v1/Anagrafiche?'+params.join('&'),{headers:H()});
+    if(!r.ok) throw new Error('HTTP '+r.status);
+    lastResults=await r.json();
+    renderResults(lastResults);
+    prevView='results';
+    showView('results');
+  } catch(e){ toast('Errore: '+e.message,'error'); }
+  finally{ hideLoad(); G('btn-cerca').disabled=false; }
+}
+
+function resetSearch(){
+  ['s-rs','s-pi','s-nom','s-cog','s-com','s-cf'].forEach(function(id){ G(id).value=''; });
+  showView('search');
+}
+['s-rs','s-pi','s-nom','s-cog','s-com','s-cf'].forEach(function(id){
+  G(id).addEventListener('keydown',function(e){ if(e.key==='Enter') doSearch(); });
+});
+
+/* ══════════════════════════════════════════════════
+   RENDER RESULTS
+══════════════════════════════════════════════════ */
+function renderResults(data){
+  var cnt=G('results-count');
+  cnt.textContent=data.length===0?'0 risultati':(data.length===1?'1 risultato':data.length+' risultati');
+  if(!data.length){
+    G('results-list').innerHTML='<div class="no-results"><div class="no-results-icon">🔍</div><div class="no-results-text">Nessuna impresa trovata</div><div class="no-results-sub">Modifica i criteri di ricerca</div></div>';
+    return;
+  }
+  var html='';
+  data.forEach(function(r,i){
+    var tit=[r.nometitolare,r.cognometitolare].filter(Boolean).join(' ');
+    html+='<div class="result-card" onclick="openScheda('+i+')">'
+      +'<div class="result-main">'
+      +'<div class="result-name">'+esc(r.ragionesociale||'—')+'</div>'
+      +'<div class="result-meta">';
+    if(r.partitaiva) html+='<div class="rmi"><span>P.IVA</span> '+esc(r.partitaiva)+'</div>';
+    if(tit)          html+='<div class="rmi"><span>Titolare</span> '+esc(tit)+'</div>';
+    if(r.comune)     html+='<div class="rmi">📍 '+esc(r.comune)+(r.provincia?' ('+esc(r.provincia)+')':'')+'</div>';
+    html+='</div></div><div class="result-arrow">›</div></div>';
+  });
+  G('results-list').innerHTML=html;
+}
+
+/* ══════════════════════════════════════════════════
+   SCHEDA — pagina intera
+══════════════════════════════════════════════════ */
+function traduciStato(c){ var m={'0':{t:'ATTIVA',col:'#10B981'},'1':{t:'IN LIQUIDAZIONE',col:'#F59E0B'},'2':{t:'FALLITA',col:'#EF4444'},'3':{t:'SOSPESA',col:'#F59E0B'},'4':{t:'INATTIVA',col:'#9CA3AF'},'5':{t:'CESSATA',col:'#EF4444'}}; return m[String(c)]||{t:'SCONOSCIUTO',col:'#6B7280'}; }
+function traduciTipo(c){ var m={'A':{t:'Artigiano',bg:'#EF4444',tc:'white'},'C':{t:'Commerciante',bg:'#FBBF24',tc:'black'}}; return m[c]||{t:'Varie',bg:'#F97316',tc:'black'}; }
+
+/* Riga tabella compatta */
+function tr(label, value, type){
+  if(!value && value!==0) return '';
+  var val='';
+  if(type==='tel')   val='<a href="tel:'+esc(value)+'">📞 '+esc(value)+'</a>';
+  else if(type==='email') val='<a href="mailto:'+esc(value)+'">📧 '+esc(value)+'</a>';
+  else if(type==='maps'){
+    val='<a href="'+esc(value)+'" target="_blank">Apri in Google Maps →</a>';
+  }
+  else val=esc(value);
+  return '<tr><td class="dt-label">'+esc(label)+'</td><td class="dt-value">'+val+'</td></tr>';
+}
+
+async function openScheda(idx){
+  var ana=lastResults[idx];
+  if(!ana) return;
+  showLoad('Caricamento scheda…');
+  try {
+    var [dirRes,cciaaRes,csRes]=await Promise.all([
+      fetch(SB+'/rest/v1/diretti?codiceanagrafica=eq.'+encodeURIComponent(ana.codiceanagrafica),{headers:H()}),
+      fetch(SB+'/rest/v1/cciaa?partita_iva=eq.'+encodeURIComponent(ana.partitaiva||''),{headers:H()}),
+      fetch(SB+'/rest/v1/contrattiservizio?codicecliente=eq.'+encodeURIComponent(ana.codiceanagrafica)+'&datadisdetta=is.null&order=datastipulacontratto.desc',{headers:H()})
+    ]);
+    var diretti=dirRes.ok?await dirRes.json():[];
+    var cciaaArr=cciaaRes.ok?await cciaaRes.json():[];
+    var contratti=csRes.ok?await csRes.json():[];
+    var cciaa=cciaaArr[0]||null;
+
+    var serviziSet=[];
+    diretti.forEach(function(d){ var s=(d.servizio||'').trim(); if(s&&s!=='NON ASSOCIABILE'&&s!=="CONTABILITA'"&&serviziSet.indexOf(s)===-1) serviziSet.push(s); });
+
+    var html='';
+
+    /* ── HERO ── */
+    html+='<div class="scheda-hero">'
+      +'<div class="scheda-hero-left">'
+      +'<img class="scheda-hero-logo" src="https://customer31551.img.musvc2.net/static/31551/images/1/CNARoma%20NEGATIVO%20COLORE%20SOLO%20ROMA.png" alt="CNA">'
+      +'<div class="scheda-hero-name">'+esc(ana.ragionesociale||'—')+'</div>';
+    var tit=[ana.nometitolare,ana.cognometitolare].filter(Boolean).join(' ');
+    if(tit) html+='<div class="scheda-hero-sub">Titolare: '+esc(tit)+'</div>';
+    html+='</div>';
+
+    // Badges
+    html+='<div class="scheda-badges">';
+    if(cciaa&&cciaa.stato_attivita!==null&&cciaa.stato_attivita!==undefined){
+      var st=traduciStato(cciaa.stato_attivita);
+      html+='<div class="sbadge" style="background:'+st.col+'"><div class="slbl" style="color:white">Stato</div><div class="sval" style="color:white">'+st.t+'</div></div>';
+    }
+    if(cciaa&&cciaa.art_com_tur){
+      var ti=traduciTipo(cciaa.art_com_tur);
+      html+='<div class="sbadge" style="background:'+ti.bg+'"><div class="slbl" style="color:'+ti.tc+'">Tipo</div><div class="sval" style="color:'+ti.tc+'">'+ti.t+'</div></div>';
+    }
+    html+='</div></div>';
+
+    /* ── DATI ANAGRAFICI ── */
+    html+='<div class="s-card">'
+      +'<div class="s-card-title">📋 Dati Anagrafici</div>'
+      +'<table class="data-table">'
+      +tr('Codice', ana.codiceanagrafica)
+      +tr('Partita IVA', ana.partitaiva)
+      +tr('Codice Fiscale', ana.codicefiscale)
+      +tr('Indirizzo', ana.indirizzo)
+      +tr('CAP', ana.cap)
+      +tr('Comune', ana.comune)
+      +tr('Provincia', ana.provincia)
+      +tr('Data Nascita', fmtDate(ana.datanascita))
+      +tr('Luogo Nascita', ana.luogonascita)
+      +tr('Email', ana.email, 'email')
+      +tr('Telefono', ana.telefono, 'tel')
+      +tr('Cellulare', ana.cellulare, 'tel')
+      +'</table></div>';
+
+    /* ── ADDETTI ── */
+    if(cciaa&&(cciaa.num_addetti_sub||cciaa.num_addetti_fam_ul)){
+      var addSub=parseInt(cciaa.num_addetti_sub)||0;
+      var addFam=parseInt(cciaa.num_addetti_fam_ul)||0;
+      html+='<div class="s-card">'
+        +'<div class="s-card-title">👥 Addetti e Dipendenti</div>'
+        +'<div class="addetti-row">'
+        +'<div class="addetto-cell"><div class="addetto-lbl">Subordinati</div><div class="addetto-val">'+addSub+'</div></div>'
+        +'<div class="addetto-cell"><div class="addetto-lbl">Familiari</div><div class="addetto-val">'+addFam+'</div></div>'
+        +'<div class="addetto-cell tot"><div class="addetto-lbl">Totale</div><div class="addetto-val">'+(addSub+addFam)+'</div></div>'
+        +'</div></div>';
+    }
+
+    /* ── STATO ASSOCIATIVO ── */
+    html+='<div class="s-card"><div class="s-card-title">🤝 Stato Associativo</div>';
+    if(serviziSet.length){
+      html+='<div class="servizi-list">';
+      serviziSet.forEach(function(s){ html+='<div class="servizio-row"><div class="servizio-dot"></div>'+esc(s)+'</div>'; });
+      html+='</div>';
+    } else {
+      html+='<div style="padding:10px 14px;font-size:13px;color:var(--text-secondary)">Nessun servizio associato</div>';
+    }
+    html+='</div>';
+
+    /* ── CATEGORIA PROFESSIONALE ── */
+    var hasMest=ana.codiceateco||ana.unione||ana.settore||ana.mestiere;
+    if(hasMest){
+      html+='<div class="s-card"><div class="s-card-title">🏢 Categoria Professionale</div>'
+        +'<table class="data-table">'
+        +tr('Codice Ateco', ana.codiceateco)
+        +tr('Unione', ana.unione)
+        +tr('Settore', ana.settore)
+        +tr('Mestiere', ana.mestiere)
+        +'</table></div>';
+    }
+
+    /* ── DATI CONTRATTO (diretti) ── */
+    if(diretti&&diretti.length){
+      html+='<div class="s-card"><div class="s-card-title">📝 Dati Contratto'+(diretti.length>1?' ('+diretti.length+')':'')+'</div>';
+      diretti.forEach(function(d,i){
+        html+='<div class="contratto-band">'+esc(d.servizio||'Contratto '+(i+1))+'</div>'
+          +'<table class="data-table">'
+          +tr('Data Stipula', fmtDate(d.datastipula))
+          +tr('Importo', d.importo)
+          +tr('Raggruppamento', d.raggruppamento)
+          +tr('Zona', d.zonacliente)
+          +tr('Sede Erogazione', d.sedeerogazione)
+          +tr('A Cura Di', d.acuradi)
+          +'</table>';
+      });
+      html+='</div>';
+    }
+
+    /* ── CONTRATTI SERVIZIO ATTIVI ── */
+    if(contratti&&contratti.length){
+      html+='<div class="s-card"><div class="s-card-title">📋 Contratti Servizio Attivi'+(contratti.length>1?' ('+contratti.length+')':'')+'</div>';
+      contratti.forEach(function(c,i){
+        html+='<div class="contratto-band serv">'+esc(c.tipocontratto||'Contratto Servizio '+(i+1))+'</div>'
+          +'<table class="data-table">'
+          +tr('Data Stipula', fmtDate(c.datastipulacontratto))
+          +tr('Consulente', c.nomeconsulente)
+          +tr('Raggruppamento', c.raggruppamento)
+          +tr('Sede Erogazione', c.sedeerogazione)
+          +'</table>';
+      });
+      html+='</div>';
+    }
+
+    /* ── MAPPA ── */
+    if(ana.indirizzo||ana.comune){
+      var addr=[ana.indirizzo,ana.cap,ana.comune,ana.provincia?'('+ana.provincia+')':''].filter(Boolean).join(' ');
+      var mapUrl='https://maps.google.com/maps?q='+encodeURIComponent(addr);
+      html+='<div class="s-card"><div class="s-card-title">📍 Localizzazione</div>'
+        +'<div class="mappa-wrap">'
+        +'<iframe class="mappa-iframe" src="https://maps.google.com/maps?q='+encodeURIComponent(addr)+'&z=15&output=embed" loading="lazy" allowfullscreen></iframe>'
+        +'<div class="mappa-addr">'+esc(addr)+'</div>'
+        +'<a class="mappa-link" href="'+mapUrl+'" target="_blank">Apri in Google Maps →</a>'
+        +'</div></div>';
+    }
+
+    /* Render */
+    G('scheda-content').innerHTML=html;
+    G('hdr-scheda-title').textContent=ana.ragionesociale||'—';
+    prevView='results';
+    showView('scheda');
+
+  } catch(e){ console.error(e); toast('Errore caricamento scheda','error'); }
+  finally{ hideLoad(); }
+}
+
+/* ══════════════════════════════════════════════════
+   INIT
+══════════════════════════════════════════════════ */
+(function(){ loadSession(); if(session) startApp(); })();
+</script>
+</body>
+</html>
