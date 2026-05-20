@@ -97,7 +97,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
    tre viste: #view-search, #view-results, #view-scheda
    si mostrano/nascondono via .active
 ══════════════════════════════════════════════════ */
-#app{display:none;min-height:100vh;flex-direction:column;}
+#app{display:none;min-height:100vh;flex-direction:column;padding-bottom:57px;}
 #app.visible{display:flex;}
 
 /* HEADER */
@@ -295,7 +295,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 }
 
 /* ── FOOTER APP ───────────────────────────────── */
-#app-footer{display:none;width:100%;background:#fff;border-top:1.5px solid #DBEAFE;flex-shrink:0;}
+#app-footer{display:none;position:fixed;bottom:0;left:0;right:0;width:100%;background:#fff;border-top:1.5px solid #DBEAFE;z-index:150;}
 .app-footer-inner{display:flex;align-items:center;justify-content:space-between;padding:12px 28px;gap:16px;}
 .app-footer-left{display:flex;align-items:center;gap:14px;}
 .app-footer-logo{height:32px;width:auto;object-fit:contain;flex-shrink:0;}
