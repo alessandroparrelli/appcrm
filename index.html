@@ -751,13 +751,13 @@ async function openScheda(idx){
     var cciaa=cciaaArr[0]||null;
     var atecoArr=atecoRes&&atecoRes.ok?await atecoRes.json():[];
     var ateco=atecoArr[0]||null;
-    // Arricchisci ana con i dati da codiciateco
+    // Arricchisci ana con i dati da codiciateco (codiciateco ha precedenza su Anagrafiche)
     if(ateco){
-      ana.unione   = ana.unione   || ateco.unione;
-      ana.settore  = ana.settore  || ateco.settore;
-      ana.mestiere = ana.mestiere || ateco.mestiere;
-      ana['Ateco 2007'] = ateco['Ateco 2007'] || ateco.ateco2007 || ateco.descrizione2007 || null;
-      ana['Ateco 2025'] = ateco['Ateco 2025'] || ateco.ateco2025 || ateco.descrizione2025 || null;
+      ana.unione         = ateco.unione   || ana.unione   || null;
+      ana.settore        = ateco.settore  || ana.settore  || null;
+      ana.mestiere       = ateco.mestiere || ana.mestiere || null;  // codiciateco ha precedenza
+      ana['Ateco 2007']  = ateco['Ateco 2007']  || ateco.ateco2007  || ateco.descrizione2007  || null;
+      ana['Ateco 2025']  = ateco['Ateco 2025']  || ateco.ateco2025  || ateco.descrizione2025  || null;
       ana.codicemestiere = ateco.codicemestiere || null;
     }
 
