@@ -738,15 +738,28 @@ async function openScheda(idx){
   if(!ana) return;
   showLoad('Caricamento scheda…');
   try {
-    var [dirRes,cciaaRes,csRes]=await Promise.all([
+    var codAteco = String(ana.codiceateco||'').trim();
+    var [dirRes,cciaaRes,csRes,atecoRes]=await Promise.all([
       fetch(SB+'/rest/v1/diretti?codiceanagrafica=eq.'+encodeURIComponent(ana.codiceanagrafica),{headers:H()}),
       fetch(SB+'/rest/v1/cciaa?partita_iva=eq.'+encodeURIComponent(ana.partitaiva||''),{headers:H()}),
-      fetch(SB+'/rest/v1/contrattiservizio?codicecliente=eq.'+encodeURIComponent(ana.codiceanagrafica)+'&datadisdetta=is.null&order=datastipulacontratto.desc',{headers:H()})
+      fetch(SB+'/rest/v1/contrattiservizio?codicecliente=eq.'+encodeURIComponent(ana.codiceanagrafica)+'&datadisdetta=is.null&order=datastipulacontratto.desc',{headers:H()}),
+      codAteco ? fetch(SB+'/rest/v1/codiciateco?codiceateco=eq.'+encodeURIComponent(codAteco),{headers:H()}) : Promise.resolve(null)
     ]);
     var diretti=dirRes.ok?await dirRes.json():[];
     var cciaaArr=cciaaRes.ok?await cciaaRes.json():[];
     var contratti=csRes.ok?await csRes.json():[];
     var cciaa=cciaaArr[0]||null;
+    var atecoArr=atecoRes&&atecoRes.ok?await atecoRes.json():[];
+    var ateco=atecoArr[0]||null;
+    // Arricchisci ana con i dati da codiciateco
+    if(ateco){
+      ana.unione   = ana.unione   || ateco.unione;
+      ana.settore  = ana.settore  || ateco.settore;
+      ana.mestiere = ana.mestiere || ateco.mestiere;
+      ana['Ateco 2007'] = ateco['Ateco 2007'] || ateco.ateco2007 || ateco.descrizione2007 || null;
+      ana['Ateco 2025'] = ateco['Ateco 2025'] || ateco.ateco2025 || ateco.descrizione2025 || null;
+      ana.codicemestiere = ateco.codicemestiere || null;
+    }
 
     var serviziSet=[];
     diretti.forEach(function(d){ var s=(d.servizio||'').trim(); if(s&&s!=='NON ASSOCIABILE'&&s!=="CONTABILITA'"&&serviziSet.indexOf(s)===-1) serviziSet.push(s); });
@@ -817,14 +830,17 @@ async function openScheda(idx){
     html+='</div>';
 
     /* ── CATEGORIA PROFESSIONALE ── */
-    var hasMest=ana.codiceateco||ana.unione||ana.settore||ana.mestiere;
+    var hasMest=ana.codiceateco||ana.unione||ana.settore||ana.mestiere||ana.codicemestiere;
     if(hasMest){
       html+='<div class="s-card"><div class="s-card-title">🏢 Categoria Professionale</div>'
         +'<table class="data-table">'
         +tr('Codice Ateco', ana.codiceateco)
+        +tr('Ateco 2025', ana['Ateco 2025'])
+        +tr('Ateco 2007', ana['Ateco 2007'])
+        +tr('Mestiere', ana.mestiere)
+        +tr('Codice Mestiere', ana.codicemestiere)
         +tr('Unione', ana.unione)
         +tr('Settore', ana.settore)
-        +tr('Mestiere', ana.mestiere)
         +'</table></div>';
     }
 
