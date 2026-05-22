@@ -741,12 +741,28 @@ async function openScheda(idx){
     var codAteco = String(ana.codiceateco||'').trim();
     var [dirRes,cciaaRes,csRes,atecoRes]=await Promise.all([
       fetch(SB+'/rest/v1/diretti?codiceanagrafica=eq.'+encodeURIComponent(ana.codiceanagrafica),{headers:H()}),
-      fetch(SB+'/rest/v1/cciaa?partita_iva=eq.'+encodeURIComponent(ana.partitaiva||''),{headers:H()}),
+      (async function fetchCciaa(){
+        // 1° tentativo: match per partita_iva
+        var r1=await fetch(SB+'/rest/v1/cciaa?partita_iva=eq.'+encodeURIComponent((ana.partitaiva||'').trim()),{headers:H()});
+        if(r1.ok){
+          var d1=await r1.json();
+          if(d1&&d1.length>0) return {ok:true,_data:d1};
+        }
+        // 2° tentativo: fallback per codice_fiscale
+        if(ana.codicefiscale){
+          var r2=await fetch(SB+'/rest/v1/cciaa?codice_fiscale=eq.'+encodeURIComponent(ana.codicefiscale.trim()),{headers:H()});
+          if(r2.ok){
+            var d2=await r2.json();
+            if(d2&&d2.length>0) return {ok:true,_data:d2};
+          }
+        }
+        return {ok:true,_data:[]};
+      })(),
       fetch(SB+'/rest/v1/contrattiservizio?codicecliente=eq.'+encodeURIComponent(ana.codiceanagrafica)+'&datadisdetta=is.null&order=datastipulacontratto.desc',{headers:H()}),
       codAteco ? fetch(SB+'/rest/v1/codiciateco?codiceateco=eq.'+encodeURIComponent(codAteco),{headers:H()}) : Promise.resolve(null)
     ]);
     var diretti=dirRes.ok?await dirRes.json():[];
-    var cciaaArr=cciaaRes.ok?await cciaaRes.json():[];
+    var cciaaArr=cciaaRes&&cciaaRes._data?cciaaRes._data:(cciaaRes&&cciaaRes.ok?await cciaaRes.json():[]);
     var contratti=csRes.ok?await csRes.json():[];
     var cciaa=cciaaArr[0]||null;
     var atecoArr=atecoRes&&atecoRes.ok?await atecoRes.json():[];
