@@ -801,6 +801,9 @@ async function openScheda(idx){
       var ti=traduciTipo(cciaa.art_com_tur);
       html+='<div class="sbadge" style="background:'+ti.bg+'"><div class="slbl" style="color:'+ti.tc+'">Tipo</div><div class="sval" style="color:'+ti.tc+'">'+ti.t+'</div></div>';
     }
+    if(!cciaa){
+      html+='<div class="sbadge" style="background:#64748B"><div class="slbl" style="color:rgba(255,255,255,.8)">CCIAA</div><div class="sval" style="color:white">Non iscritta</div></div>';
+    }
     html+='</div></div>';
 
     /* ── DATI ANAGRAFICI ── */
