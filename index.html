@@ -583,6 +583,37 @@ function showLoad(m){ G('loading-msg').textContent=m||'Caricamento…'; G('loadi
 function hideLoad(){ G('loading-overlay').classList.remove('active'); }
 function toast(m,t){ var el=G('toast'); el.textContent=m; el.className='show'+(t?' '+t:''); clearTimeout(el._t); el._t=setTimeout(function(){ el.className=''; },3400); }
 function esc(s){ if(s==null||s===undefined||s==='') return ''; return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+/* ── NORMALIZZAZIONE ── */
+function norm(s){
+  if(!s) return '';
+  var t = String(s).trim();
+  // rimuovi prefisso numerico: "20 - AREA TIBURTINO" → "Area Tiburtino"
+  t = t.replace(/^\d+\s*[-\u2013]\s*/,'');
+  return t.toLowerCase().replace(/(?:^|\s)\S/g,function(c){return c.toUpperCase();});
+}
+function normName(s){
+  // "PARRELLI, ALESSANDRO" → "Alessandro Parrelli"
+  if(!s) return '';
+  var t = String(s).trim();
+  if(t.indexOf(',')!==-1){
+    var p=t.split(',');
+    var cog=(p[0]||'').trim().toLowerCase().replace(/(?:^|\s)\S/g,function(c){return c.toUpperCase();});
+    var nom=(p[1]||'').trim().toLowerCase().replace(/(?:^|\s)\S/g,function(c){return c.toUpperCase();});
+    return (nom+' '+cog).trim();
+  }
+  return norm(t);
+}
+function normDoc(s){
+  // estrae e normalizza la descrizione di un documento di pagamento
+  if(!s) return '';
+  var t = String(s).replace(/\s+/g,' ').trim();
+  // Cerca "Rata N tesseramento AAAA" o "Rata I/II tesseramento AAAA"
+  var m = t.match(/([Rr]ata\s+[IVXivx\d]+\s+[Tt]esseramento\s*\d{0,4})/i)
+        || t.match(/([Rr]ata\s+\d*\s*[Tt]esseramento\s*\d{0,4})/i);
+  var desc = m ? m[0] : t.substring(0,55)+(t.length>55?'\u2026':'');
+  return desc.trim().toLowerCase().replace(/(?:^|\s)\S/g,function(c){return c.toUpperCase();});
+}
 function H(ex){ return Object.assign({'Content-Type':'application/json','apikey':KEY,'Authorization':'Bearer '+KEY},ex||{}); }
 
 /* Formatta data: accetta ISO (2024-03-15 o 2024-03-15T...) → gg/mm/aaaa */
@@ -708,7 +739,7 @@ function renderResults(data){
       +'<div class="result-meta">';
     if(r.partitaiva) html+='<div class="rmi"><span>P.IVA</span> '+esc(r.partitaiva)+'</div>';
     if(tit)          html+='<div class="rmi"><span>Titolare</span> '+esc(tit)+'</div>';
-    if(r.comune)     html+='<div class="rmi">📍 '+esc(r.comune)+(r.provincia?' ('+esc(r.provincia)+')':'')+'</div>';
+    if(r.comune)     html+='<div class="rmi">📍 '+esc(norm(r.comune))+(r.provincia?' ('+esc(r.provincia)+')':'')+'</div>';
     html+='</div></div><div class="result-arrow">›</div></div>';
   });
   G('results-list').innerHTML=html;
@@ -817,7 +848,7 @@ async function openScheda(idx){
       +tr('Codice Fiscale', ana.codicefiscale)
       +tr('Indirizzo', ana.indirizzo)
       +tr('CAP', ana.cap)
-      +tr('Comune', ana.comune)
+      +tr('Comune', norm(ana.comune))
       +tr('Provincia', ana.provincia)
       +tr('Data Nascita', fmtDate(ana.datanascita))
       +tr('Luogo Nascita', ana.luogonascita)
@@ -843,7 +874,7 @@ async function openScheda(idx){
     html+='<div class="s-card"><div class="s-card-title">🤝 Stato Associativo</div>';
     if(serviziSet.length){
       html+='<div class="servizi-list">';
-      serviziSet.forEach(function(s){ html+='<div class="servizio-row"><div class="servizio-dot"></div>'+esc(s)+'</div>'; });
+      serviziSet.forEach(function(s){ html+='<div class="servizio-row"><div class="servizio-dot"></div>'+esc(norm(s))+'</div>'; });
       html+='</div>';
     } else {
       html+='<div style="padding:10px 14px;font-size:13px;color:var(--text-secondary)">Nessun servizio associato</div>';
@@ -858,10 +889,10 @@ async function openScheda(idx){
         +tr('Codice Ateco', ana.codiceateco)
         +tr('Ateco 2025', ana['Ateco 2025'])
         +tr('Ateco 2007', ana['Ateco 2007'])
-        +tr('Mestiere', ana.mestiere)
+        +tr('Mestiere', norm(ana.mestiere))
         +tr('Codice Mestiere', ana.codicemestiere)
-        +tr('Unione', ana.unione)
-        +tr('Settore', ana.settore)
+        +tr('Unione', norm(ana.unione))
+        +tr('Settore', norm(ana.settore))
         +'</table></div>';
     }
 
@@ -869,14 +900,14 @@ async function openScheda(idx){
     if(diretti&&diretti.length){
       html+='<div class="s-card"><div class="s-card-title">📝 Dati Contratto'+(diretti.length>1?' ('+diretti.length+')':'')+'</div>';
       diretti.forEach(function(d,i){
-        html+='<div class="contratto-band">'+esc(d.servizio||'Contratto '+(i+1))+'</div>'
+        html+='<div class="contratto-band">'+esc(norm(d.servizio)||('Contratto '+(i+1)))+'</div>'
           +'<table class="data-table">'
           +tr('Data Stipula', fmtDate(d.datastipula))
           +tr('Importo', d.importo)
-          +tr('Raggruppamento', d.raggruppamento)
-          +tr('Zona', d.zonacliente)
-          +tr('Sede Erogazione', d.sedeerogazione)
-          +tr('A Cura Di', d.acuradi)
+          +tr('Raggruppamento', normName(d.raggruppamento))
+          +tr('Zona', norm(d.zonacliente))
+          +tr('Sede Erogazione', norm(d.sedeerogazione))
+          +tr('A Cura Di', normName(d.acuradi))
           +'</table>';
       });
       html+='</div>';
@@ -886,20 +917,20 @@ async function openScheda(idx){
     if(contratti&&contratti.length){
       html+='<div class="s-card"><div class="s-card-title">📋 Contratti Servizio Attivi'+(contratti.length>1?' ('+contratti.length+')':'')+'</div>';
       contratti.forEach(function(c,i){
-        html+='<div class="contratto-band serv">'+esc(c.tipocontratto||'Contratto Servizio '+(i+1))+'</div>'
+        html+='<div class="contratto-band serv">'+esc(norm(c.tipocontratto)||('Contratto Servizio '+(i+1)))+'</div>'
           +'<table class="data-table">'
           +tr('Data Stipula', fmtDate(c.datastipulacontratto))
-          +tr('Consulente', c.nomeconsulente)
-          +tr('Raggruppamento', c.raggruppamento)
-          +tr('Sede Erogazione', c.sedeerogazione)
+          +tr('Consulente', normName(c.nomeconsulente))
+          +tr('Raggruppamento', normName(c.raggruppamento))
+          +tr('Sede Erogazione', norm(c.sedeerogazione))
           +'</table>';
       });
       html+='</div>';
     }
 
+
     /* ── PAGAMENTI ── */
     if(incassi&&incassi.length){
-      // Raggruppa per anno
       var byAnno={};
       incassi.forEach(function(p){
         var y=p.anno||new Date(p.data_pagamento).getFullYear()||'—';
@@ -911,24 +942,22 @@ async function openScheda(idx){
       anni.forEach(function(anno){
         var pags=byAnno[anno];
         var totAnno=pags.reduce(function(s,p){return s+(parseFloat(p.avere)||0);},0);
-        html+='<div class="contratto-band" style="display:flex;justify-content:space-between;align-items:center;">'
-          +'<span>Anno '+esc(String(anno))+'</span>'
-          +'<span style="font-size:12px;font-weight:700;opacity:.85;">Totale: €'+totAnno.toFixed(2).replace('.',',')+'</span>'
+        html+='<div class="contratto-band" style="display:flex;justify-content:space-between;align-items:center;background:linear-gradient(135deg,#1d4ed8,#1e40af);">'
+          +'<span>📅 Anno '+esc(String(anno))+'</span>'
+          +'<span style="font-size:12px;font-weight:700;background:rgba(255,255,255,.18);padding:2px 8px;border-radius:20px;">€'+totAnno.toFixed(2).replace('.',',')+'</span>'
           +'</div>'
           +'<table class="data-table">'
-          +'<tr><th style="font-weight:700;color:var(--text-secondary);font-size:11px;padding:6px 12px;">Data</th>'
+          +'<tr>'
+          +'<th style="font-weight:700;color:var(--text-secondary);font-size:11px;padding:6px 12px;">Data</th>'
           +'<th style="font-weight:700;color:var(--text-secondary);font-size:11px;padding:6px 12px;">Importo</th>'
-          +'<th style="font-weight:700;color:var(--text-secondary);font-size:11px;padding:6px 12px;">Documento</th></tr>';
+          +'<th style="font-weight:700;color:var(--text-secondary);font-size:11px;padding:6px 12px;">Descrizione</th>'
+          +'</tr>';
         pags.forEach(function(p){
           var importo=parseFloat(p.avere)||0;
-          var doc=(p.documento||'').replace(/\s+/g,' ').trim();
-          // Estrai solo la parte descrittiva (dopo il numero protocollo)
-          var match=doc.match(/Rata?\s+\d*\s*tesseramento/i)||doc.match(/RATA\s+[IVX]+\s+TESSERAMENTO/i);
-          var docShort=match?match[0]:doc.substring(0,40)+(doc.length>40?'…':'');
           html+='<tr>'
             +'<td style="padding:7px 12px;font-size:13px;color:var(--text-primary);">'+esc(fmtDate(p.data_pagamento))+'</td>'
-            +'<td style="padding:7px 12px;font-size:13px;font-weight:700;color:#16a34a;">€'+importo.toFixed(2).replace('.',',')+'</td>'
-            +'<td style="padding:7px 12px;font-size:12px;color:var(--text-secondary);">'+esc(docShort)+'</td>'
+            +'<td style="padding:7px 12px;font-size:13px;font-weight:700;color:#16a34a;white-space:nowrap;">€'+importo.toFixed(2).replace('.',',')+'</td>'
+            +'<td style="padding:7px 12px;font-size:12px;color:var(--text-secondary);">'+esc(normDoc(p.documento))+'</td>'
             +'</tr>';
         });
         html+='</table>';
