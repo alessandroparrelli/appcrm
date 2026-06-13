@@ -739,7 +739,7 @@ async function openScheda(idx){
   showLoad('Caricamento scheda…');
   try {
     var codAteco = String(ana.codiceateco||'').trim();
-    var [dirRes,cciaaRes,csRes,atecoRes]=await Promise.all([
+    var [dirRes,cciaaRes,csRes,atecoRes,incassiRes]=await Promise.all([
       fetch(SB+'/rest/v1/diretti?codiceanagrafica=eq.'+encodeURIComponent(ana.codiceanagrafica),{headers:H()}),
       (async function fetchCciaa(){
         // 1° tentativo: match per partita_iva
@@ -759,7 +759,8 @@ async function openScheda(idx){
         return {ok:true,_data:[]};
       })(),
       fetch(SB+'/rest/v1/contrattiservizio?codicecliente=eq.'+encodeURIComponent(ana.codiceanagrafica)+'&datadisdetta=is.null&order=datastipulacontratto.desc',{headers:H()}),
-      codAteco ? fetch(SB+'/rest/v1/codiciateco?codiceateco=eq.'+encodeURIComponent(codAteco),{headers:H()}) : Promise.resolve(null)
+      codAteco ? fetch(SB+'/rest/v1/codiciateco?codiceateco=eq.'+encodeURIComponent(codAteco),{headers:H()}) : Promise.resolve(null),
+      fetch(SB+'/rest/v1/incassi?codice_cliente=eq.'+encodeURIComponent(ana.codiceanagrafica)+'&order=data_pagamento.desc',{headers:H()})
     ]);
     var diretti=dirRes.ok?await dirRes.json():[];
     var cciaaArr=cciaaRes&&cciaaRes._data?cciaaRes._data:(cciaaRes&&cciaaRes.ok?await cciaaRes.json():[]);
@@ -767,6 +768,7 @@ async function openScheda(idx){
     var cciaa=cciaaArr[0]||null;
     var atecoArr=atecoRes&&atecoRes.ok?await atecoRes.json():[];
     var ateco=atecoArr[0]||null;
+    var incassi=incassiRes&&incassiRes.ok?await incassiRes.json():[];
     // Arricchisci ana con i dati da codiciateco (codiciateco ha precedenza su Anagrafiche)
     if(ateco){
       ana.unione         = ateco.unione   || ana.unione   || null;
@@ -891,6 +893,45 @@ async function openScheda(idx){
           +tr('Raggruppamento', c.raggruppamento)
           +tr('Sede Erogazione', c.sedeerogazione)
           +'</table>';
+      });
+      html+='</div>';
+    }
+
+    /* ── PAGAMENTI ── */
+    if(incassi&&incassi.length){
+      // Raggruppa per anno
+      var byAnno={};
+      incassi.forEach(function(p){
+        var y=p.anno||new Date(p.data_pagamento).getFullYear()||'—';
+        if(!byAnno[y]) byAnno[y]=[];
+        byAnno[y].push(p);
+      });
+      var anni=Object.keys(byAnno).sort(function(a,b){return b-a;});
+      html+='<div class="s-card"><div class="s-card-title">💳 Pagamenti ('+incassi.length+')</div>';
+      anni.forEach(function(anno){
+        var pags=byAnno[anno];
+        var totAnno=pags.reduce(function(s,p){return s+(parseFloat(p.avere)||0);},0);
+        html+='<div class="contratto-band" style="display:flex;justify-content:space-between;align-items:center;">'
+          +'<span>Anno '+esc(String(anno))+'</span>'
+          +'<span style="font-size:12px;font-weight:700;opacity:.85;">Totale: €'+totAnno.toFixed(2).replace('.',',')+'</span>'
+          +'</div>'
+          +'<table class="data-table">'
+          +'<tr><th style="font-weight:700;color:var(--text-secondary);font-size:11px;padding:6px 12px;">Data</th>'
+          +'<th style="font-weight:700;color:var(--text-secondary);font-size:11px;padding:6px 12px;">Importo</th>'
+          +'<th style="font-weight:700;color:var(--text-secondary);font-size:11px;padding:6px 12px;">Documento</th></tr>';
+        pags.forEach(function(p){
+          var importo=parseFloat(p.avere)||0;
+          var doc=(p.documento||'').replace(/\s+/g,' ').trim();
+          // Estrai solo la parte descrittiva (dopo il numero protocollo)
+          var match=doc.match(/Rata?\s+\d*\s*tesseramento/i)||doc.match(/RATA\s+[IVX]+\s+TESSERAMENTO/i);
+          var docShort=match?match[0]:doc.substring(0,40)+(doc.length>40?'…':'');
+          html+='<tr>'
+            +'<td style="padding:7px 12px;font-size:13px;color:var(--text-primary);">'+esc(fmtDate(p.data_pagamento))+'</td>'
+            +'<td style="padding:7px 12px;font-size:13px;font-weight:700;color:#16a34a;">€'+importo.toFixed(2).replace('.',',')+'</td>'
+            +'<td style="padding:7px 12px;font-size:12px;color:var(--text-secondary);">'+esc(docShort)+'</td>'
+            +'</tr>';
+        });
+        html+='</table>';
       });
       html+='</div>';
     }
