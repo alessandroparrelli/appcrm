@@ -469,6 +469,45 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 
 /* ── ASSEGNA COMPACT ────────────────────────────── */
 .wiz-user-list{display:flex;flex-direction:column;gap:5px;max-height:200px;overflow-y:auto;margin-bottom:12px;}
+
+/* ── ADMIN TAB ──────────────────────────────────── */
+#view-admin{overflow-y:auto;background:var(--bg);}
+.admin-wrap{padding:16px;max-width:1000px;width:100%;margin:0 auto;padding-bottom:40px;}
+.admin-kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:18px;}
+.admin-kpi{background:var(--surface);border-radius:var(--radius-md);border:1.5px solid var(--border);padding:14px 12px;text-align:center;}
+.admin-kpi-val{font-size:26px;font-weight:800;margin-bottom:3px;}
+.admin-kpi-lbl{font-size:10px;font-weight:700;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.4px;}
+.admin-section{background:var(--surface);border-radius:var(--radius-md);border:1.5px solid var(--border);margin-bottom:14px;overflow:hidden;}
+.admin-section-hdr{display:flex;align-items:center;justify-content:space-between;padding:11px 16px;border-bottom:1px solid var(--border);background:rgba(0,92,169,.03);}
+.admin-section-title{font-size:11px;font-weight:800;color:var(--primary);text-transform:uppercase;letter-spacing:.5px;}
+.admin-table{width:100%;border-collapse:collapse;font-size:12px;}
+.admin-table th{padding:8px 12px;font-size:10px;font-weight:700;color:var(--primary);text-transform:uppercase;letter-spacing:.4px;border-bottom:1.5px solid var(--border);text-align:left;background:rgba(0,92,169,.03);white-space:nowrap;}
+.admin-table td{padding:9px 12px;border-bottom:1px solid var(--border);vertical-align:middle;}
+.admin-table tr:last-child td{border-bottom:none;}
+.admin-table tr:hover td{background:var(--surface2);}
+.admin-table td.clickable{cursor:pointer;color:var(--primary);font-weight:700;}
+.admin-table td.clickable:hover{text-decoration:underline;}
+.admin-filters{display:flex;gap:8px;padding:10px 16px;border-bottom:1px solid var(--border);flex-wrap:wrap;align-items:center;}
+.admin-filters .crm-select{font-size:12px;padding:6px 10px;}
+.admin-filters .crm-input{font-size:12px;padding:6px 10px;width:auto;flex:1;min-width:140px;}
+.btn-export{display:inline-flex;align-items:center;gap:5px;padding:6px 13px;border-radius:var(--radius-pill);font-size:11px;font-weight:700;cursor:pointer;border:1.5px solid var(--primary);background:var(--surface);color:var(--primary);font-family:var(--font);transition:var(--tr);}
+.btn-export:hover{background:var(--primary-glow);}
+.admin-empty{padding:24px;text-align:center;color:var(--text-tertiary);font-size:13px;}
+@media(max-width:640px){
+  .admin-kpi-grid{grid-template-columns:repeat(2,1fr);}
+  .admin-table th:nth-child(n+4),.admin-table td:nth-child(n+4){display:none;}
+}
+
+/* ── OSM AUTOCOMPLETE ────────────────────────────── */
+.osm-wrap{position:relative;}
+.osm-dropdown{position:absolute;top:100%;left:0;right:0;background:var(--surface);border:1.5px solid var(--primary);border-top:none;border-radius:0 0 var(--radius-sm) var(--radius-sm);z-index:500;max-height:220px;overflow-y:auto;box-shadow:var(--shadow-md);display:none;}
+.osm-dropdown.open{display:block;}
+.osm-item{padding:9px 12px;font-size:12px;cursor:pointer;border-bottom:1px solid var(--border);line-height:1.4;}
+.osm-item:last-child{border-bottom:none;}
+.osm-item:hover{background:var(--primary-glow);color:var(--primary);}
+.osm-item-main{font-weight:600;color:var(--text);}
+.osm-item-sub{font-size:11px;color:var(--text-tertiary);margin-top:1px;}
+.osm-loading{padding:10px 12px;font-size:12px;color:var(--text-tertiary);}
 </style>
 </head>
 <body>
@@ -531,13 +570,17 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
     </header>
     <!-- ── NAV TAB ── -->
     <nav class="crm-nav" id="crm-nav">
-      <button class="crm-tab active" id="tab-crm"      onclick="crmTab('crm')">
+      <button class="crm-tab active" id="tab-crm" onclick="crmTab('crm')">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="flex-shrink:0"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
         Flussi CRM
       </button>
       <button class="crm-tab" id="tab-archivio" onclick="crmTab('archivio')">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="flex-shrink:0"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
         Ricerca imprese
+      </button>
+      <button class="crm-tab" id="tab-admin" onclick="crmTab('admin')" style="display:none;">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="flex-shrink:0"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+        Admin
       </button>
     </nav>
   </div>
@@ -606,9 +649,14 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
               <label class="field-label">Cognome Titolare</label>
               <input type="text" class="search-input" id="s-cog" placeholder="Es. Rossi">
             </div>
-            <div>
-              <label class="field-label">Comune</label>
-              <input type="text" class="search-input" id="s-com" placeholder="Es. Roma">
+            <div class="osm-wrap">
+              <label class="field-label">Comune / Indirizzo</label>
+              <input type="text" class="search-input" id="s-com"
+                placeholder="Es. Roma, Via Tuscolana…"
+                autocomplete="off"
+                oninput="osmSearchDebounced(this.value,'osm-comune-dd','osmSelectComune')"
+                onkeydown="osmKeyNav(event,'osm-comune-dd')">
+              <div class="osm-dropdown" id="osm-comune-dd"></div>
             </div>
             <div>
               <label class="field-label">Codice Fiscale</label>
@@ -742,6 +790,118 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
   <!-- ── VIEW: SCHEDA CONTATTO CRM ── -->
   <div class="view" id="view-crm-contatto">
     <div class="crm-contatto-wrap" id="crm-contatto-content"></div>
+  </div>
+
+  <!-- ── VIEW: ADMIN ── -->
+  <div class="view" id="view-admin">
+    <div class="admin-wrap">
+
+      <!-- KPI -->
+      <div class="admin-kpi-grid" id="admin-kpi-grid">
+        <div class="admin-kpi"><div class="admin-kpi-val" id="akpi-contatti" style="color:var(--primary)">–</div><div class="admin-kpi-lbl">Contatti totali</div></div>
+        <div class="admin-kpi"><div class="admin-kpi-val" id="akpi-chiamate" style="color:var(--warning)">–</div><div class="admin-kpi-lbl">Chiamate</div></div>
+        <div class="admin-kpi"><div class="admin-kpi-val" id="akpi-appuntamenti" style="color:var(--success)">–</div><div class="admin-kpi-lbl">Appuntamenti</div></div>
+        <div class="admin-kpi"><div class="admin-kpi-val" id="akpi-chiusi" style="color:var(--primary)">–</div><div class="admin-kpi-lbl">Chiusi positivi</div></div>
+      </div>
+
+      <!-- Sezione: tutti i flussi CRM -->
+      <div class="admin-section">
+        <div class="admin-section-hdr">
+          <span class="admin-section-title">📋 Tutti i flussi CRM</span>
+          <button class="btn-export" onclick="exportAdmin('contacts')">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Scarica XLSX
+          </button>
+        </div>
+        <div class="admin-filters">
+          <select class="crm-select" id="af-stato" onchange="loadAdminContacts()">
+            <option value="">Tutti gli stati</option>
+            <option value="da_contattare">Da contattare</option>
+            <option value="assegnato">Assegnato</option>
+            <option value="chiamata_effettuata">Chiamata effettuata</option>
+            <option value="appuntamento_fissato">Appuntamento fissato</option>
+            <option value="appuntamento_completato">Appuntamento completato</option>
+            <option value="in_lavorazione">In lavorazione</option>
+            <option value="chiuso_positivo">Chiuso positivo</option>
+            <option value="chiuso_negativo">Chiuso negativo</option>
+          </select>
+          <select class="crm-select" id="af-utente" onchange="loadAdminContacts()">
+            <option value="">Tutti gli utenti</option>
+          </select>
+          <input type="text" class="crm-input" id="af-search" placeholder="Cerca impresa…" oninput="loadAdminContactsDebounced()">
+        </div>
+        <div style="overflow-x:auto;">
+          <table class="admin-table">
+            <thead><tr>
+              <th>Impresa</th>
+              <th>Stato</th>
+              <th>Creato da</th>
+              <th>Assegnato a</th>
+              <th>Aggiornato</th>
+              <th>Azioni</th>
+            </tr></thead>
+            <tbody id="admin-contacts-tbody">
+              <tr><td colspan="6" class="admin-empty">Caricamento…</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div id="admin-contacts-pagination" style="padding:10px 16px;display:flex;gap:10px;align-items:center;font-size:12px;color:var(--text-secondary);"></div>
+      </div>
+
+      <!-- Sezione: nuove imprese -->
+      <div class="admin-section">
+        <div class="admin-section-hdr">
+          <span class="admin-section-title">🏢 Nuove imprese inserite</span>
+          <button class="btn-export" onclick="exportAdmin('companies')">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Scarica XLSX
+          </button>
+        </div>
+        <div style="overflow-x:auto;">
+          <table class="admin-table">
+            <thead><tr>
+              <th>Ragione Sociale</th>
+              <th>P.IVA</th>
+              <th>Titolare</th>
+              <th>Cellulare</th>
+              <th>Email</th>
+              <th>Inserito da</th>
+              <th>Data</th>
+            </tr></thead>
+            <tbody id="admin-companies-tbody">
+              <tr><td colspan="7" class="admin-empty">Caricamento…</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Sezione: report per utente -->
+      <div class="admin-section">
+        <div class="admin-section-hdr">
+          <span class="admin-section-title">👤 Report per utente</span>
+          <button class="btn-export" onclick="exportAdmin('users')">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Scarica XLSX
+          </button>
+        </div>
+        <div style="overflow-x:auto;">
+          <table class="admin-table">
+            <thead><tr>
+              <th>Utente</th>
+              <th>Creati</th>
+              <th>Assegnati</th>
+              <th>Chiamate</th>
+              <th>Appuntamenti</th>
+              <th>Chiusi ✓</th>
+            </tr></thead>
+            <tbody id="admin-users-tbody">
+              <tr><td colspan="6" class="admin-empty">Caricamento…</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
   </div>
 
   <!-- ═══ FOOTER APP ═══ -->
@@ -1084,6 +1244,11 @@ function startApp(){
   G('chip-avatar3') && (G('chip-avatar3').textContent = initials);
   updateChipAvatar();
   showView('search');
+  // mostra tab admin solo se ruolo admin
+  if(session.ruolo==='admin'){
+    var tabAdmin = G('tab-admin');
+    if(tabAdmin) tabAdmin.style.display='flex';
+  }
   // tab CRM attivo di default
   crmTab('crm');
 }
@@ -1416,6 +1581,7 @@ function showView(name){
   var isLog        = (name==='log');
   var isCrmContatto= (name==='crm-contatto');
   var isCrm        = (name==='crm');
+  var isAdmin      = (name==='admin');
   var isStandalone = isScheda||isLog||isCrmContatto;
   var mainWrap = G('hdr-main-wrap');
   if(mainWrap) mainWrap.style.display = (!isStandalone) ? 'block' : 'none';
@@ -1429,15 +1595,17 @@ function showView(name){
   // bottone Nuovo CRM nella header scheda
   var btnCrm = G('btn-crea-contatto-header');
   if(btnCrm) btnCrm.style.display = (isScheda && crmCurrentAna) ? 'inline-flex' : 'none';
-  ['search','results','scheda','log','crm','crm-contatto'].forEach(function(v){
+  ['search','results','scheda','log','crm','crm-contatto','admin'].forEach(function(v){
     var el = G('view-'+v);
     if(el) el.classList.toggle('active', v===name);
   });
   // sync tab highlight
   if(name==='search'||name==='results'){
-    ['crm','archivio'].forEach(function(t){ var e=G('tab-'+t); if(e) e.classList.toggle('active',t==='archivio'); });
+    ['crm','archivio','admin'].forEach(function(t){ var e=G('tab-'+t); if(e) e.classList.toggle('active',t==='archivio'); });
   } else if(name==='crm'){
-    ['crm','archivio'].forEach(function(t){ var e=G('tab-'+t); if(e) e.classList.toggle('active',t==='crm'); });
+    ['crm','archivio','admin'].forEach(function(t){ var e=G('tab-'+t); if(e) e.classList.toggle('active',t==='crm'); });
+  } else if(name==='admin'){
+    ['crm','archivio','admin'].forEach(function(t){ var e=G('tab-'+t); if(e) e.classList.toggle('active',t==='admin'); });
   }
   var el=G('view-'+name);
   if(el) el.scrollTop=0;
@@ -1746,12 +1914,15 @@ async function insertActivityLog(contactId, activityType, description, metadata)
    CRM — NAV TABS
 ══════════════════════════════════════════════════ */
 function crmTab(tab){
-  ['crm','archivio'].forEach(function(t){
+  ['crm','archivio','admin'].forEach(function(t){
     var el = G('tab-'+t);
     if(el) el.classList.toggle('active', t===tab);
   });
   if(tab==='archivio'){
     showView('search');
+  } else if(tab==='admin'){
+    showView('admin');
+    loadAdminDashboard();
   } else {
     crmPrevView = 'crm';
     showView('crm');
@@ -2463,6 +2634,10 @@ function wizStep1(){
     +'<div class="crm-field-row">'
     +'<div class="crm-field"><label>Cellulare *</label><input type="tel" class="crm-input" id="nc2-tel" value="'+esc(v.cellulare||'')+'"></div>'
     +'<div class="crm-field"><label>Email *</label><input type="email" class="crm-input" id="nc2-email" value="'+esc(v.email||'')+'"></div>'
+    +'</div>'
+    +'<div class="crm-field osm-wrap"><label>Indirizzo / Comune (opzionale)</label>'
+    +'<input type="text" class="crm-input" id="nc2-indirizzo" placeholder="Es. Via Roma 1, Roma" autocomplete="off" value="'+esc(v.indirizzo||'')+'" oninput="osmSearchDebounced(this.value,'osm-nc2-dd','osmSelectNc2')" onkeydown="osmKeyNav(event,'osm-nc2-dd')">'
+    +'<div class="osm-dropdown" id="osm-nc2-dd"></div>'
     +'</div>';
 }
 
@@ -2743,6 +2918,327 @@ G('modal-wizard-bg').addEventListener('click', function(e){
   if(e.target===this) closeWizard();
 });
 
+
+/* ══════════════════════════════════════════════════
+   ADMIN DASHBOARD
+══════════════════════════════════════════════════ */
+var adminContactsPage = 0;
+var adminContactsPageSize = 20;
+var adminAllUsers = {};
+var adminDebounceTimer = null;
+
+async function loadAdminDashboard(){
+  if(session.ruolo!=='admin'){ toast('Accesso negato','error'); return; }
+  // carica tutto in parallelo
+  try {
+    var [cRes,callRes,aptRes,userRes,ncRes] = await Promise.all([
+      fetch(SB+'/rest/v1/crm_contacts?select=id,status',{headers:H()}),
+      fetch(SB+'/rest/v1/crm_calls?select=id',{headers:H()}),
+      fetch(SB+'/rest/v1/crm_appointments?select=id',{headers:H()}),
+      fetch(SB+'/rest/v1/cna_users?attivo=eq.true&select=id,nome,cognome,email&order=cognome.asc',{headers:H()}),
+      fetch(SB+'/rest/v1/crm_new_companies?select=id',{headers:H()})
+    ]);
+    var contacts = cRes.ok ? await cRes.json() : [];
+    var calls    = callRes.ok ? await callRes.json() : [];
+    var apts     = aptRes.ok ? await aptRes.json() : [];
+    var users    = userRes.ok ? await userRes.json() : [];
+    var ncs      = ncRes.ok ? await ncRes.json() : [];
+
+    // mappa utenti
+    adminAllUsers = {};
+    users.forEach(function(u){ adminAllUsers[u.id]=u; });
+
+    // KPI
+    var chiusiPos = contacts.filter(function(c){ return c.status==='chiuso_positivo'; }).length;
+    G('akpi-contatti').textContent    = contacts.length;
+    G('akpi-chiamate').textContent    = calls.length;
+    G('akpi-appuntamenti').textContent= apts.length;
+    G('akpi-chiusi').textContent      = chiusiPos;
+
+    // Popola select utenti nei filtri
+    var sel = G('af-utente');
+    if(sel){
+      sel.innerHTML = '<option value="">Tutti gli utenti</option>'
+        + users.map(function(u){
+            return '<option value="'+esc(u.id)+'">'+esc(u.nome+' '+u.cognome)+'</option>';
+          }).join('');
+    }
+
+    // Carica tabelle
+    adminContactsPage = 0;
+    await loadAdminContacts();
+    await loadAdminCompanies();
+    await loadAdminUserReport(contacts, calls, apts, users);
+
+  } catch(e){ console.error('admin dashboard error',e); toast('Errore caricamento dashboard','error'); }
+}
+
+async function loadAdminContacts(){
+  var tbody = G('admin-contacts-tbody');
+  if(!tbody) return;
+  tbody.innerHTML = '<tr><td colspan="6" class="admin-empty">Caricamento…</td></tr>';
+  try {
+    var stato   = G('af-stato')  ? G('af-stato').value  : '';
+    var utente  = G('af-utente') ? G('af-utente').value : '';
+    var search  = G('af-search') ? G('af-search').value.trim() : '';
+
+    var qs = 'crm_contacts?select=id,company_name,status,creator_id,assigned_id,created_at,updated_at&order=updated_at.desc';
+    if(stato)  qs += '&status=eq.'+encodeURIComponent(stato);
+    if(utente) qs += '&assigned_id=eq.'+encodeURIComponent(utente);
+    if(search) qs += '&company_name=ilike.*'+encodeURIComponent(search)+'*';
+
+    // count
+    var countUrl = SB+'/rest/v1/'+qs.replace('select=id,company_name,status,creator_id,assigned_id,created_at,updated_at','select=id');
+    var cr = await fetch(countUrl,{headers:H({'Prefer':'count=exact','Range':'0-0'})});
+    var total = 0;
+    var chdr = cr.headers.get('content-range');
+    if(chdr) total = parseInt(chdr.split('/')[1])||0;
+
+    var from = adminContactsPage*adminContactsPageSize;
+    var to   = from+adminContactsPageSize-1;
+    var r = await fetch(SB+'/rest/v1/'+qs,{headers:H({'Range':from+'-'+to})});
+    var data = r.ok ? await r.json() : [];
+
+    if(!data.length){
+      tbody.innerHTML='<tr><td colspan="6" class="admin-empty">Nessun contatto trovato</td></tr>';
+      G('admin-contacts-pagination').innerHTML='';
+      return;
+    }
+
+    tbody.innerHTML = data.map(function(c){
+      var creator  = adminAllUsers[c.creator_id];
+      var assigned = adminAllUsers[c.assigned_id];
+      return '<tr>'
+        +'<td class="clickable" onclick="openCrmContatto('+c.id+')">'+esc(c.company_name)+'</td>'
+        +'<td>'+statoPill(c.status)+'</td>'
+        +'<td>'+(creator  ? esc(creator.nome+' '+creator.cognome)   : '–')+'</td>'
+        +'<td>'+(assigned ? esc(assigned.nome+' '+assigned.cognome) : '–')+'</td>'
+        +'<td style="white-space:nowrap;">'+esc(fmtDate(c.updated_at))+'</td>'
+        +'<td><button class="btn-crm btn-crm-outline btn-crm-sm" onclick="openCrmContatto('+c.id+')">Apri</button></td>'
+        +'</tr>';
+    }).join('');
+
+    // paginazione
+    var pages = Math.ceil(total/adminContactsPageSize);
+    var pg = G('admin-contacts-pagination');
+    if(pg){
+      pg.innerHTML = '<span>'+total+' contatti — Pag. '+(adminContactsPage+1)+' di '+Math.max(1,pages)+'</span><span style="flex:1"></span>';
+      if(adminContactsPage>0) pg.innerHTML += '<button class="btn-crm btn-crm-outline btn-crm-sm" onclick="adminGoPage('+(adminContactsPage-1)+')">‹ Prec.</button>';
+      if(adminContactsPage<pages-1) pg.innerHTML += '<button class="btn-crm btn-crm-outline btn-crm-sm" onclick="adminGoPage('+(adminContactsPage+1)+')">Succ. ›</button>';
+    }
+  } catch(e){ tbody.innerHTML='<tr><td colspan="6" class="admin-empty">Errore caricamento</td></tr>'; console.error(e); }
+}
+
+function adminGoPage(p){ adminContactsPage=p; loadAdminContacts(); }
+function loadAdminContactsDebounced(){
+  clearTimeout(adminDebounceTimer);
+  adminDebounceTimer = setTimeout(function(){ adminContactsPage=0; loadAdminContacts(); }, 350);
+}
+
+async function loadAdminCompanies(){
+  var tbody = G('admin-companies-tbody');
+  if(!tbody) return;
+  try {
+    var r = await fetch(SB+'/rest/v1/crm_new_companies?select=*&order=created_at.desc',{headers:H()});
+    var data = r.ok ? await r.json() : [];
+    if(!data.length){ tbody.innerHTML='<tr><td colspan="7" class="admin-empty">Nessuna impresa inserita manualmente</td></tr>'; return; }
+    tbody.innerHTML = data.map(function(c){
+      var u = adminAllUsers[c.created_by];
+      return '<tr>'
+        +'<td style="font-weight:700">'+esc(c.ragione_sociale)+'</td>'
+        +'<td>'+esc(c.partita_iva)+'</td>'
+        +'<td>'+esc(c.nome_titolare+' '+c.cognome_titolare)+'</td>'
+        +'<td>'+esc(c.cellulare||'–')+'</td>'
+        +'<td>'+esc(c.email||'–')+'</td>'
+        +'<td>'+(u?esc(u.nome+' '+u.cognome):'–')+'</td>'
+        +'<td style="white-space:nowrap;">'+esc(fmtDate(c.created_at))+'</td>'
+        +'</tr>';
+    }).join('');
+  } catch(e){ tbody.innerHTML='<tr><td colspan="7" class="admin-empty">Errore</td></tr>'; }
+}
+
+async function loadAdminUserReport(contacts, calls, apts, users){
+  var tbody = G('admin-users-tbody');
+  if(!tbody) return;
+  if(!users.length){ tbody.innerHTML='<tr><td colspan="6" class="admin-empty">Nessun utente</td></tr>'; return; }
+  // fetch chiamate e appuntamenti per utente
+  try {
+    var [callsAll, aptsAll] = await Promise.all([
+      fetch(SB+'/rest/v1/crm_calls?select=user_id',{headers:H()}).then(function(r){return r.ok?r.json():[];}),
+      fetch(SB+'/rest/v1/crm_appointments?select=user_id',{headers:H()}).then(function(r){return r.ok?r.json():[]; })
+    ]);
+    tbody.innerHTML = users.map(function(u){
+      var creati    = contacts.filter(function(c){ return c.creator_id===u.id; }).length;
+      var assegnati = contacts.filter(function(c){ return c.assigned_id===u.id; }).length;
+      var chiami    = callsAll.filter(function(c){ return c.user_id===u.id; }).length;
+      var appuntam  = aptsAll.filter(function(a){ return a.user_id===u.id; }).length;
+      var chiusi    = contacts.filter(function(c){ return c.assigned_id===u.id && c.status==='chiuso_positivo'; }).length;
+      return '<tr>'
+        +'<td style="font-weight:700">'+esc(u.nome+' '+u.cognome)+'</td>'
+        +'<td style="text-align:center">'+creati+'</td>'
+        +'<td style="text-align:center">'+assegnati+'</td>'
+        +'<td style="text-align:center">'+chiami+'</td>'
+        +'<td style="text-align:center">'+appuntam+'</td>'
+        +'<td style="text-align:center;font-weight:700;color:var(--success)">'+chiusi+'</td>'
+        +'</tr>';
+    }).join('');
+  } catch(e){ tbody.innerHTML='<tr><td colspan="6" class="admin-empty">Errore</td></tr>'; }
+}
+
+/* ── EXPORT XLSX ────────────────────────────────── */
+async function exportAdmin(tipo){
+  showLoad('Preparazione export…');
+  try {
+    var rows = [], headers = [], filename = '';
+
+    if(tipo==='contacts'){
+      filename = 'flussi_crm_'+new Date().toISOString().slice(0,10)+'.xlsx';
+      headers = ['ID','Impresa','Stato','Creato da','Assegnato a','Data creazione','Ultimo aggiornamento'];
+      var r = await fetch(SB+'/rest/v1/crm_contacts?select=*&order=updated_at.desc',{headers:H()});
+      var data = r.ok ? await r.json() : [];
+      rows = data.map(function(c){
+        var cr = adminAllUsers[c.creator_id];
+        var as = adminAllUsers[c.assigned_id];
+        return [c.id, c.company_name, STATI_LABEL[c.status]||c.status,
+          cr?cr.nome+' '+cr.cognome:'–', as?as.nome+' '+as.cognome:'–',
+          fmtDate(c.created_at), fmtDate(c.updated_at)];
+      });
+    } else if(tipo==='companies'){
+      filename = 'nuove_imprese_'+new Date().toISOString().slice(0,10)+'.xlsx';
+      headers = ['Ragione Sociale','P.IVA','Nome','Cognome','Cellulare','Email','Inserito da','Data'];
+      var r = await fetch(SB+'/rest/v1/crm_new_companies?select=*&order=created_at.desc',{headers:H()});
+      var data = r.ok ? await r.json() : [];
+      rows = data.map(function(c){
+        var u = adminAllUsers[c.created_by];
+        return [c.ragione_sociale,c.partita_iva,c.nome_titolare,c.cognome_titolare,
+          c.cellulare,c.email, u?u.nome+' '+u.cognome:'–', fmtDate(c.created_at)];
+      });
+    } else if(tipo==='users'){
+      filename = 'report_utenti_'+new Date().toISOString().slice(0,10)+'.xlsx';
+      headers = ['Utente','Email','Creati','Assegnati','Chiamate','Appuntamenti','Chiusi positivi'];
+      var [cAll,callAll,aptAll,uAll] = await Promise.all([
+        fetch(SB+'/rest/v1/crm_contacts?select=creator_id,assigned_id,status',{headers:H()}).then(function(r){return r.ok?r.json():[];}),
+        fetch(SB+'/rest/v1/crm_calls?select=user_id',{headers:H()}).then(function(r){return r.ok?r.json():[];}),
+        fetch(SB+'/rest/v1/crm_appointments?select=user_id',{headers:H()}).then(function(r){return r.ok?r.json():[];}),
+        fetch(SB+'/rest/v1/cna_users?attivo=eq.true&select=*&order=cognome.asc',{headers:H()}).then(function(r){return r.ok?r.json():[];})
+      ]);
+      rows = uAll.map(function(u){
+        return [u.nome+' '+u.cognome, u.email,
+          cAll.filter(function(c){return c.creator_id===u.id;}).length,
+          cAll.filter(function(c){return c.assigned_id===u.id;}).length,
+          callAll.filter(function(c){return c.user_id===u.id;}).length,
+          aptAll.filter(function(a){return a.user_id===u.id;}).length,
+          cAll.filter(function(c){return c.assigned_id===u.id&&c.status==='chiuso_positivo';}).length];
+      });
+    }
+
+    // Genera XLSX manualmente (formato CSV-in-XLSX semplice via Blob)
+    xlsxDownload(filename, headers, rows);
+    toast('Export scaricato!','success');
+  } catch(e){ toast('Errore export: '+e.message,'error'); console.error(e); }
+  finally{ hideLoad(); }
+}
+
+function xlsxDownload(filename, headers, rows){
+  // Genera un file CSV con BOM UTF-8 (aperto correttamente da Excel/LibreOffice)
+  var csvName = filename.replace('.xlsx','.csv');
+  var lines = [headers.join('\t')];
+  rows.forEach(function(row){
+    lines.push(row.map(function(v){
+      return String(v==null?'':v).replace(/\t/g,' ');
+    }).join('\t'));
+  });
+  var bom = '\uFEFF';
+  var blob = new Blob([bom+lines.join('\r\n')], {type:'text/tab-separated-values;charset=utf-8'});
+  var a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = csvName;
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+
+/* ══════════════════════════════════════════════════
+   OPENSTREETMAP AUTOCOMPLETE (Nominatim)
+══════════════════════════════════════════════════ */
+var osmDebounceTimers = {};
+var osmSelectedIdx    = {};
+
+function osmSearchDebounced(val, ddId, cbName){
+  clearTimeout(osmDebounceTimers[ddId]);
+  var dd = G(ddId);
+  if(!val||val.length<3){ if(dd) dd.classList.remove('open'); return; }
+  if(dd) dd.innerHTML='<div class="osm-loading">Ricerca…</div>', dd.classList.add('open');
+  osmDebounceTimers[ddId] = setTimeout(function(){ osmFetch(val,ddId,cbName); }, 380);
+}
+
+async function osmFetch(q, ddId, cbName){
+  var dd = G(ddId);
+  if(!dd) return;
+  try {
+    var url = 'https://nominatim.openstreetmap.org/search'
+      +'?format=json&addressdetails=1&limit=6&countrycodes=it'
+      +'&q='+encodeURIComponent(q);
+    var r = await fetch(url, {headers:{'Accept-Language':'it','User-Agent':'CRM-CNA-Roma/1.0'}});
+    var data = r.ok ? await r.json() : [];
+    osmSelectedIdx[ddId] = -1;
+    if(!data.length){
+      dd.innerHTML='<div class="osm-loading">Nessun risultato</div>';
+      return;
+    }
+    dd.innerHTML = data.map(function(d,i){
+      var addr = d.address||{};
+      var main = addr.road||addr.suburb||addr.town||addr.city||d.name||'';
+      var sub  = [addr.city||addr.town||addr.village||addr.county, addr.postcode].filter(Boolean).join(' ');
+      return '<div class="osm-item" data-idx="'+i+'" data-display="'+esc(d.display_name)+'"'
+        +' data-lat="'+esc(d.lat)+'" data-lon="'+esc(d.lon)+'"'
+        +' data-comune="'+esc(addr.city||addr.town||addr.village||addr.county||'')+'"'
+        +' onclick="'+cbName+'(this,\''+ddId+'\')">'
+        +'<div class="osm-item-main">'+esc(main||d.display_name.split(',')[0])+'</div>'
+        +'<div class="osm-item-sub">'+esc(sub||d.display_name)+'</div>'
+        +'</div>';
+    }).join('');
+  } catch(e){
+    dd.innerHTML='<div class="osm-loading">Errore connessione</div>';
+  }
+}
+
+function osmKeyNav(e, ddId){
+  var dd = G(ddId);
+  if(!dd||!dd.classList.contains('open')) return;
+  var items = dd.querySelectorAll('.osm-item');
+  if(!items.length) return;
+  var idx = osmSelectedIdx[ddId]||(-1);
+  if(e.key==='ArrowDown'){ idx=Math.min(idx+1,items.length-1); e.preventDefault(); }
+  else if(e.key==='ArrowUp'){ idx=Math.max(idx-1,0); e.preventDefault(); }
+  else if(e.key==='Enter'&&idx>=0){ items[idx].click(); e.preventDefault(); return; }
+  else if(e.key==='Escape'){ dd.classList.remove('open'); return; }
+  osmSelectedIdx[ddId]=idx;
+  items.forEach(function(el,i){ el.style.background=i===idx?'var(--primary-glow)':''; });
+}
+
+function osmSelectComune(el, ddId){
+  var comune = el.getAttribute('data-comune');
+  var display = el.getAttribute('data-display').split(',')[0].trim();
+  var inp = G('s-com');
+  if(inp) inp.value = comune||display;
+  var dd = G(ddId); if(dd) dd.classList.remove('open');
+}
+
+function osmSelectNc2(el, ddId){
+  // Riempi campo indirizzo con l'indirizzo completo selezionato
+  var display = el.getAttribute('data-display');
+  var inp = G('nc2-indirizzo');
+  if(inp) inp.value = display.split(',').slice(0,3).join(',').trim();
+  var dd = G(ddId); if(dd) dd.classList.remove('open');
+}
+
+// Chiudi dropdown cliccando fuori
+document.addEventListener('click', function(e){
+  document.querySelectorAll('.osm-dropdown.open').forEach(function(dd){
+    if(!dd.parentElement.contains(e.target)) dd.classList.remove('open');
+  });
+});
 /* goHome: logo cliccabile → home */
 function goHome(){
   crmTab('crm');
