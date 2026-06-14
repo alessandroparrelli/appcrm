@@ -346,6 +346,13 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 <!-- ═══════════ APP ═══════════ -->
 <div id="app">
 
+  <!-- ── CRM NAV BAR (tab) ── -->
+  <nav class="crm-nav" id="crm-nav">
+    <button class="crm-tab active" id="tab-archivio" onclick="crmTab('archivio')">Archivio</button>
+    <button class="crm-tab" id="tab-miei" onclick="crmTab('miei')">Le mie attività</button>
+  </nav>
+
+
   <!-- HEADER SEARCH/RESULTS -->
   <header class="app-header" id="hdr-main">
     <div class="header-left">
@@ -373,11 +380,32 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
         Indietro
       </button>
-      <span class="header-title" id="hdr-scheda-title" style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></span>
+      <span class="header-title" id="hdr-scheda-title" style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></span>
+    </div>
+    <div class="header-right">
+      <button class="btn-crm btn-crm-primary btn-crm-sm" id="btn-crea-contatto-header" onclick="creaContattoCRM()" style="display:none;">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+        Nuovo CRM
+      </button>
+      <div class="user-chip">
+        <div class="user-avatar" id="chip-avatar2">–</div>
+      </div>
+      <button class="btn-logout" onclick="doLogout()">Esci</button>
+    </div>
+  </header>
+
+  <!-- HEADER CRM CONTATTO -->
+  <header class="app-header" id="hdr-crm-contatto" style="display:none;">
+    <div class="header-left">
+      <button class="btn-back" onclick="goBack()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+        Indietro
+      </button>
+      <span class="header-title" id="hdr-crm-title" style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></span>
     </div>
     <div class="header-right">
       <div class="user-chip">
-        <div class="user-avatar" id="chip-avatar2">–</div>
+        <div class="user-avatar" id="chip-avatar4">–</div>
       </div>
       <button class="btn-logout" onclick="doLogout()">Esci</button>
     </div>
@@ -509,6 +537,38 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
   </div>
 
 
+  <!-- ── VIEW: LE MIE ATTIVITÀ ── -->
+  <div class="view" id="view-crm">
+    <div class="crm-wrap">
+      <div class="crm-filter-row">
+        <select class="crm-select" id="crm-filter-stato" onchange="loadMieAttivita()">
+          <option value="">Tutti gli stati</option>
+          <option value="da_contattare">Da contattare</option>
+          <option value="assegnato">Assegnato</option>
+          <option value="chiamata_effettuata">Chiamata effettuata</option>
+          <option value="appuntamento_fissato">Appuntamento fissato</option>
+          <option value="appuntamento_completato">Appuntamento completato</option>
+          <option value="in_lavorazione">In lavorazione</option>
+          <option value="chiuso_positivo">Chiuso positivo</option>
+          <option value="chiuso_negativo">Chiuso negativo</option>
+        </select>
+        <select class="crm-select" id="crm-filter-ruolo" onchange="loadMieAttivita()">
+          <option value="all">Creati e assegnati</option>
+          <option value="creator">Solo creati da me</option>
+          <option value="assigned">Solo assegnati a me</option>
+        </select>
+      </div>
+      <div id="crm-list-content">
+        <div class="crm-empty"><div class="crm-empty-icon">📋</div><div class="crm-empty-text">Caricamento…</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── VIEW: SCHEDA CONTATTO CRM ── -->
+  <div class="view" id="view-crm-contatto">
+    <div class="crm-contatto-wrap" id="crm-contatto-content"></div>
+  </div>
+
   <!-- ═══ FOOTER APP ═══ -->
   <footer id="app-footer">
     <div class="app-footer-inner">
@@ -527,6 +587,174 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
   </footer>
 
 </div><!-- /app -->
+
+<!-- ═══════════ MODALI CRM ═══════════ -->
+
+<!-- MODALE: NUOVA CHIAMATA -->
+<div class="crm-modal-bg" id="modal-chiamata-bg">
+  <div class="crm-modal">
+    <div class="crm-modal-header">
+      <h3>📞 Registra Chiamata</h3>
+      <button class="modal-close" onclick="closeModal('modal-chiamata-bg')">×</button>
+    </div>
+    <div class="crm-modal-body">
+      <div class="crm-field-row">
+        <div class="crm-field">
+          <label>Data e ora</label>
+          <input type="datetime-local" class="crm-input" id="call-date">
+        </div>
+        <div class="crm-field">
+          <label>Esito</label>
+          <select class="crm-select" id="call-outcome">
+            <option value="non_risponde">Non risponde</option>
+            <option value="richiamare">Richiamare</option>
+            <option value="appuntamento_fissato">Appuntamento fissato</option>
+            <option value="interessato">Interessato</option>
+            <option value="non_interessato">Non interessato</option>
+            <option value="numero_errato">Numero errato</option>
+            <option value="altro">Altro</option>
+          </select>
+        </div>
+      </div>
+      <div class="crm-field">
+        <label>Note</label>
+        <textarea class="crm-textarea" id="call-notes" placeholder="Note sulla chiamata…"></textarea>
+      </div>
+    </div>
+    <div class="crm-modal-footer">
+      <button class="btn-crm btn-crm-outline" onclick="closeModal('modal-chiamata-bg')">Annulla</button>
+      <button class="btn-crm btn-crm-primary" onclick="salvaChiamata()">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+        Salva chiamata
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- MODALE: NUOVO APPUNTAMENTO -->
+<div class="crm-modal-bg" id="modal-appuntamento-bg">
+  <div class="crm-modal">
+    <div class="crm-modal-header">
+      <h3>📅 Crea Appuntamento</h3>
+      <button class="modal-close" onclick="closeModal('modal-appuntamento-bg')">×</button>
+    </div>
+    <div class="crm-modal-body">
+      <div class="crm-field-row">
+        <div class="crm-field">
+          <label>Data e ora</label>
+          <input type="datetime-local" class="crm-input" id="apt-date">
+        </div>
+        <div class="crm-field">
+          <label>Modalità</label>
+          <select class="crm-select" id="apt-type">
+            <option value="presenza">In presenza</option>
+            <option value="telefono">Telefono</option>
+            <option value="videochiamata">Videochiamata</option>
+          </select>
+        </div>
+      </div>
+      <div class="crm-field">
+        <label>Luogo / Link</label>
+        <input type="text" class="crm-input" id="apt-location" placeholder="Es. Sede CNA Roma, Via…">
+      </div>
+      <div class="crm-field">
+        <label>Note</label>
+        <textarea class="crm-textarea" id="apt-notes" placeholder="Note appuntamento…"></textarea>
+      </div>
+    </div>
+    <div class="crm-modal-footer">
+      <button class="btn-crm btn-crm-outline" onclick="closeModal('modal-appuntamento-bg')">Annulla</button>
+      <button class="btn-crm btn-crm-primary" onclick="salvaAppuntamento()">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+        Salva appuntamento
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- MODALE: CAMBIA STATO -->
+<div class="crm-modal-bg" id="modal-stato-bg">
+  <div class="crm-modal">
+    <div class="crm-modal-header">
+      <h3>🔄 Cambia Stato</h3>
+      <button class="modal-close" onclick="closeModal('modal-stato-bg')">×</button>
+    </div>
+    <div class="crm-modal-body">
+      <div class="stato-grid" id="stato-grid"></div>
+    </div>
+    <div class="crm-modal-footer">
+      <button class="btn-crm btn-crm-outline" onclick="closeModal('modal-stato-bg')">Annulla</button>
+      <button class="btn-crm btn-crm-primary" onclick="salvaCambioStato()">Conferma</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODALE: ASSEGNA UTENTE -->
+<div class="crm-modal-bg" id="modal-assegna-bg">
+  <div class="crm-modal">
+    <div class="crm-modal-header">
+      <h3>👤 Assegna contatto</h3>
+      <button class="modal-close" onclick="closeModal('modal-assegna-bg')">×</button>
+    </div>
+    <div class="crm-modal-body">
+      <div class="user-list" id="user-list-modal"></div>
+    </div>
+    <div class="crm-modal-footer">
+      <button class="btn-crm btn-crm-outline" onclick="closeModal('modal-assegna-bg')">Annulla</button>
+      <button class="btn-crm btn-crm-primary" onclick="salvaAssegnazione()">Assegna</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODALE: NUOVA IMPRESA -->
+<div class="crm-modal-bg" id="modal-new-company-bg">
+  <div class="crm-modal">
+    <div class="crm-modal-header">
+      <h3>🏢 Nuova Impresa</h3>
+      <button class="modal-close" onclick="closeModal('modal-new-company-bg')">×</button>
+    </div>
+    <div class="crm-modal-body">
+      <div class="crm-field-row">
+        <div class="crm-field">
+          <label>Ragione Sociale *</label>
+          <input type="text" class="crm-input" id="nc-rs" placeholder="Es. Rossi SRL">
+        </div>
+        <div class="crm-field">
+          <label>Partita IVA *</label>
+          <input type="text" class="crm-input" id="nc-piva" placeholder="Es. 12345678901">
+        </div>
+      </div>
+      <div class="crm-field-row">
+        <div class="crm-field">
+          <label>Nome Titolare *</label>
+          <input type="text" class="crm-input" id="nc-nome" placeholder="Es. Mario">
+        </div>
+        <div class="crm-field">
+          <label>Cognome Titolare *</label>
+          <input type="text" class="crm-input" id="nc-cognome" placeholder="Es. Rossi">
+        </div>
+      </div>
+      <div class="crm-field-row">
+        <div class="crm-field">
+          <label>Cellulare *</label>
+          <input type="tel" class="crm-input" id="nc-tel" placeholder="Es. 333 1234567">
+        </div>
+        <div class="crm-field">
+          <label>Email *</label>
+          <input type="email" class="crm-input" id="nc-email" placeholder="Es. info@azienda.it">
+        </div>
+      </div>
+    </div>
+    <div class="crm-modal-footer">
+      <button class="btn-crm btn-crm-outline" onclick="closeModal('modal-new-company-bg')">Annulla</button>
+      <button class="btn-crm btn-crm-primary" onclick="salvaNewCompany()">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+        Salva impresa
+      </button>
+    </div>
+  </div>
+</div>
+
 
 <!-- ═══ PROFILO MODAL ═══ -->
 <div class="modal-bg" id="modal-profilo-bg">
@@ -681,6 +909,9 @@ function startApp(){
   G('chip-avatar3') && (G('chip-avatar3').textContent = initials);
   updateChipAvatar();
   showView('search');
+  // mostra la nav CRM
+  var nav = G('crm-nav');
+  if(nav) nav.classList.add('visible');
 }
 
 /* ══════════════════════════════════════════════════
@@ -726,7 +957,7 @@ function renderResults(data){
   var cnt=G('results-count');
   cnt.textContent=data.length===0?'0 risultati':(data.length===1?'1 risultato':data.length+' risultati');
   if(!data.length){
-    G('results-list').innerHTML='<div class="no-results"><div class="no-results-icon">🔍</div><div class="no-results-text">Nessuna impresa trovata</div><div class="no-results-sub">Modifica i criteri di ricerca</div></div>';
+    G('results-list').innerHTML='<div class="no-results"><div class="no-results-icon">🔍</div><div class="no-results-text">Nessuna impresa trovata</div><div class="no-results-sub">Modifica i criteri di ricerca oppure inserisci manualmente</div><button class="btn-crm btn-crm-primary" style="margin-top:14px;display:inline-flex;" onclick="openNewCompanyModal()">+ Nuova impresa</button></div>';
     return;
   }
   var html='';
@@ -766,6 +997,7 @@ function tr(label, value, type){
 async function openScheda(idx){
   var ana=lastResults[idx];
   if(!ana) return;
+  crmCurrentAna = ana;  // salva per il bottone CRM
   showLoad('Caricamento scheda…');
   try {
     var codAteco = String(ana.codiceateco||'').trim();
@@ -981,6 +1213,20 @@ async function openScheda(idx){
     G('hdr-scheda-title').textContent=ana.ragionesociale||'—';
     prevView='results';
     showView('scheda');
+    // controlla se esiste già un contatto CRM per questa impresa
+    checkCrmContact('anagrafiche', ana.codiceanagrafica).then(function(existing){
+      var btn = G('btn-crea-contatto-header');
+      if(btn){
+        btn.style.display='inline-flex';
+        if(existing){
+          btn.textContent='Vai al CRM';
+          btn.onclick=function(){ openCrmContatto(existing.id); };
+        } else {
+          btn.innerHTML='<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg> Nuovo CRM';
+          btn.onclick=creaContattoCRM;
+        }
+      }
+    });
 
   } catch(e){ console.error(e); toast('Errore caricamento scheda','error'); }
   finally{ hideLoad(); }
@@ -992,19 +1238,37 @@ async function openScheda(idx){
 var prevView = 'search';
 
 function showView(name){
-  var isScheda = (name==='scheda');
-  var isLog    = (name==='log');
-  G('hdr-main').style.display   = (!isScheda && !isLog) ? 'flex' : 'none';
-  G('hdr-scheda').style.display = isScheda ? 'flex' : 'none';
-  G('hdr-log').style.display    = isLog    ? 'flex' : 'none';
-  ['search','results','scheda','log'].forEach(function(v){
-    G('view-'+v).classList.toggle('active', v===name);
+  var isScheda     = (name==='scheda');
+  var isLog        = (name==='log');
+  var isCrmContatto= (name==='crm-contatto');
+  var isCrm        = (name==='crm');
+  var isStandalone = isScheda||isLog||isCrmContatto;
+  G('hdr-main').style.display          = (!isStandalone) ? 'flex' : 'none';
+  G('hdr-scheda').style.display        = isScheda ? 'flex' : 'none';
+  G('hdr-log').style.display           = isLog    ? 'flex' : 'none';
+  G('hdr-crm-contatto').style.display  = isCrmContatto ? 'flex' : 'none';
+  // CRM nav: visibile su search/results/crm
+  var crmNavVisible = !isStandalone;
+  var nav = G('crm-nav');
+  if(nav) nav.classList.toggle('visible', crmNavVisible);
+  // bottone Nuovo CRM nella header scheda
+  var btnCrm = G('btn-crea-contatto-header');
+  if(btnCrm) btnCrm.style.display = (isScheda && crmCurrentAna) ? 'inline-flex' : 'none';
+  ['search','results','scheda','log','crm','crm-contatto'].forEach(function(v){
+    var el = G('view-'+v);
+    if(el) el.classList.toggle('active', v===name);
   });
   var el=G('view-'+name);
   if(el) el.scrollTop=0;
 }
 
-function goBack(){ showView(prevView); }
+function goBack(){
+  if(G('view-crm-contatto').classList.contains('active')){
+    showView(crmPrevView==='crm'?'crm':'results');
+  } else {
+    showView(prevView);
+  }
+}
 function goBackFromLog(){ showView('search'); }
 
 /* ══════════════════════════════════════════════════
@@ -1225,6 +1489,599 @@ async function loadLogs(){
 }
 
 function logGoPage(p){ logPage=p; loadLogs(); }
+
+/* ══════════════════════════════════════════════════
+   CRM — Config e stato globale
+══════════════════════════════════════════════════ */
+var crmContactId   = null;   // ID contatto CRM attivo
+var crmContactData = null;   // dati contatto attivo
+var crmSelectedUserId = null;// utente selezionato per assegnazione
+var crmSelectedStato  = null;// stato selezionato nel modal
+var crmPrevView = 'search';  // da dove arrivo nella scheda CRM
+
+/* header utente per RLS: setta app.user_id nella sessione Postgres */
+function Hcrm(ex){
+  var h = H(ex||{});
+  if(session && session.id) h['X-User-Id'] = session.id;
+  return h;
+}
+
+/* POST a Supabase con set_config per RLS */
+async function sbRLS(method, url, body){
+  // Prima esegui set_config via RPC
+  await fetch(SB+'/rest/v1/rpc/set_config', {
+    method:'POST',
+    headers:H({'Content-Type':'application/json'}),
+    body:JSON.stringify({parameter:'app.user_id', value: session ? session.id : '', is_local:true})
+  }).catch(function(){});
+  return fetch(url, {method:method, headers:H({'Prefer':'return=representation','Content-Type':'application/json'}), body:body?JSON.stringify(body):undefined});
+}
+
+/* Chiamata semplice Supabase REST con user_id nell'header custom */
+async function sbPost(table, body){
+  var r = await fetch(SB+'/rest/v1/'+table, {
+    method:'POST',
+    headers:H({'Prefer':'return=representation','Content-Type':'application/json','X-App-User-Id':session.id}),
+    body:JSON.stringify(body)
+  });
+  if(!r.ok){ var e=await r.text(); throw new Error(e); }
+  return r.json();
+}
+
+async function sbPatch(table, id, body){
+  var r = await fetch(SB+'/rest/v1/'+table+'?id=eq.'+id, {
+    method:'PATCH',
+    headers:H({'Prefer':'return=representation','Content-Type':'application/json','X-App-User-Id':session.id}),
+    body:JSON.stringify(body)
+  });
+  if(!r.ok){ var e=await r.text(); throw new Error(e); }
+  return r.json();
+}
+
+async function sbGet(url){
+  var r = await fetch(SB+'/rest/v1/'+url, {headers:H({'X-App-User-Id':session.id})});
+  if(!r.ok) throw new Error('HTTP '+r.status);
+  return r.json();
+}
+
+/* Helper: inserisci log attività manualmente */
+async function insertActivityLog(contactId, activityType, description, metadata){
+  try {
+    await fetch(SB+'/rest/v1/crm_activity_log', {
+      method:'POST',
+      headers:H({'Prefer':'return=minimal','Content-Type':'application/json'}),
+      body:JSON.stringify({
+        contact_id: contactId,
+        user_id: session.id,
+        activity_type: activityType,
+        description: description,
+        metadata: metadata||null
+      })
+    });
+  } catch(e){ console.warn('log error', e); }
+}
+
+/* ══════════════════════════════════════════════════
+   CRM — NAV TABS
+══════════════════════════════════════════════════ */
+function crmTab(tab){
+  ['archivio','miei'].forEach(function(t){
+    var el = G('tab-'+t);
+    if(el) el.classList.toggle('active', t===tab);
+  });
+  if(tab==='archivio'){
+    showView('search');
+  } else {
+    crmPrevView = 'crm';
+    showView('crm');
+    loadMieAttivita();
+  }
+}
+
+/* ══════════════════════════════════════════════════
+   CRM — UTILS
+══════════════════════════════════════════════════ */
+var STATI_LABEL = {
+  'da_contattare':          'Da contattare',
+  'assegnato':              'Assegnato',
+  'chiamata_effettuata':    'Chiamata effettuata',
+  'appuntamento_fissato':   'Appuntamento fissato',
+  'appuntamento_completato':'Appuntamento completato',
+  'in_lavorazione':         'In lavorazione',
+  'chiuso_positivo':        'Chiuso positivo',
+  'chiuso_negativo':        'Chiuso negativo'
+};
+
+var ESITI_LABEL = {
+  'non_risponde':'Non risponde','richiamare':'Richiamare',
+  'appuntamento_fissato':'Appuntamento fissato','interessato':'Interessato',
+  'non_interessato':'Non interessato','numero_errato':'Numero errato','altro':'Altro'
+};
+
+var APT_TIPO_LABEL = {'presenza':'In presenza','telefono':'Telefono','videochiamata':'Videochiamata'};
+var APT_STATO_LABEL = {'pianificato':'Pianificato','confermato':'Confermato','completato':'Completato','annullato':'Annullato','rinviato':'Rinviato'};
+
+function statoPill(s){
+  return '<span class="stato-pill stato-'+esc(s)+'">'+(STATI_LABEL[s]||s)+'</span>';
+}
+
+function fmtDT(v){
+  if(!v) return '';
+  var d = new Date(v);
+  if(isNaN(d)) return v;
+  return d.toLocaleDateString('it-IT',{day:'2-digit',month:'2-digit',year:'numeric'})
+    +' '+d.toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'});
+}
+
+function localDatetimeNow(){
+  var now = new Date();
+  var off = now.getTimezoneOffset();
+  var local = new Date(now.getTime() - off*60000);
+  return local.toISOString().slice(0,16);
+}
+
+function closeModal(id){ G(id).classList.remove('open'); }
+function openModal(id){ G(id).classList.add('open'); }
+
+/* Chiudi modal cliccando sfondo */
+['modal-chiamata-bg','modal-appuntamento-bg','modal-stato-bg','modal-assegna-bg','modal-new-company-bg'].forEach(function(id){
+  var el = G(id);
+  if(el) el.addEventListener('click', function(e){ if(e.target===this) closeModal(id); });
+});
+
+/* ══════════════════════════════════════════════════
+   CRM — VERIFICA CONTATTO ESISTENTE (per impresa)
+══════════════════════════════════════════════════ */
+async function checkCrmContact(companySource, companyRef){
+  try {
+    var r = await fetch(SB+'/rest/v1/crm_contacts?company_source=eq.'+companySource+'&company_ref=eq.'+encodeURIComponent(companyRef)+'&select=id,status,assigned_id,creator_id', {headers:H()});
+    if(!r.ok) return null;
+    var data = await r.json();
+    return data.length ? data[0] : null;
+  } catch(e){ return null; }
+}
+
+/* ══════════════════════════════════════════════════
+   CRM — CREA CONTATTO (dalla scheda impresa)
+══════════════════════════════════════════════════ */
+var crmCurrentAna = null; // anagrafica aperta
+
+async function creaContattoCRM(){
+  if(!crmCurrentAna){ toast('Nessuna impresa selezionata','error'); return; }
+  // Controlla se esiste già
+  var existing = await checkCrmContact('anagrafiche', crmCurrentAna.codiceanagrafica);
+  if(existing){
+    toast('Contatto CRM già esistente, lo apro…');
+    await openCrmContatto(existing.id);
+    return;
+  }
+  showLoad('Creazione contatto CRM…');
+  try {
+    var body = {
+      company_source: 'anagrafiche',
+      company_ref: crmCurrentAna.codiceanagrafica,
+      company_name: crmCurrentAna.ragionesociale||'—',
+      creator_id: session.id,
+      assigned_id: session.id,
+      status: 'da_contattare'
+    };
+    var r = await fetch(SB+'/rest/v1/crm_contacts', {
+      method:'POST',
+      headers:H({'Prefer':'return=representation','Content-Type':'application/json'}),
+      body:JSON.stringify(body)
+    });
+    if(!r.ok){ var err=await r.text(); throw new Error(err); }
+    var rows = await r.json();
+    var newId = rows[0].id;
+    await insertActivityLog(newId,'contatto_creato','Contatto CRM creato da '+session.nome+' '+session.cognome);
+    toast('Contatto CRM creato!','success');
+    await openCrmContatto(newId);
+  } catch(e){ toast('Errore creazione contatto: '+e.message,'error'); console.error(e); }
+  finally{ hideLoad(); }
+}
+
+/* ══════════════════════════════════════════════════
+   CRM — LE MIE ATTIVITÀ
+══════════════════════════════════════════════════ */
+async function loadMieAttivita(){
+  var wrap = G('crm-list-content');
+  wrap.innerHTML = '<div class="crm-empty"><div class="crm-empty-icon">⏳</div><div class="crm-empty-text">Caricamento…</div></div>';
+  try {
+    var stato  = G('crm-filter-stato').value;
+    var ruolo  = G('crm-filter-ruolo').value;
+
+    var qs = 'crm_contacts?select=id,company_name,company_source,status,creator_id,assigned_id,created_at,updated_at&order=updated_at.desc&limit=100';
+    if(stato) qs += '&status=eq.'+stato;
+    // Filtra lato client per ruolo (la RLS già limita)
+    var data = await sbGet(qs);
+
+    if(ruolo==='creator')   data = data.filter(function(c){ return c.creator_id===session.id; });
+    if(ruolo==='assigned')  data = data.filter(function(c){ return c.assigned_id===session.id; });
+
+    if(!data.length){
+      wrap.innerHTML = '<div class="crm-empty"><div class="crm-empty-icon">📋</div><div class="crm-empty-text">Nessuna attività trovata</div><div class="crm-empty-sub">Crea un contatto CRM cercando un\'impresa</div></div>';
+      return;
+    }
+
+    // Carica utenti per nome assegnatario
+    var userIds = [...new Set(data.map(function(c){ return c.assigned_id; }).filter(Boolean))];
+    var usersMap = {};
+    if(userIds.length){
+      var uRes = await fetch(SB+'/rest/v1/cna_users?id=in.('+userIds.map(encodeURIComponent).join(',')+')&select=id,nome,cognome',{headers:H()});
+      if(uRes.ok){ var uArr=await uRes.json(); uArr.forEach(function(u){ usersMap[u.id]=u; }); }
+    }
+
+    var html = '<div class="crm-section-title">'+data.length+' contatt'+(data.length===1?'o':'i')+'</div>';
+    data.forEach(function(c){
+      var u = usersMap[c.assigned_id];
+      var assignedLabel = u ? (u.nome+' '+u.cognome) : (c.assigned_id===session.id ? 'Me' : '—');
+      var isMine = c.assigned_id===session.id;
+      html += '<div class="crm-contact-card" onclick="openCrmContatto('+c.id+')">'
+        +'<div class="crm-cc-top">'
+        +'<div class="crm-cc-name">'+esc(c.company_name)+'</div>'
+        +statoPill(c.status)
+        +'</div>'
+        +'<div class="crm-cc-meta">'
+        +'<span class="crm-cc-info">Aggiornato '+esc(fmtDate(c.updated_at))+'</span>'
+        +(isMine ? '<span class="crm-cc-assigned">👤 Assegnato a me</span>' : '<span class="crm-cc-assigned">👤 '+esc(assignedLabel)+'</span>')
+        +'</div>'
+        +'</div>';
+    });
+    wrap.innerHTML = html;
+  } catch(e){ wrap.innerHTML='<div class="crm-empty"><div class="crm-empty-icon">❌</div><div class="crm-empty-text">Errore caricamento</div></div>'; console.error(e); }
+}
+
+/* ══════════════════════════════════════════════════
+   CRM — SCHEDA CONTATTO
+══════════════════════════════════════════════════ */
+async function openCrmContatto(contactId){
+  showLoad('Caricamento contatto CRM…');
+  try {
+    var r = await fetch(SB+'/rest/v1/crm_contacts?id=eq.'+contactId+'&select=*',{headers:H()});
+    if(!r.ok) throw new Error('HTTP '+r.status);
+    var rows = await r.json();
+    if(!rows.length) throw new Error('Contatto non trovato');
+    crmContactId = contactId;
+    crmContactData = rows[0];
+
+    // Carica log, chiamate, appuntamenti in parallelo
+    var [logRes, callsRes, aptsRes, usersRes] = await Promise.all([
+      fetch(SB+'/rest/v1/crm_activity_log?contact_id=eq.'+contactId+'&order=created_at.desc&limit=50',{headers:H()}),
+      fetch(SB+'/rest/v1/crm_calls?contact_id=eq.'+contactId+'&order=call_date.desc',{headers:H()}),
+      fetch(SB+'/rest/v1/crm_appointments?contact_id=eq.'+contactId+'&order=appointment_date.desc',{headers:H()}),
+      fetch(SB+'/rest/v1/cna_users?attivo=eq.true&select=id,nome,cognome,email&order=cognome.asc',{headers:H()})
+    ]);
+    var logData   = logRes.ok   ? await logRes.json()   : [];
+    var callsData = callsRes.ok ? await callsRes.json() : [];
+    var aptsData  = aptsRes.ok  ? await aptsRes.json()  : [];
+    var usersAll  = usersRes.ok ? await usersRes.json() : [];
+
+    // Mappa utenti
+    var um = {}; usersAll.forEach(function(u){ um[u.id]=u; });
+    var c = crmContactData;
+    var creator  = um[c.creator_id];
+    var assigned = um[c.assigned_id];
+
+    var html = '';
+
+    // ── Hero ──
+    html += '<div class="crm-hero">'
+      +'<div class="crm-hero-name">'+esc(c.company_name)+'</div>'
+      +'<div class="crm-hero-sub">Fonte: '+esc(c.company_source==='new'?'Nuova impresa':c.company_source)+'</div>'
+      +'<div class="crm-hero-row">'
+      +statoPill(c.status)
+      +'<span style="font-size:11px;color:rgba(255,255,255,.65)">Creato '+esc(fmtDate(c.created_at))+'</span>'
+      +'</div></div>';
+
+    // ── Info contatto ──
+    html += '<div class="s-card"><div class="s-card-title">ℹ️ Informazioni</div><table class="data-table">'
+      +'<tr><td class="dt-label">Creato da</td><td class="dt-value">'+esc(creator?(creator.nome+' '+creator.cognome):'—')+'</td></tr>'
+      +'<tr><td class="dt-label">Assegnato a</td><td class="dt-value">'+esc(assigned?(assigned.nome+' '+assigned.cognome):'—')+'</td></tr>'
+      +'<tr><td class="dt-label">Stato</td><td class="dt-value">'+statoPill(c.status)+'</td></tr>'
+      +'<tr><td class="dt-label">Aggiornato</td><td class="dt-value">'+esc(fmtDate(c.updated_at))+'</td></tr>'
+      +(c.closed_at?'<tr><td class="dt-label">Chiuso il</td><td class="dt-value">'+esc(fmtDate(c.closed_at))+'</td></tr>':'')
+      +'</table></div>';
+
+    // ── Azioni ──
+    html += '<div class="crm-action-row">'
+      +'<button class="btn-crm btn-crm-primary" onclick="openModalChiamata()">'
+      +'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.6 1.27h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.96a16 16 0 0 0 6.13 6.13l.96-.96a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>'
+      +'Registra chiamata</button>'
+      +'<button class="btn-crm btn-crm-outline" onclick="openModalAppuntamento()">'
+      +'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>'
+      +'Appuntamento</button>'
+      +'<button class="btn-crm btn-crm-warn" onclick="openModalStato()">'
+      +'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>'
+      +'Stato</button>'
+      +'<button class="btn-crm btn-crm-outline" onclick="openModalAssegna()">'
+      +'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>'
+      +'Assegna</button>'
+      +'</div>';
+
+    // ── Chiamate ──
+    if(callsData.length){
+      html += '<div class="s-card"><div class="s-card-title">📞 Chiamate ('+callsData.length+')</div>';
+      callsData.forEach(function(call){
+        var u = um[call.user_id];
+        html += '<div class="tl-item">'
+          +'<div class="tl-dot-wrap"><div class="tl-dot chiamata"></div></div>'
+          +'<div class="tl-body">'
+          +'<div class="tl-desc">'+esc(ESITI_LABEL[call.outcome]||call.outcome)
+          +(call.notes?' — <span style="font-weight:400;color:var(--text-secondary)">'+esc(call.notes)+'</span>':'')+'</div>'
+          +'<div class="tl-date">'+esc(fmtDT(call.call_date))+(u?' · '+esc(u.nome+' '+u.cognome):'')+'</div>'
+          +'</div></div>';
+      });
+      html += '</div>';
+    }
+
+    // ── Appuntamenti ──
+    if(aptsData.length){
+      html += '<div class="s-card"><div class="s-card-title">📅 Appuntamenti ('+aptsData.length+')</div>';
+      aptsData.forEach(function(apt){
+        var u = um[apt.user_id];
+        html += '<div class="tl-item">'
+          +'<div class="tl-dot-wrap"><div class="tl-dot appuntamento_creato"></div></div>'
+          +'<div class="tl-body">'
+          +'<div class="tl-desc">'+esc(APT_TIPO_LABEL[apt.appointment_type]||apt.appointment_type)
+          +' — <span class="stato-pill stato-'+(apt.status==='completato'?'chiuso_positivo':apt.status==='annullato'?'chiuso_negativo':'assegnato')+'" style="font-size:10px">'+(APT_STATO_LABEL[apt.status]||apt.status)+'</span>'
+          +(apt.location?' · '+esc(apt.location):'')
+          +(apt.notes?' — <span style="font-weight:400;color:var(--text-secondary)">'+esc(apt.notes)+'</span>':'')+'</div>'
+          +'<div class="tl-date">'+esc(fmtDT(apt.appointment_date))+(u?' · '+esc(u.nome+' '+u.cognome):'')+'</div>'
+          +'</div></div>';
+      });
+      html += '</div>';
+    }
+
+    // ── Timeline attività ──
+    html += '<div class="s-card"><div class="s-card-title">📋 Timeline attività</div><div class="timeline">';
+    if(logData.length){
+      logData.forEach(function(l){
+        var u = um[l.user_id];
+        html += '<div class="tl-item">'
+          +'<div class="tl-dot-wrap"><div class="tl-dot '+esc(l.activity_type)+'"></div></div>'
+          +'<div class="tl-body">'
+          +'<div class="tl-desc">'+esc(l.description)+'</div>'
+          +'<div class="tl-date">'+esc(fmtDT(l.created_at))+(u?' · '+esc(u.nome+' '+u.cognome):'')+'</div>'
+          +'</div></div>';
+      });
+    } else {
+      html += '<div style="padding:16px 14px;font-size:13px;color:var(--text-tertiary)">Nessuna attività registrata</div>';
+    }
+    html += '</div></div>';
+
+    G('crm-contatto-content').innerHTML = html;
+    G('hdr-crm-title').textContent = c.company_name;
+    showView('crm-contatto');
+
+  } catch(e){ toast('Errore: '+e.message,'error'); console.error(e); }
+  finally{ hideLoad(); }
+}
+
+/* ══════════════════════════════════════════════════
+   CRM — MODAL CHIAMATA
+══════════════════════════════════════════════════ */
+function openModalChiamata(){
+  G('call-date').value = localDatetimeNow();
+  G('call-outcome').value = 'non_risponde';
+  G('call-notes').value = '';
+  openModal('modal-chiamata-bg');
+}
+
+async function salvaChiamata(){
+  if(!crmContactId){ toast('Nessun contatto selezionato','error'); return; }
+  var date    = G('call-date').value;
+  var outcome = G('call-outcome').value;
+  var notes   = G('call-notes').value.trim();
+  if(!date){ toast('Inserisci data e ora','error'); return; }
+  showLoad('Salvataggio chiamata…');
+  try {
+    var r = await fetch(SB+'/rest/v1/crm_calls',{
+      method:'POST',
+      headers:H({'Prefer':'return=representation','Content-Type':'application/json'}),
+      body:JSON.stringify({contact_id:crmContactId, user_id:session.id, call_date:new Date(date).toISOString(), outcome:outcome, notes:notes||null})
+    });
+    if(!r.ok) throw new Error(await r.text());
+    await insertActivityLog(crmContactId,'chiamata','Chiamata: '+(ESITI_LABEL[outcome]||outcome)+(notes?' — '+notes:''));
+    // se esito è appuntamento_fissato → aggiorna stato
+    if(outcome==='appuntamento_fissato'){
+      await aggiornaStatoContatto('appuntamento_fissato');
+    } else if(crmContactData.status==='da_contattare'||crmContactData.status==='assegnato'){
+      await aggiornaStatoContatto('chiamata_effettuata');
+    }
+    closeModal('modal-chiamata-bg');
+    toast('Chiamata registrata!','success');
+    await openCrmContatto(crmContactId);
+  } catch(e){ toast('Errore: '+e.message,'error'); }
+  finally{ hideLoad(); }
+}
+
+/* ══════════════════════════════════════════════════
+   CRM — MODAL APPUNTAMENTO
+══════════════════════════════════════════════════ */
+function openModalAppuntamento(){
+  var tomorrow = new Date(); tomorrow.setDate(tomorrow.getDate()+1); tomorrow.setHours(10,0,0,0);
+  var off = tomorrow.getTimezoneOffset();
+  var local = new Date(tomorrow.getTime()-off*60000);
+  G('apt-date').value = local.toISOString().slice(0,16);
+  G('apt-type').value = 'presenza';
+  G('apt-location').value = '';
+  G('apt-notes').value = '';
+  openModal('modal-appuntamento-bg');
+}
+
+async function salvaAppuntamento(){
+  if(!crmContactId){ toast('Nessun contatto selezionato','error'); return; }
+  var date     = G('apt-date').value;
+  var type     = G('apt-type').value;
+  var location = G('apt-location').value.trim();
+  var notes    = G('apt-notes').value.trim();
+  if(!date){ toast('Inserisci data e ora','error'); return; }
+  showLoad('Salvataggio appuntamento…');
+  try {
+    var r = await fetch(SB+'/rest/v1/crm_appointments',{
+      method:'POST',
+      headers:H({'Prefer':'return=representation','Content-Type':'application/json'}),
+      body:JSON.stringify({contact_id:crmContactId,user_id:session.id,appointment_date:new Date(date).toISOString(),appointment_type:type,location:location||null,notes:notes||null,status:'pianificato'})
+    });
+    if(!r.ok) throw new Error(await r.text());
+    await insertActivityLog(crmContactId,'appuntamento_creato','Appuntamento '+(APT_TIPO_LABEL[type]||type)+' — '+fmtDT(new Date(date).toISOString())+(location?' @ '+location:''));
+    await aggiornaStatoContatto('appuntamento_fissato');
+    closeModal('modal-appuntamento-bg');
+    toast('Appuntamento creato!','success');
+    await openCrmContatto(crmContactId);
+  } catch(e){ toast('Errore: '+e.message,'error'); }
+  finally{ hideLoad(); }
+}
+
+/* ══════════════════════════════════════════════════
+   CRM — MODAL STATO
+══════════════════════════════════════════════════ */
+function openModalStato(){
+  crmSelectedStato = crmContactData.status;
+  var html = '';
+  Object.keys(STATI_LABEL).forEach(function(k){
+    html += '<div class="stato-option'+(k===crmSelectedStato?' selected':'')+'" onclick="selectStato(\''+k+'\')">'
+      +STATI_LABEL[k]+'</div>';
+  });
+  G('stato-grid').innerHTML = html;
+  openModal('modal-stato-bg');
+}
+
+function selectStato(s){
+  crmSelectedStato = s;
+  document.querySelectorAll('.stato-option').forEach(function(el){ el.classList.remove('selected'); });
+  event.currentTarget.classList.add('selected');
+}
+
+async function salvaCambioStato(){
+  if(!crmSelectedStato||crmSelectedStato===crmContactData.status){ closeModal('modal-stato-bg'); return; }
+  showLoad('Aggiornamento stato…');
+  try {
+    await aggiornaStatoContatto(crmSelectedStato);
+    closeModal('modal-stato-bg');
+    toast('Stato aggiornato!','success');
+    await openCrmContatto(crmContactId);
+  } catch(e){ toast('Errore: '+e.message,'error'); }
+  finally{ hideLoad(); }
+}
+
+async function aggiornaStatoContatto(nuovoStato){
+  var body = {status:nuovoStato};
+  if(nuovoStato==='chiuso_positivo'||nuovoStato==='chiuso_negativo') body.closed_at = new Date().toISOString();
+  var r = await fetch(SB+'/rest/v1/crm_contacts?id=eq.'+crmContactId,{
+    method:'PATCH',
+    headers:H({'Prefer':'return=minimal','Content-Type':'application/json'}),
+    body:JSON.stringify(body)
+  });
+  if(!r.ok) throw new Error(await r.text());
+  if(crmContactData) crmContactData.status = nuovoStato;
+}
+
+/* ══════════════════════════════════════════════════
+   CRM — MODAL ASSEGNA UTENTE
+══════════════════════════════════════════════════ */
+var crmAllUsers = [];
+
+async function openModalAssegna(){
+  G('user-list-modal').innerHTML = '<div style="padding:16px;text-align:center;color:var(--text-tertiary)">Caricamento…</div>';
+  openModal('modal-assegna-bg');
+  try {
+    var r = await fetch(SB+'/rest/v1/cna_users?attivo=eq.true&select=id,nome,cognome,email&order=cognome.asc',{headers:H()});
+    if(!r.ok) throw new Error('HTTP '+r.status);
+    crmAllUsers = await r.json();
+    crmSelectedUserId = crmContactData.assigned_id;
+    renderUserList();
+  } catch(e){ G('user-list-modal').innerHTML='<div style="padding:16px;color:var(--danger)">Errore caricamento utenti</div>'; }
+}
+
+function renderUserList(){
+  var html = '';
+  crmAllUsers.forEach(function(u){
+    var sel = u.id===crmSelectedUserId;
+    var initials = ((u.nome||'').charAt(0)+(u.cognome||'').charAt(0)).toUpperCase();
+    html += '<div class="user-option'+(sel?' selected':'')+'" onclick="selectUser(\''+u.id+'\')">'
+      +'<div class="user-option-avatar">'+esc(initials)+'</div>'
+      +'<div class="user-option-info">'
+      +'<div class="user-option-name">'+esc(u.nome+' '+u.cognome)+(u.id===session.id?' (tu)':'')+'</div>'
+      +'<div class="user-option-email">'+esc(u.email)+'</div>'
+      +'</div>'
+      +(sel?'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>':'')
+      +'</div>';
+  });
+  G('user-list-modal').innerHTML = html;
+}
+
+function selectUser(uid){
+  crmSelectedUserId = uid;
+  document.querySelectorAll('.user-option').forEach(function(el){ el.classList.remove('selected'); });
+  event.currentTarget.classList.add('selected');
+  var check = event.currentTarget.querySelector('svg');
+  if(!check){
+    event.currentTarget.insertAdjacentHTML('beforeend','<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>');
+  }
+}
+
+async function salvaAssegnazione(){
+  if(!crmSelectedUserId){ closeModal('modal-assegna-bg'); return; }
+  if(crmSelectedUserId===crmContactData.assigned_id){ closeModal('modal-assegna-bg'); return; }
+  showLoad('Assegnazione in corso…');
+  try {
+    var r = await fetch(SB+'/rest/v1/crm_contacts?id=eq.'+crmContactId,{
+      method:'PATCH',
+      headers:H({'Prefer':'return=minimal','Content-Type':'application/json'}),
+      body:JSON.stringify({assigned_id:crmSelectedUserId, status:'assegnato'})
+    });
+    if(!r.ok) throw new Error(await r.text());
+    var u = crmAllUsers.find(function(u){ return u.id===crmSelectedUserId; });
+    await insertActivityLog(crmContactId,'assegnazione','Contatto assegnato a '+(u?u.nome+' '+u.cognome:'utente'));
+    closeModal('modal-assegna-bg');
+    toast('Contatto assegnato!','success');
+    await openCrmContatto(crmContactId);
+  } catch(e){ toast('Errore: '+e.message,'error'); }
+  finally{ hideLoad(); }
+}
+
+/* ══════════════════════════════════════════════════
+   CRM — NUOVA IMPRESA
+══════════════════════════════════════════════════ */
+function openNewCompanyModal(){
+  ['nc-rs','nc-piva','nc-nome','nc-cognome','nc-tel','nc-email'].forEach(function(id){ G(id).value=''; });
+  openModal('modal-new-company-bg');
+}
+
+async function salvaNewCompany(){
+  var rs     = G('nc-rs').value.trim();
+  var piva   = G('nc-piva').value.trim();
+  var nome   = G('nc-nome').value.trim();
+  var cog    = G('nc-cognome').value.trim();
+  var tel    = G('nc-tel').value.trim();
+  var email  = G('nc-email').value.trim();
+  if(!rs||!piva||!nome||!cog||!tel||!email){ toast('Compila tutti i campi obbligatori','error'); return; }
+  showLoad('Salvataggio impresa…');
+  try {
+    var r = await fetch(SB+'/rest/v1/crm_new_companies',{
+      method:'POST',
+      headers:H({'Prefer':'return=representation','Content-Type':'application/json'}),
+      body:JSON.stringify({ragione_sociale:rs,partita_iva:piva,nome_titolare:nome,cognome_titolare:cog,cellulare:tel,email:email,created_by:session.id})
+    });
+    if(!r.ok) throw new Error(await r.text());
+    var rows = await r.json();
+    var newId = rows[0].id;
+    // Crea contatto CRM collegato
+    var rc = await fetch(SB+'/rest/v1/crm_contacts',{
+      method:'POST',
+      headers:H({'Prefer':'return=representation','Content-Type':'application/json'}),
+      body:JSON.stringify({company_source:'new',company_ref:String(newId),company_name:rs,creator_id:session.id,assigned_id:session.id,status:'da_contattare'})
+    });
+    if(!rc.ok) throw new Error(await rc.text());
+    var crows = await rc.json();
+    await insertActivityLog(crows[0].id,'contatto_creato','Nuova impresa inserita: '+rs);
+    closeModal('modal-new-company-bg');
+    toast('Impresa salvata!','success');
+    await openCrmContatto(crows[0].id);
+  } catch(e){ toast('Errore: '+e.message,'error'); console.error(e); }
+  finally{ hideLoad(); }
+}
 
 /* ══════════════════════════════════════════════════
    INIT
