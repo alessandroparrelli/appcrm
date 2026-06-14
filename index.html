@@ -514,33 +514,16 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 .user-search-inp:focus{border-color:var(--primary);background:#fff;}
 .user-list-scroll{overflow-y:auto;}
 .user-me-badge{font-size:10px;font-weight:700;color:var(--primary);background:var(--primary-glow);border:1px solid rgba(0,92,169,.2);border-radius:var(--radius-pill);padding:1px 7px;margin-left:6px;}
-
-/* ── FAB Nuovo contatto (mobile) ─────────────────── */
-.btn-fab-crm{
-  display:none;
-  position:fixed;
-  bottom:70px;
-  right:16px;
-  z-index:500;
-  width:52px;height:52px;
-  border-radius:50%;
-  background:var(--primary);
-  color:#fff;
-  border:none;
-  box-shadow:0 4px 16px rgba(0,92,169,.35);
-  align-items:center;justify-content:center;
-  cursor:pointer;
-  transition:var(--tr);
-}
-.btn-fab-crm:hover{background:var(--primary-dark);transform:scale(1.07);}
-@media(max-width:580px){
+.btn-fab-crm{position:fixed;bottom:72px;right:18px;z-index:600;width:54px;height:54px;border-radius:50%;background:var(--primary);color:#fff;border:none;box-shadow:0 4px 18px rgba(0,92,169,.4);display:none;align-items:center;justify-content:center;cursor:pointer;transition:var(--tr);-webkit-tap-highlight-color:transparent;}
+.btn-fab-crm:hover,.btn-fab-crm:active{background:var(--primary-dark);transform:scale(1.05);}
+@media(max-width:640px){
   .btn-fab-crm{display:flex;}
   .btn-crm-nuovo-contatto{display:none !important;}
   .crm-topbar{flex-wrap:nowrap;}
   .crm-filter-row{overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;flex-wrap:nowrap;}
   .crm-filter-row::-webkit-scrollbar{display:none;}
   .crm-filter-row .crm-select{flex-shrink:0;font-size:11px;padding:6px 8px;}
-  #view-crm .crm-wrap{padding-bottom:80px;}
+  #view-crm .crm-wrap{padding-bottom:90px;}
 }
 </style>
 </head>
@@ -939,11 +922,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
   </div>
 
 
-  <!-- FAB Nuovo contatto (mobile) -->
-  <button class="btn-fab-crm" id="fab-nuovo-contatto" onclick="openWizard()" aria-label="Nuovo contatto" style="display:none;">
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-  </button>
-
+  <button class="btn-fab-crm" id="fab-crm" onclick="openWizard()" title="Nuovo contatto"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button>
   <!-- ═══ FOOTER APP ═══ -->
   <footer id="app-footer">
     <div class="app-footer-inner">
@@ -1636,13 +1615,12 @@ function showView(name){
   // bottone Nuovo CRM nella header scheda
   var btnCrm = G('btn-crea-contatto-header');
   if(btnCrm) btnCrm.style.display = (isScheda && crmCurrentAna) ? 'inline-flex' : 'none';
+  var _fab=G('fab-crm');
+  if(_fab)_fab.style.display=((name==='crm')&&window.innerWidth<=640)?'flex':'none';
   ['search','results','scheda','log','crm','crm-contatto','admin'].forEach(function(v){
     var el = G('view-'+v);
     if(el) el.classList.toggle('active', v===name);
   });
-  // FAB visibile solo su view-crm
-  var _fab=G('fab-nuovo-contatto');
-  if(_fab) _fab.style.display=(name==='crm')?'flex':'none';
   // sync tab highlight
   if(name==='search'||name==='results'){
     ['crm','archivio','admin'].forEach(function(t){ var e=G('tab-'+t); if(e) e.classList.toggle('active',t==='archivio'); });
@@ -2081,7 +2059,7 @@ async function creaContattoCRM(){
 ══════════════════════════════════════════════════ */
 async function loadMieAttivita(){
   var wrap = G('crm-list-content');
-  wrap.innerHTML = '<div class="crm-empty"><div class="crm-empty-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83"/></svg></div><div class="crm-empty-text">Caricamento…</div></div>';
+  wrap.innerHTML = '<div class="crm-empty"><div class="crm-empty-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle"><path d="M5 22h14M5 2h14M17 22v-4.172a2 2 0 0 0-.586-1.414L12 12l-4.414 4.414A2 2 0 0 0 7 17.828V22M7 2v4.172a2 2 0 0 0 .586 1.414L12 12l4.414-4.414A2 2 0 0 0 17 6.172V2"/></svg></div><div class="crm-empty-text">Caricamento…</div></div>';
   try {
     var stato  = G('crm-filter-stato').value;
     var ruolo  = G('crm-filter-ruolo').value;
@@ -2412,7 +2390,6 @@ function renderUserList(filter){
   var _el=G('user-list-modal');if(_el)_el.innerHTML=html;
 }
 
-
 function selectUser(uid){
   crmSelectedUserId=uid;
   document.querySelectorAll('#user-list-modal .user-option').forEach(function(el){
@@ -2421,6 +2398,134 @@ function selectUser(uid){
   event.currentTarget.classList.add('selected');
   if(!event.currentTarget.querySelector('svg'))
     event.currentTarget.insertAdjacentHTML('beforeend','<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>');
+}
+
+async function salvaAssegnazione(){
+  if(!crmSelectedUserId){ closeModal('modal-assegna-bg'); return; }
+  if(crmSelectedUserId===crmContactData.assigned_id){ closeModal('modal-assegna-bg'); return; }
+  showLoad('Assegnazione in corso…');
+  try {
+    var r = await fetch(SB+'/rest/v1/crm_contacts?id=eq.'+crmContactId,{
+      method:'PATCH',
+      headers:H({'Prefer':'return=minimal','Content-Type':'application/json'}),
+      body:JSON.stringify({assigned_id:crmSelectedUserId, status:'assegnato'})
+    });
+    if(!r.ok) throw new Error(await r.text());
+    var u = crmAllUsers.find(function(u){ return u.id===crmSelectedUserId; });
+    await insertActivityLog(crmContactId,'assegnazione','Contatto assegnato a '+(u?u.nome+' '+u.cognome:'utente'));
+    closeModal('modal-assegna-bg');
+    toast('Contatto assegnato!','success');
+    await openCrmContatto(crmContactId);
+  } catch(e){ toast('Errore: '+e.message,'error'); }
+  finally{ hideLoad(); }
+}
+
+/* ══════════════════════════════════════════════════
+   CRM — NUOVA IMPRESA
+══════════════════════════════════════════════════ */
+function openNewCompanyModal(){
+  ['nc-rs','nc-piva','nc-nome','nc-cognome','nc-tel','nc-email'].forEach(function(id){ G(id).value=''; });
+  openModal('modal-new-company-bg');
+}
+
+async function salvaNewCompany(){
+  var rs     = G('nc-rs').value.trim();
+  var piva   = G('nc-piva').value.trim();
+  var nome   = G('nc-nome').value.trim();
+  var cog    = G('nc-cognome').value.trim();
+  var tel    = G('nc-tel').value.trim();
+  var email  = G('nc-email').value.trim();
+  if(!rs||!piva||!nome||!cog||!tel||!email){ toast('Compila tutti i campi obbligatori','error'); return; }
+  showLoad('Salvataggio impresa…');
+  try {
+    var r = await fetch(SB+'/rest/v1/crm_new_companies',{
+      method:'POST',
+      headers:H({'Prefer':'return=representation','Content-Type':'application/json'}),
+      body:JSON.stringify({ragione_sociale:rs,partita_iva:piva,nome_titolare:nome,cognome_titolare:cog,cellulare:tel,email:email,created_by:session.id})
+    });
+    if(!r.ok) throw new Error(await r.text());
+    var rows = await r.json();
+    var newId = rows[0].id;
+    // Crea contatto CRM collegato
+    var rc = await fetch(SB+'/rest/v1/crm_contacts',{
+      method:'POST',
+      headers:H({'Prefer':'return=representation','Content-Type':'application/json'}),
+      body:JSON.stringify({company_source:'new',company_ref:String(newId),company_name:rs,creator_id:session.id,assigned_id:session.id,status:'da_contattare'})
+    });
+    if(!rc.ok) throw new Error(await rc.text());
+    var crows = await rc.json();
+    await insertActivityLog(crows[0].id,'contatto_creato','Nuova impresa inserita: '+rs);
+    closeModal('modal-new-company-bg');
+    toast('Impresa salvata!','success');
+    await openCrmContatto(crows[0].id);
+  } catch(e){ toast('Errore: '+e.message,'error'); console.error(e); }
+  finally{ hideLoad(); }
+}
+
+
+/* ══════════════════════════════════════════════════
+   WIZARD — Nuovo contatto CRM
+   Step 0: cerca impresa
+   Step 1: seleziona risultato (o crea nuova)
+   Step 2: tipo contatto + note
+   Step 3: assegna utente → salva
+══════════════════════════════════════════════════ */
+var wiz = {
+  step: 0,
+  // impresa selezionata
+  companySource: null,  // 'anagrafiche' | 'diretti' | 'new'
+  companyRef:    null,  // codiceanagrafica o id crm_new_companies
+  companyName:   null,
+  companyPiva:   null,
+  // nuova impresa (se non trovata)
+  newCompany: null,
+  // tipo contatto e note
+  tipoContatto: null,
+  note: '',
+  // appuntamento
+  aptDate: null,
+  aptTime: '10:00',
+  aptLocation: '',
+  // assegnatario
+  assignedId: null,
+  assignedName: null,
+  // risultati ricerca
+  searchResults: [],
+  // utenti
+  allUsers: []
+};
+
+var WIZ_STEPS = [
+  'Cerca impresa',
+  'Seleziona impresa',
+  'Tipo contatto e note',
+  'Assegna e salva'
+];
+
+var TIPO_CONTATTO_OPTIONS = [
+  { value:'chiamata_inbound',  label:'Chiamata in entrata', icon:'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.6 1.27h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.96a16 16 0 0 0 6.13 6.13l.96-.96a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>' },
+  { value:'chiamata_outbound', label:'Chiamata in uscita',  icon:'📲' },
+  { value:'appuntamento',      label:'Appuntamento',        icon:'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>' },
+  { value:'email',             label:'Email',               icon:'✉️' },
+  { value:'sportello',         label:'Sportello',           icon:'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle"><rect x="2" y="3" width="20" height="18" rx="2"/><line x1="9" y1="3" x2="9" y2="21"/><path d="M5 7h2m0 4H5m0 4h2M13 7h2m-2 4h2m-2 4h2"/></svg>' },
+  { value:'altro',             label:'Altro',               icon:'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>' },
+];
+
+function openWizard(){
+  // reset stato
+  wiz.step=0; wiz.companySource=null; wiz.companyRef=null;
+  wiz.companyName=null; wiz.companyPiva=null; wiz.newCompany=null;
+  wiz.tipoContatto=null; wiz.note='';
+  wiz.aptDate=null; wiz.aptTime='10:00'; wiz.aptLocation='';
+  wiz.assignedId=session.id;
+  wiz.assignedName=session.nome+' '+session.cognome;
+  wiz.searchResults=[]; wiz.allUsers=[];
+  G('modal-wizard-bg').classList.add('open');
+  wizRender();
+  // precarica utenti in background
+  fetch(SB+'/rest/v1/cna_users?attivo=eq.true&select=id,nome,cognome,email&order=cognome.asc',{headers:H()})
+    .then(function(r){ return r.ok?r.json():[]; })
+    .then(function(u){ wiz.allUsers=u; });
 }
 
 function closeWizard(){
