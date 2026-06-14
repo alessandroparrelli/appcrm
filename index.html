@@ -372,10 +372,10 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 .tl-date{font-size:11px;color:var(--text-tertiary);margin-top:2px;}
 
 /* ── MODALI CRM ─────────────────────────────────── */
-.crm-modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.5);backdrop-filter:blur(4px);display:none;align-items:flex-end;justify-content:center;z-index:10000;padding:0;}
+.crm-modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.55);backdrop-filter:blur(4px);display:none;align-items:flex-start;justify-content:center;z-index:10000;padding:16px;padding-top:max(16px,env(safe-area-inset-top));}
 .crm-modal-bg.open{display:flex;}
-.crm-modal{background:var(--surface);border-radius:20px 20px 0 0;width:100%;max-width:560px;max-height:90vh;overflow-y:auto;animation:slideUp .25s cubic-bezier(.34,1.56,.64,1);}
-.crm-modal-header{background:var(--grad-primary);padding:16px 20px;display:flex;align-items:center;justify-content:space-between;border-radius:20px 20px 0 0;position:sticky;top:0;z-index:10;}
+.crm-modal{background:var(--surface);border-radius:var(--radius-lg);width:100%;max-width:560px;max-height:calc(100vh - 32px);overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.3);animation:slideDown .22s cubic-bezier(.34,1.2,.64,1);}
+.crm-modal-header{background:var(--grad-primary);padding:16px 20px;display:flex;align-items:center;justify-content:space-between;border-radius:var(--radius-lg) var(--radius-lg) 0 0;position:sticky;top:0;z-index:10;}
 .crm-modal-header h3{font-size:15px;font-weight:800;color:#fff;}
 .crm-modal-body{padding:20px;}
 .crm-field{margin-bottom:14px;}
@@ -431,10 +431,11 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 .crm-topbar .crm-filter-row{margin-bottom:0;}
 
 /* ── WIZARD MODALE ──────────────────────────────── */
-#modal-wizard-bg{position:fixed;inset:0;background:rgba(0,0,0,.5);backdrop-filter:blur(4px);display:none;align-items:flex-end;justify-content:center;z-index:10001;padding:0;}
+#modal-wizard-bg{position:fixed;inset:0;background:rgba(0,0,0,.55);backdrop-filter:blur(4px);display:none;align-items:flex-start;justify-content:center;z-index:10001;padding:16px;padding-top:max(16px,env(safe-area-inset-top));}
 #modal-wizard-bg.open{display:flex;}
-.wizard-modal{background:var(--surface);border-radius:20px 20px 0 0;width:100%;max-width:580px;max-height:92vh;display:flex;flex-direction:column;animation:slideUp .25s cubic-bezier(.34,1.56,.64,1);}
-.wizard-header{background:var(--grad-primary);padding:14px 20px;border-radius:20px 20px 0 0;flex-shrink:0;}
+.wizard-modal{background:var(--surface);border-radius:var(--radius-lg);width:100%;max-width:580px;max-height:calc(100vh - 32px);display:flex;flex-direction:column;animation:slideDown .22s cubic-bezier(.34,1.2,.64,1);box-shadow:0 20px 60px rgba(0,0,0,.3);}
+@keyframes slideDown{from{opacity:0;transform:translateY(-16px) scale(.98);}to{opacity:1;transform:translateY(0) scale(1);}}
+.wizard-header{background:var(--grad-primary);padding:14px 20px;border-radius:var(--radius-lg) var(--radius-lg) 0 0;flex-shrink:0;}
 .wizard-header-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
 .wizard-header-top h3{font-size:15px;font-weight:800;color:#fff;}
 .wizard-steps{display:flex;gap:6px;align-items:center;}
@@ -2283,6 +2284,10 @@ var wiz = {
   // tipo contatto e note
   tipoContatto: null,
   note: '',
+  // appuntamento
+  aptDate: null,
+  aptTime: '10:00',
+  aptLocation: '',
   // assegnatario
   assignedId: null,
   assignedName: null,
@@ -2312,7 +2317,9 @@ function openWizard(){
   // reset stato
   wiz.step=0; wiz.companySource=null; wiz.companyRef=null;
   wiz.companyName=null; wiz.companyPiva=null; wiz.newCompany=null;
-  wiz.tipoContatto=null; wiz.note=''; wiz.assignedId=session.id;
+  wiz.tipoContatto=null; wiz.note='';
+  wiz.aptDate=null; wiz.aptTime='10:00'; wiz.aptLocation='';
+  wiz.assignedId=session.id;
   wiz.assignedName=session.nome+' '+session.cognome;
   wiz.searchResults=[]; wiz.allUsers=[];
   G('modal-wizard-bg').classList.add('open');
@@ -2478,17 +2485,56 @@ function wizStep2(){
       +'</div>';
   });
   html += '</div>';
-  html += '<div class="crm-field"><label>Note sul contatto</label>'
-    +'<textarea class="crm-textarea" id="wiz-note" placeholder="Descrivi la richiesta, il motivo del contatto, le informazioni raccolte…" style="min-height:100px;">'+esc(wiz.note)+'</textarea>'
+  // Blocco data/ora: visibile solo se tipo = appuntamento
+  var isApt = wiz.tipoContatto === 'appuntamento';
+  html += '<div id="wiz-apt-block" style="margin-top:12px;'+(isApt?'':'display:none;')+'">';
+  html += '<div class="crm-field-row">';
+  html += '<div class="crm-field"><label>📅 Data appuntamento</label>'
+    +'<input type="date" class="crm-input" id="wiz-apt-date" value="'+esc(wiz.aptDate||'')+'" oninput="wizUpdateCalLink()">'
+    +'</div>';
+  html += '<div class="crm-field"><label>🕐 Ora</label>'
+    +'<input type="time" class="crm-input" id="wiz-apt-time" value="'+esc(wiz.aptTime||'10:00')+'" oninput="wizUpdateCalLink()">'
+    +'</div>';
+  html += '</div>';
+  html += '<div class="crm-field"><label>📍 Luogo / Modalità</label>'
+    +'<input type="text" class="crm-input" id="wiz-apt-location" placeholder="Es. Sede CNA, Videochiamata, Telefono…" value="'+esc(wiz.aptLocation||'')+'">'
+    +'</div>';
+  html += '<div id="wiz-cal-link" style="margin-bottom:4px;'+(wiz.aptDate?'':'display:none;')+'">'
+    +'<a id="wiz-gcal-link" href="#" target="_blank" '
+    +'style="display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:700;color:var(--primary);text-decoration:none;padding:7px 12px;border:1.5px solid var(--primary);border-radius:var(--radius-pill);">'
+    +'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>'
+    +'Aggiungi a Google Calendar</a>'
+    +'</div>';
+  html += '</div>';
+  html += '<div class="crm-field" style="margin-top:12px;"><label>Note</label>'
+    +'<textarea class="crm-textarea" id="wiz-note" placeholder="Descrivi la richiesta, il motivo del contatto, eventuali dettagli…" style="min-height:90px;">'+esc(wiz.note)+'</textarea>'
     +'</div>';
   return html;
 }
-
 function wizSelectTipo(v){
   wiz.tipoContatto = v;
-  // aggiorna visivamente senza re-render tutto
   document.querySelectorAll('.tipo-option').forEach(function(el){ el.classList.remove('selected'); });
   event.currentTarget.classList.add('selected');
+  // mostra/nascondi blocco data appuntamento
+  var aptBlock = G('wiz-apt-block');
+  if(aptBlock) aptBlock.style.display = (v==='appuntamento') ? '' : 'none';
+}
+
+function wizUpdateCalLink(){
+  var dEl=G('wiz-apt-date'), tEl=G('wiz-apt-time'), lEl=G('wiz-apt-location');
+  var calDiv=G('wiz-cal-link'), calA=G('wiz-gcal-link');
+  if(!dEl||!calDiv||!calA) return;
+  var d=dEl.value, t=(tEl?tEl.value:'10:00')||'10:00';
+  if(!d){ calDiv.style.display='none'; return; }
+  calDiv.style.display='';
+  var dtStart=d.replace(/-/g,'')+'T'+t.replace(':','')+'00';
+  var endH=String(parseInt(t.split(':')[0])+1).padStart(2,'0');
+  var dtEnd=d.replace(/-/g,'')+'T'+endH+t.split(':')[1]+'00';
+  var loc=lEl?lEl.value.trim():'';
+  var title=encodeURIComponent('Appuntamento CNA'+(wiz.companyName?' — '+wiz.companyName:''));
+  var details=encodeURIComponent((wiz.note||'')+(loc?'\nLuogo: '+loc:''));
+  calA.href='https://calendar.google.com/calendar/render?action=TEMPLATE'
+    +'&text='+title+'&dates='+dtStart+'/'+dtEnd+'&details='+details+(loc?'&location='+encodeURIComponent(loc):'');
 }
 
 /* ── Step 3: assegna utente + riepilogo ───────── */
@@ -2519,6 +2565,8 @@ function wizStep3(){
     +'<table style="width:100%;font-size:12px;border-collapse:collapse;">'
     +'<tr><td style="padding:3px 0;color:var(--text-tertiary);width:38%">Impresa</td><td style="font-weight:700;color:var(--text)">'+esc(wiz.companyName||'Nuova impresa')+'</td></tr>'
     +'<tr><td style="padding:3px 0;color:var(--text-tertiary)">Tipo contatto</td><td style="font-weight:700;color:var(--text)">'+esc(tipoLabel)+'</td></tr>'
+    +(wiz.aptDate?'<tr><td style="padding:3px 0;color:var(--text-tertiary)">Data appunt.</td><td style="font-weight:700;color:var(--text)">'+esc(fmtDate(wiz.aptDate))+(wiz.aptTime?' ore '+esc(wiz.aptTime):'')+'</td></tr>':'')
+    +(wiz.aptLocation?'<tr><td style="padding:3px 0;color:var(--text-tertiary)">Luogo</td><td style="color:var(--text)">'+esc(wiz.aptLocation)+'</td></tr>':'')
     +(wiz.note?'<tr><td style="padding:3px 0;color:var(--text-tertiary)">Note</td><td style="color:var(--text)">'+esc(wiz.note.substring(0,60))+(wiz.note.length>60?'…':'')+'</td></tr>':'')
     +'<tr><td style="padding:3px 0;color:var(--text-tertiary)">Assegnato a</td><td style="font-weight:700;color:var(--primary)">'+esc(wiz.assignedName||session.nome+' '+session.cognome)+'</td></tr>'
     +'</table>'
@@ -2561,10 +2609,17 @@ async function wizNext(){
     return;
   }
   if(wiz.step===2){
-    // salva nota dal textarea
     var nt = G('wiz-note');
     if(nt) wiz.note = nt.value.trim();
     if(!wiz.tipoContatto){ toast('Seleziona il tipo di contatto','error'); return; }
+    // salva data/ora appuntamento se presente
+    if(wiz.tipoContatto==='appuntamento'){
+      var dEl = G('wiz-apt-date'), tEl = G('wiz-apt-time'), lEl = G('wiz-apt-location');
+      if(dEl) wiz.aptDate     = dEl.value;
+      if(tEl) wiz.aptTime     = tEl.value;
+      if(lEl) wiz.aptLocation = lEl.value.trim();
+      if(!wiz.aptDate){ toast('Inserisci la data dell'appuntamento','error'); return; }
+    }
     wiz.step=3;
     wizRender();
     return;
@@ -2642,9 +2697,28 @@ async function wizSalva(){
         })
       });
     }
-    // F: se tipo è appuntamento → inserisci in crm_appointments (data da definire)
+    // F: se tipo è appuntamento → crea record reale con data/ora
     if(wiz.tipoContatto==='appuntamento'){
-      // segna solo lo stato, l'appuntamento vero si crea dalla scheda
+      if(wiz.aptDate){
+        var aptDatetime = wiz.aptDate+'T'+(wiz.aptTime||'10:00')+':00';
+        await fetch(SB+'/rest/v1/crm_appointments',{
+          method:'POST',
+          headers:H({'Prefer':'return=minimal','Content-Type':'application/json'}),
+          body:JSON.stringify({
+            contact_id:       contactId,
+            user_id:          wiz.assignedId||session.id,
+            appointment_date: new Date(aptDatetime).toISOString(),
+            appointment_type: 'presenza',
+            location:         wiz.aptLocation||null,
+            notes:            wiz.note||null,
+            status:           'pianificato'
+          })
+        });
+        await insertActivityLog(contactId,'appuntamento_creato',
+          'Appuntamento fissato per il '+fmtDate(aptDatetime)
+          +' alle '+(wiz.aptTime||'10:00')
+          +(wiz.aptLocation?' @ '+wiz.aptLocation:''));
+      }
       await fetch(SB+'/rest/v1/crm_contacts?id=eq.'+contactId,{
         method:'PATCH',
         headers:H({'Prefer':'return=minimal','Content-Type':'application/json'}),
