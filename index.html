@@ -514,6 +514,34 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 .user-search-inp:focus{border-color:var(--primary);background:#fff;}
 .user-list-scroll{overflow-y:auto;}
 .user-me-badge{font-size:10px;font-weight:700;color:var(--primary);background:var(--primary-glow);border:1px solid rgba(0,92,169,.2);border-radius:var(--radius-pill);padding:1px 7px;margin-left:6px;}
+
+/* ── FAB Nuovo contatto (mobile) ─────────────────── */
+.btn-fab-crm{
+  display:none;
+  position:fixed;
+  bottom:70px;
+  right:16px;
+  z-index:500;
+  width:52px;height:52px;
+  border-radius:50%;
+  background:var(--primary);
+  color:#fff;
+  border:none;
+  box-shadow:0 4px 16px rgba(0,92,169,.35);
+  align-items:center;justify-content:center;
+  cursor:pointer;
+  transition:var(--tr);
+}
+.btn-fab-crm:hover{background:var(--primary-dark);transform:scale(1.07);}
+@media(max-width:580px){
+  .btn-fab-crm{display:flex;}
+  .btn-crm-nuovo-contatto{display:none !important;}
+  .crm-topbar{flex-wrap:nowrap;}
+  .crm-filter-row{overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;flex-wrap:nowrap;}
+  .crm-filter-row::-webkit-scrollbar{display:none;}
+  .crm-filter-row .crm-select{flex-shrink:0;font-size:11px;padding:6px 8px;}
+  #view-crm .crm-wrap{padding-bottom:80px;}
+}
 </style>
 </head>
 <body>
@@ -782,7 +810,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
             <option value="assigned">Solo assegnati a me</option>
           </select>
         </div>
-        <button class="btn-crm btn-crm-primary" onclick="openWizard()" style="flex-shrink:0;white-space:nowrap;">
+        <button class="btn-crm btn-crm-primary btn-crm-nuovo-contatto" onclick="openWizard()" style="flex-shrink:0;white-space:nowrap;">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
           Nuovo contatto
         </button>
@@ -909,6 +937,12 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 
     </div>
   </div>
+
+
+  <!-- FAB Nuovo contatto (mobile) -->
+  <button class="btn-fab-crm" id="fab-nuovo-contatto" onclick="openWizard()" aria-label="Nuovo contatto" style="display:none;">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+  </button>
 
   <!-- ═══ FOOTER APP ═══ -->
   <footer id="app-footer">
@@ -1606,6 +1640,9 @@ function showView(name){
     var el = G('view-'+v);
     if(el) el.classList.toggle('active', v===name);
   });
+  // FAB visibile solo su view-crm
+  var _fab=G('fab-nuovo-contatto');
+  if(_fab) _fab.style.display=(name==='crm')?'flex':'none';
   // sync tab highlight
   if(name==='search'||name==='results'){
     ['crm','archivio','admin'].forEach(function(t){ var e=G('tab-'+t); if(e) e.classList.toggle('active',t==='archivio'); });
