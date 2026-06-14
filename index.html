@@ -2592,7 +2592,7 @@ function wizBack(){
 async function wizNext(){
   if(wiz.step===0){
     // controlla che abbiano scelto qualcosa (ma possono andare avanti anche senza — c'è il tasto nuova)
-    toast('Seleziona un\'impresa dai risultati o usa "Impresa non trovata"','error');
+    toast("Seleziona un'impresa dai risultati o usa Impresa non trovata","error");
     return;
   }
   if(wiz.step===1){
@@ -2618,7 +2618,7 @@ async function wizNext(){
       if(dEl) wiz.aptDate     = dEl.value;
       if(tEl) wiz.aptTime     = tEl.value;
       if(lEl) wiz.aptLocation = lEl.value.trim();
-      if(!wiz.aptDate){ toast('Inserisci la data dell'appuntamento','error'); return; }
+      if(!wiz.aptDate){ toast('Inserisci la data dell\'appuntamento','error'); return; }
     }
     wiz.step=3;
     wizRender();
