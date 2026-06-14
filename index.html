@@ -307,6 +307,124 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
   .app-footer-right{width:100%;}
   .app-footer-copy{font-size:11px;}
 }
+
+/* ═══════════════════════════════════════════════════
+   CRM MODULE — Styles
+═══════════════════════════════════════════════════ */
+
+/* ── NAV TAB ────────────────────────────────────── */
+.crm-nav{display:flex;background:var(--surface);border-bottom:1.5px solid var(--border);padding:0;gap:0;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;}
+.crm-nav::-webkit-scrollbar{display:none;}
+.crm-tab{flex:1;display:flex;align-items:center;justify-content:center;gap:6px;padding:11px 14px;font-size:12px;font-weight:700;color:var(--text-secondary);border-bottom:2.5px solid transparent;cursor:pointer;transition:var(--tr);white-space:nowrap;background:none;border-left:none;border-right:none;border-top:none;font-family:var(--font);}
+.crm-tab:hover{color:var(--primary);background:var(--surface2);}
+.crm-tab.active{color:var(--primary);border-bottom-color:var(--primary);background:rgba(0,92,169,.04);}
+
+/* ── PILL STATO contatto ────────────────────────── */
+.stato-pill{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:var(--radius-pill);font-size:11px;font-weight:700;border:1px solid transparent;}
+.stato-da_contattare   {background:#F1F5F9;color:#64748B;border-color:#CBD5E1;}
+.stato-assegnato       {background:#EFF6FF;color:#2563EB;border-color:#BFDBFE;}
+.stato-chiamata_effettuata{background:#FFF7ED;color:#EA580C;border-color:#FED7AA;}
+.stato-appuntamento_fissato{background:#F0FDF4;color:#16A34A;border-color:#BBF7D0;}
+.stato-appuntamento_completato{background:#F0FDF4;color:#15803D;border-color:#86EFAC;}
+.stato-in_lavorazione  {background:#FFF7ED;color:#D97706;border-color:#FDE68A;}
+.stato-chiuso_positivo {background:#F0FDF4;color:#166534;border-color:#86EFAC;}
+.stato-chiuso_negativo {background:#FEF2F2;color:#B91C1C;border-color:#FECACA;}
+
+/* ── CRM CONTACT CARD ──────────────────────────── */
+.crm-contact-card{background:var(--surface);border-radius:var(--radius-md);border:1.5px solid var(--border);padding:13px 16px;margin-bottom:8px;cursor:pointer;transition:var(--tr);}
+.crm-contact-card:hover{border-color:var(--primary);box-shadow:0 4px 14px rgba(0,92,169,.1);}
+.crm-cc-top{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:6px;}
+.crm-cc-name{font-size:14px;font-weight:700;color:var(--text);}
+.crm-cc-meta{display:flex;gap:10px;flex-wrap:wrap;align-items:center;}
+.crm-cc-info{font-size:12px;color:var(--text-secondary);font-weight:500;}
+.crm-cc-assigned{font-size:11px;color:var(--text-tertiary);font-weight:600;}
+
+/* ── CRM HERO ───────────────────────────────────── */
+.crm-hero{background:var(--grad-primary);border-radius:var(--radius-lg);padding:16px 20px;margin-bottom:12px;}
+.crm-hero-name{font-size:17px;font-weight:800;color:#fff;margin-bottom:4px;letter-spacing:-.01em;}
+.crm-hero-sub{font-size:12px;color:rgba(255,255,255,.75);}
+.crm-hero-row{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:12px;flex-wrap:wrap;}
+.crm-action-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;}
+.btn-crm{display:inline-flex;align-items:center;gap:6px;padding:9px 16px;border-radius:var(--radius-pill);font-family:var(--font);font-size:12px;font-weight:700;cursor:pointer;transition:var(--tr);border:none;}
+.btn-crm-primary{background:var(--primary);color:#fff;}
+.btn-crm-primary:hover{background:var(--primary-dark);}
+.btn-crm-outline{background:var(--surface);color:var(--primary);border:1.5px solid var(--primary);}
+.btn-crm-outline:hover{background:var(--primary-glow);}
+.btn-crm-warn{background:#FFF7ED;color:#EA580C;border:1.5px solid #FED7AA;}
+.btn-crm-warn:hover{background:#FFEDD5;}
+.btn-crm-sm{padding:6px 12px;font-size:11px;}
+
+/* ── TIMELINE ───────────────────────────────────── */
+.timeline{padding:4px 0;}
+.tl-item{display:flex;gap:12px;padding:10px 14px;border-bottom:1px solid var(--border);align-items:flex-start;}
+.tl-item:last-child{border-bottom:none;}
+.tl-dot-wrap{display:flex;flex-direction:column;align-items:center;padding-top:3px;flex-shrink:0;}
+.tl-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
+.tl-dot.contatto_creato    {background:#005CA9;}
+.tl-dot.assegnazione       {background:#2563EB;}
+.tl-dot.chiamata           {background:#EA580C;}
+.tl-dot.appuntamento_creato{background:#16A34A;}
+.tl-dot.appuntamento_aggiornato{background:#D97706;}
+.tl-dot.stato_cambiato     {background:#8B5CF6;}
+.tl-dot.nota               {background:#64748B;}
+.tl-body{flex:1;min-width:0;}
+.tl-desc{font-size:13px;font-weight:600;color:var(--text);line-height:1.4;}
+.tl-date{font-size:11px;color:var(--text-tertiary);margin-top:2px;}
+
+/* ── MODALI CRM ─────────────────────────────────── */
+.crm-modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.5);backdrop-filter:blur(4px);display:none;align-items:flex-end;justify-content:center;z-index:10000;padding:0;}
+.crm-modal-bg.open{display:flex;}
+.crm-modal{background:var(--surface);border-radius:20px 20px 0 0;width:100%;max-width:560px;max-height:90vh;overflow-y:auto;animation:slideUp .25s cubic-bezier(.34,1.56,.64,1);}
+.crm-modal-header{background:var(--grad-primary);padding:16px 20px;display:flex;align-items:center;justify-content:space-between;border-radius:20px 20px 0 0;position:sticky;top:0;z-index:10;}
+.crm-modal-header h3{font-size:15px;font-weight:800;color:#fff;}
+.crm-modal-body{padding:20px;}
+.crm-field{margin-bottom:14px;}
+.crm-field label{display:block;font-size:11px;font-weight:700;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.4px;margin-bottom:5px;}
+.crm-input,.crm-select,.crm-textarea{width:100%;padding:10px 12px;border:1.5px solid var(--border-strong);border-radius:var(--radius-sm);font-family:var(--font);font-size:14px;font-weight:500;color:var(--text);background:var(--surface2);outline:none;transition:var(--tr);}
+.crm-input:focus,.crm-select:focus,.crm-textarea:focus{border-color:var(--primary);background:#fff;box-shadow:0 0 0 3px var(--primary-glow);}
+.crm-textarea{resize:vertical;min-height:80px;}
+.crm-modal-footer{padding:0 20px 20px;display:flex;gap:10px;}
+.crm-modal-footer .btn-crm{flex:1;justify-content:center;padding:12px;}
+.crm-field-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+
+/* ── STATO SELECTOR ─────────────────────────────── */
+.stato-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.stato-option{padding:9px 12px;border-radius:var(--radius-sm);border:1.5px solid var(--border);cursor:pointer;transition:var(--tr);font-size:12px;font-weight:700;text-align:center;}
+.stato-option:hover{border-color:var(--primary);}
+.stato-option.selected{border-color:var(--primary);background:var(--primary-glow);}
+
+/* ── VIEW LE MIE ATTIVITÀ / FLUSSI CRM ─────────── */
+#view-crm{overflow-y:auto;background:var(--bg);}
+.crm-wrap{padding:16px;max-width:860px;width:100%;margin:0 auto;padding-bottom:32px;}
+.crm-filter-row{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;align-items:center;}
+.crm-filter-row .crm-select{width:auto;font-size:12px;padding:7px 10px;}
+.crm-section-title{font-size:12px;font-weight:700;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.4px;margin-bottom:8px;padding:0 2px;}
+.crm-empty{text-align:center;padding:32px 20px;background:var(--surface);border-radius:var(--radius-md);border:1.5px dashed var(--border-strong);}
+.crm-empty-icon{font-size:32px;margin-bottom:8px;}
+.crm-empty-text{font-size:14px;font-weight:700;color:var(--text);margin-bottom:4px;}
+.crm-empty-sub{font-size:12px;color:var(--text-secondary);}
+
+/* ── SCHEDA CONTATTO CRM ────────────────────────── */
+#view-crm-contatto{overflow-y:auto;background:var(--bg);}
+.crm-contatto-wrap{padding:16px;max-width:860px;width:100%;margin:0 auto;padding-bottom:40px;}
+
+/* ── USER LIST (assegna) ────────────────────────── */
+.user-list{display:flex;flex-direction:column;gap:6px;}
+.user-option{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:var(--radius-sm);border:1.5px solid var(--border);cursor:pointer;transition:var(--tr);}
+.user-option:hover{border-color:var(--primary);background:var(--surface2);}
+.user-option.selected{border-color:var(--primary);background:var(--primary-glow);}
+.user-option-avatar{width:32px;height:32px;border-radius:50%;background:var(--primary-glow);color:var(--primary);font-size:12px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.user-option-info{flex:1;}
+.user-option-name{font-size:13px;font-weight:700;color:var(--text);}
+.user-option-email{font-size:11px;color:var(--text-tertiary);}
+
+/* ── Mobile ─────────────────────────────────────── */
+@media(max-width:580px){
+  .crm-field-row{grid-template-columns:1fr;}
+  .stato-grid{grid-template-columns:1fr;}
+  .crm-action-row{gap:6px;}
+  .btn-crm{font-size:11px;padding:8px 12px;}
+}
 </style>
 </head>
 <body>
@@ -346,32 +464,39 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 <!-- ═══════════ APP ═══════════ -->
 <div id="app">
 
-  <!-- ── CRM NAV BAR (tab) ── -->
-  <nav class="crm-nav" id="crm-nav">
-    <button class="crm-tab active" id="tab-archivio" onclick="crmTab('archivio')">Archivio</button>
-    <button class="crm-tab" id="tab-miei" onclick="crmTab('miei')">Le mie attività</button>
-  </nav>
-
-
-  <!-- HEADER SEARCH/RESULTS -->
-  <header class="app-header" id="hdr-main">
-    <div class="header-left">
-      <img class="logo-img" src="https://customer31551.img.musvc2.net/static/31551/images/1/CNARoma%20NEGATIVO%20COLORE%20SOLO%20ROMA.png" alt="CNA Roma" onerror="this.style.display='none';document.getElementById('logo-fb').style.display='flex';">
-      <div id="logo-fb" class="logo-fallback" style="display:none">CNA Roma</div>
-      <span class="header-title">CRM</span>
-      <span class="header-badge">Archivio Imprese</span>
-    </div>
-    <div class="header-right">
-      <div class="user-chip" onclick="openProfilo()" title="Profilo">
-        <div class="user-avatar" id="chip-avatar">
-          <span id="chip-initials">–</span>
-          <img id="chip-avatar-img" class="chip-avatar-img" alt="">
+  <!-- HEADER + NAV TAB (sticky block) -->
+  <div id="hdr-main-wrap" style="position:sticky;top:0;z-index:200;flex-shrink:0;">
+    <header class="app-header" id="hdr-main">
+      <div class="header-left">
+        <div class="logo-link" onclick="goHome()" title="Home" style="display:flex;align-items:center;gap:10px;cursor:pointer;">
+          <img class="logo-img" src="https://customer31551.img.musvc2.net/static/31551/images/1/CNARoma%20NEGATIVO%20COLORE%20SOLO%20ROMA.png" alt="CNA Roma" onerror="this.style.display='none';document.getElementById('logo-fb').style.display='flex';">
+          <div id="logo-fb" class="logo-fallback" style="display:none">CNA Roma</div>
         </div>
-        <span class="user-name" id="chip-name">–</span>
+        <span class="header-title">CRM</span>
       </div>
-      <button class="btn-logout" onclick="doLogout()">Esci</button>
-    </div>
-  </header>
+      <div class="header-right">
+        <div class="user-chip" onclick="openProfilo()" title="Profilo">
+          <div class="user-avatar" id="chip-avatar">
+            <span id="chip-initials">–</span>
+            <img id="chip-avatar-img" class="chip-avatar-img" alt="">
+          </div>
+          <span class="user-name" id="chip-name">–</span>
+        </div>
+        <button class="btn-logout" onclick="doLogout()">Esci</button>
+      </div>
+    </header>
+    <!-- ── NAV TAB ── -->
+    <nav class="crm-nav" id="crm-nav">
+      <button class="crm-tab active" id="tab-crm"      onclick="crmTab('crm')">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="flex-shrink:0"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        Flussi CRM
+      </button>
+      <button class="crm-tab" id="tab-archivio" onclick="crmTab('archivio')">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="flex-shrink:0"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        Ricerca imprese
+      </button>
+    </nav>
+  </div>
 
   <!-- HEADER SCHEDA (separato, con tasto Indietro) -->
   <header class="app-header" id="hdr-scheda" style="display:none;">
@@ -909,9 +1034,8 @@ function startApp(){
   G('chip-avatar3') && (G('chip-avatar3').textContent = initials);
   updateChipAvatar();
   showView('search');
-  // mostra la nav CRM
-  var nav = G('crm-nav');
-  if(nav) nav.classList.add('visible');
+  // tab CRM attivo di default
+  crmTab('crm');
 }
 
 /* ══════════════════════════════════════════════════
@@ -1243,7 +1367,8 @@ function showView(name){
   var isCrmContatto= (name==='crm-contatto');
   var isCrm        = (name==='crm');
   var isStandalone = isScheda||isLog||isCrmContatto;
-  G('hdr-main').style.display          = (!isStandalone) ? 'flex' : 'none';
+  var mainWrap = G('hdr-main-wrap');
+  if(mainWrap) mainWrap.style.display = (!isStandalone) ? 'block' : 'none';
   G('hdr-scheda').style.display        = isScheda ? 'flex' : 'none';
   G('hdr-log').style.display           = isLog    ? 'flex' : 'none';
   G('hdr-crm-contatto').style.display  = isCrmContatto ? 'flex' : 'none';
@@ -1258,6 +1383,12 @@ function showView(name){
     var el = G('view-'+v);
     if(el) el.classList.toggle('active', v===name);
   });
+  // sync tab highlight
+  if(name==='search'||name==='results'){
+    ['crm','archivio'].forEach(function(t){ var e=G('tab-'+t); if(e) e.classList.toggle('active',t==='archivio'); });
+  } else if(name==='crm'){
+    ['crm','archivio'].forEach(function(t){ var e=G('tab-'+t); if(e) e.classList.toggle('active',t==='crm'); });
+  }
   var el=G('view-'+name);
   if(el) el.scrollTop=0;
 }
@@ -1565,7 +1696,7 @@ async function insertActivityLog(contactId, activityType, description, metadata)
    CRM — NAV TABS
 ══════════════════════════════════════════════════ */
 function crmTab(tab){
-  ['archivio','miei'].forEach(function(t){
+  ['crm','archivio'].forEach(function(t){
     var el = G('tab-'+t);
     if(el) el.classList.toggle('active', t===tab);
   });
@@ -2081,6 +2212,11 @@ async function salvaNewCompany(){
     await openCrmContatto(crows[0].id);
   } catch(e){ toast('Errore: '+e.message,'error'); console.error(e); }
   finally{ hideLoad(); }
+}
+
+/* goHome: logo cliccabile → home */
+function goHome(){
+  crmTab('crm');
 }
 
 /* ══════════════════════════════════════════════════
