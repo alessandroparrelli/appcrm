@@ -508,6 +508,12 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 .osm-item-main{font-weight:600;color:var(--text);}
 .osm-item-sub{font-size:11px;color:var(--text-tertiary);margin-top:1px;}
 .osm-loading{padding:10px 12px;font-size:12px;color:var(--text-tertiary);}
+
+.user-search-box{padding:10px 12px;border-bottom:1px solid var(--border);background:var(--surface);}
+.user-search-inp{width:100%;padding:7px 10px;border:1.5px solid var(--border-strong);border-radius:var(--radius-sm);font-family:var(--font);font-size:13px;color:var(--text);background:var(--surface2);outline:none;transition:var(--tr);}
+.user-search-inp:focus{border-color:var(--primary);background:#fff;}
+.user-list-scroll{overflow-y:auto;}
+.user-me-badge{font-size:10px;font-weight:700;color:var(--primary);background:var(--primary-glow);border:1px solid rgba(0,92,169,.2);border-radius:var(--radius-pill);padding:1px 7px;margin-left:6px;}
 </style>
 </head>
 <body>
@@ -1032,7 +1038,8 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
       <button class="modal-close" onclick="closeModal('modal-assegna-bg')">×</button>
     </div>
     <div class="crm-modal-body">
-      <div class="user-list" id="user-list-modal"></div>
+      <div class="user-search-box"><input type="text" class="user-search-inp" id="user-search-inp" placeholder="Cerca per nome o email…" autocomplete="off" oninput="renderUserList(this.value)"></div>
+      <div class="user-list-scroll" id="user-list-modal" style="max-height:300px;padding:8px;"></div>
     </div>
     <div class="crm-modal-footer">
       <button class="btn-crm btn-crm-outline" onclick="closeModal('modal-assegna-bg')">Annulla</button>
@@ -2324,55 +2331,39 @@ async function aggiornaStatoContatto(nuovoStato){
     method:'PATCH',
     headers:H({'Prefer':'return=minimal','Content-Type':'application/json'}),
     body:JSON.stringify(body)
+  function renderUserList(filter){
+  filter=(filter||'').toLowerCase().trim();
+  var _me=crmAllUsers.find(function(u){return u.id===session.id;});
+  var _lst=(_me?[_me]:[]).concat(crmAllUsers.filter(function(u){return u.id!==session.id;}));
+  if(filter)_lst=_lst.filter(function(u){return(u.nome+' '+u.cognome+u.email).toLowerCase().includes(filter);});
+  var html='';
+  if(!_lst.length)html='<div style="padding:14px;text-align:center;font-size:13px;color:var(--text-tertiary);">Nessun utente trovato</div>';
+  _lst.forEach(function(u){
+    var sel=u.id===(crmSelectedUserId||session.id);
+    var ini=((u.nome||'').charAt(0)+(u.cognome||'').charAt(0)).toUpperCase();
+    var _iMe=u.id===session.id;
+    html+='<div class="user-option'+(sel?' selected':'')+'" onclick="selectUser(\''+u.id+'\')">'+
+      '<div class="user-option-avatar" style="'+(_iMe?'background:var(--primary);color:#fff;':'')+'">'+esc(ini)+'</div>'+
+      '<div class="user-option-info"><div class="user-option-name">'+esc(u.nome+' '+u.cognome)+(_iMe?'<span class="user-me-badge">Tu</span>':'')+'</div>'+
+      '<div class="user-option-email">'+esc(u.email)+'</div></div>'+
+      (sel?'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>':'')+
+      '</div>';
   });
-  if(!r.ok) throw new Error(await r.text());
-  if(crmContactData) crmContactData.status = nuovoStato;
+  var _el=G('user-list-modal');if(_el)_el.innerHTML=html;
+}
+'user-list-modal').innerHTML='<div style="padding:16px;color:var(--danger)">Errore caricamento utenti</div>'; }
 }
 
-/* ══════════════════════════════════════════════════
-   CRM — MODAL ASSEGNA UTENTE
-══════════════════════════════════════════════════ */
-var crmAllUsers = [];
-
-async function openModalAssegna(){
-  G('user-list-modal').innerHTML = '<div style="padding:16px;text-align:center;color:var(--text-tertiary)">Caricamento…</div>';
-  openModal('modal-assegna-bg');
-  try {
-    var r = await fetch(SB+'/rest/v1/cna_users?attivo=eq.true&select=id,nome,cognome,email&order=cognome.asc',{headers:H()});
-    if(!r.ok) throw new Error('HTTP '+r.status);
-    crmAllUsers = await r.json();
-    crmSelectedUserId = crmContactData.assigned_id;
-    renderUserList();
-  } catch(e){ G('user-list-modal').innerHTML='<div style="padding:16px;color:var(--danger)">Errore caricamento utenti</div>'; }
-}
-
-function renderUserList(){
-  var html = '';
-  crmAllUsers.forEach(function(u){
-    var sel = u.id===crmSelectedUserId;
-    var initials = ((u.nome||'').charAt(0)+(u.cognome||'').charAt(0)).toUpperCase();
-    html += '<div class="user-option'+(sel?' selected':'')+'" onclick="selectUser(\''+u.id+'\')">'
-      +'<div class="user-option-avatar">'+esc(initials)+'</div>'
-      +'<div class="user-option-info">'
-      +'<div class="user-option-name">'+esc(u.nome+' '+u.cognome)+(u.id===session.id?' (tu)':'')+'</div>'
-      +'<div class="user-option-email">'+esc(u.email)+'</div>'
-      +'</div>'
-      +(sel?'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>':'')
-      +'</div>';
-  });
-  G('user-list-modal').innerHTML = html;
-}
 
 function selectUser(uid){
-  crmSelectedUserId = uid;
-  document.querySelectorAll('.user-option').forEach(function(el){ el.classList.remove('selected'); });
+  crmSelectedUserId=uid;
+  document.querySelectorAll('#user-list-modal .user-option').forEach(function(el){
+    el.classList.remove('selected');var s=el.querySelector('svg');if(s)s.remove();
+  });
   event.currentTarget.classList.add('selected');
-  var check = event.currentTarget.querySelector('svg');
-  if(!check){
+  if(!event.currentTarget.querySelector('svg'))
     event.currentTarget.insertAdjacentHTML('beforeend','<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>');
-  }
 }
-
 async function salvaAssegnazione(){
   if(!crmSelectedUserId){ closeModal('modal-assegna-bg'); return; }
   if(crmSelectedUserId===crmContactData.assigned_id){ closeModal('modal-assegna-bg'); return; }
@@ -2715,24 +2706,27 @@ function wizUpdateCalLink(){
 /* ── Step 3: assegna utente + riepilogo ───────── */
 function wizStep3(){
   var html = '<div style="font-size:12px;font-weight:700;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.4px;margin-bottom:8px;">Assegna a</div>';
-  html += '<div class="wiz-user-list" id="wiz-user-list">';
+  html+='<div class="user-search-box" style="padding:8px 0 8px;"><input type="text" class="user-search-inp" id="wiz-user-search" placeholder="Cerca per nome o email…" autocomplete="off" oninput="wizFilterUsers(this.value)"></div>';
+  html+='<div class="user-list-scroll" id="wiz-user-list" style="max-height:200px;padding:4px 0;">';
   if(!wiz.allUsers.length){
-    html += '<div style="padding:12px;text-align:center;color:var(--text-tertiary);font-size:13px;">Caricamento utenti…</div>';
+    html+='<div style="padding:12px;text-align:center;color:var(--text-tertiary);font-size:13px;">Caricamento utenti…</div>';
   } else {
-    wiz.allUsers.forEach(function(u){
-      var sel = u.id===(wiz.assignedId||session.id);
-      var ini = ((u.nome||'').charAt(0)+(u.cognome||'').charAt(0)).toUpperCase();
-      html += '<div class="user-option'+(sel?' selected':'')+'" onclick="wizSelectUser(\''+u.id+'\',\''+esc(u.nome+' '+u.cognome)+'\')">'
-        +'<div class="user-option-avatar">'+esc(ini)+'</div>'
-        +'<div class="user-option-info">'
-        +'<div class="user-option-name">'+esc(u.nome+' '+u.cognome)+(u.id===session.id?' (tu)':'')+'</div>'
-        +'<div class="user-option-email">'+esc(u.email)+'</div>'
-        +'</div>'
-        +(sel?'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>':'')
-        +'</div>';
+    var _wme=wiz.allUsers.find(function(u){return u.id===session.id;});
+    var _wlst=(_wme?[_wme]:[]).concat(wiz.allUsers.filter(function(u){return u.id!==session.id;}));
+    _wlst.forEach(function(u){
+      var sel=u.id===(wiz.assignedId||session.id);
+      var ini=((u.nome||'').charAt(0)+(u.cognome||'').charAt(0)).toUpperCase();
+      var _wm=u.id===session.id;
+      html+='<div class="user-option'+(sel?' selected':'')+'" onclick="wizSelectUser(\''+u.id+'\',\''+esc(u.nome+' '+u.cognome)+'\')">'+
+        '<div class="user-option-avatar" style="'+(_wm?'background:var(--primary);color:#fff;':'')+'">'+esc(ini)+'</div>'+
+        '<div class="user-option-info"><div class="user-option-name">'+esc(u.nome+' '+u.cognome)+(_wm?'<span class="user-me-badge">Tu</span>':'')+'</div>'+
+        '<div class="user-option-email">'+esc(u.email)+'</div></div>'+
+        (sel?'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>':'')+
+        '</div>';
     });
   }
-  html += '</div>';
+  html+='</div>';
+
   // riepilogo
   var tipoLabel = (TIPO_CONTATTO_OPTIONS.find(function(o){ return o.value===wiz.tipoContatto; })||{}).label||'—';
   html += '<div style="background:var(--surface2);border-radius:var(--radius-sm);padding:12px;margin-top:12px;">'
@@ -2747,6 +2741,26 @@ function wizStep3(){
     +'</table>'
     +'</div>';
   return html;
+}
+
+function wizFilterUsers(q){
+  q=(q||'').toLowerCase();
+  var _wme=wiz.allUsers.find(function(u){return u.id===session.id;});
+  var _wlst=(_wme?[_wme]:[]).concat(wiz.allUsers.filter(function(u){return u.id!==session.id;}));
+  if(q)_wlst=_wlst.filter(function(u){return(u.nome+' '+u.cognome+u.email).toLowerCase().includes(q);});
+  var list=G('wiz-user-list');if(!list)return;
+  if(!_wlst.length){list.innerHTML='<div style="padding:14px;text-align:center;font-size:13px;color:var(--text-tertiary);">Nessun utente trovato</div>';return;}
+  list.innerHTML=_wlst.map(function(u){
+    var sel=u.id===(wiz.assignedId||session.id);
+    var ini=((u.nome||'').charAt(0)+(u.cognome||'').charAt(0)).toUpperCase();
+    var _wm=u.id===session.id;
+    return '<div class="user-option'+(sel?' selected':'')+'" onclick="wizSelectUser(\''+u.id+'\',\''+esc(u.nome+' '+u.cognome)+'\')">'+
+      '<div class="user-option-avatar" style="'+(_wm?'background:var(--primary);color:#fff;':'')+'">'+esc(ini)+'</div>'+
+      '<div class="user-option-info"><div class="user-option-name">'+esc(u.nome+' '+u.cognome)+(_wm?'<span class="user-me-badge">Tu</span>':'')+'</div>'+
+      '<div class="user-option-email">'+esc(u.email)+'</div></div>'+
+      (sel?'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>':'')+
+      '</div>';
+  }).join('');
 }
 
 function wizSelectUser(uid, name){
@@ -2805,6 +2819,9 @@ async function wizNext(){
 }
 
 async function wizSalva(){
+  if(wizSalva._lock)return;
+  wizSalva._lock=true;
+  var _wb=G('wiz-btn-next');if(_wb){_wb.disabled=true;_wb.style.opacity='.55';}
   showLoad('Salvataggio contatto CRM…');
   try {
     var contactId = null;
@@ -2910,6 +2927,8 @@ async function wizSalva(){
     console.error(e);
   } finally {
     hideLoad();
+    wizSalva._lock=false;
+    var _wb=G('wiz-btn-next');if(_wb){_wb.disabled=false;_wb.style.opacity='';}
   }
 }
 
