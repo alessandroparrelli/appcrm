@@ -573,6 +573,36 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 .kpi-lavorazione{color:#D97706 !important;}
 .kpi-positivo   {color:#166534 !important;}
 .kpi-negativo   {color:#B91C1C !important;}
+
+/* ── CARD CONTATTO ARRICCHITA ───────────────────── */
+.crm-cc-details{display:grid;grid-template-columns:1fr 1fr;gap:2px 16px;margin-top:8px;padding-top:8px;border-top:1px solid var(--border);}
+.crm-cc-detail{display:flex;align-items:baseline;gap:4px;font-size:11px;}
+.crm-cc-detail-lbl{color:var(--text-tertiary);font-weight:600;white-space:nowrap;flex-shrink:0;}
+.crm-cc-detail-val{color:var(--text-secondary);font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+
+/* ── SELEZIONE CARD (checkbox) ──────────────────── */
+.crm-contact-card{position:relative;}
+.crm-cc-checkbox{position:absolute;top:12px;left:12px;z-index:10;display:none;cursor:pointer;width:18px;height:18px;accent-color:var(--primary);}
+.select-mode .crm-cc-checkbox{display:block;}
+.select-mode .crm-contact-card{padding-left:40px;cursor:default;}
+.select-mode .crm-contact-card:hover{border-color:var(--border);}
+.crm-contact-card.selected-card{border-color:var(--primary) !important;background:rgba(0,92,169,.04);}
+
+/* ── TOOLBAR SELEZIONE (sopra la lista) ─────────── */
+.select-toolbar{display:none;align-items:center;gap:10px;padding:10px 14px;background:var(--primary);border-radius:var(--radius-md);margin-bottom:10px;animation:slideDown .2s ease;}
+.select-toolbar.show{display:flex;}
+.select-toolbar-count{color:#fff;font-size:13px;font-weight:700;flex:1;}
+.btn-sel-all{padding:6px 14px;border-radius:var(--radius-pill);background:rgba(255,255,255,.2);color:#fff;font-size:12px;font-weight:700;border:none;cursor:pointer;font-family:var(--font);}
+.btn-sel-all:hover{background:rgba(255,255,255,.3);}
+.btn-sel-delete{padding:6px 14px;border-radius:var(--radius-pill);background:#EF4444;color:#fff;font-size:12px;font-weight:700;border:none;cursor:pointer;font-family:var(--font);display:flex;align-items:center;gap:5px;}
+.btn-sel-delete:hover{background:#DC2626;}
+.btn-sel-cancel{padding:6px 12px;border-radius:var(--radius-pill);background:transparent;color:rgba(255,255,255,.8);font-size:12px;font-weight:600;border:1px solid rgba(255,255,255,.4);cursor:pointer;font-family:var(--font);}
+.btn-sel-cancel:hover{background:rgba(255,255,255,.15);}
+
+/* ── BOTTONE SELEZIONA (topbar flussi) ──────────── */
+.btn-select-mode{display:inline-flex;align-items:center;gap:5px;padding:7px 14px;border-radius:var(--radius-pill);font-size:12px;font-weight:700;cursor:pointer;border:1.5px solid var(--border-strong);background:var(--surface);color:var(--text-secondary);font-family:var(--font);transition:var(--tr);}
+.btn-select-mode:hover{border-color:var(--primary);color:var(--primary);}
+.btn-select-mode.active{background:var(--primary);color:#fff;border-color:var(--primary);}
 </style>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
@@ -856,12 +886,26 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
             <option value="assigned">Solo assegnati a me</option>
           </select>
         </div>
+        <button class="btn-select-mode" id="btn-select-mode" onclick="toggleSelectMode()" style="flex-shrink:0;" title="Seleziona contatti">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+          Seleziona
+        </button>
         <button class="btn-crm btn-crm-primary btn-crm-nuovo-contatto" onclick="openWizard()" style="flex-shrink:0;white-space:nowrap;">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
           Nuovo contatto
         </button>
       </div>
-      <div id="crm-list-content" style="margin-top:14px;">
+      <!-- Toolbar selezione (admin) -->
+      <div class="select-toolbar" id="select-toolbar">
+        <span class="select-toolbar-count" id="sel-count-label">0 selezionati</span>
+        <button class="btn-sel-all" onclick="selectAllCards()">Seleziona tutti</button>
+        <button class="btn-sel-delete" onclick="deleteSelectedContacts()">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+          Elimina selezionati
+        </button>
+        <button class="btn-sel-cancel" onclick="toggleSelectMode()">Annulla</button>
+      </div>
+      <div id="crm-list-content" style="margin-top:0;">
         <div class="crm-empty"><div class="crm-empty-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle"><rect x="9" y="2" width="6" height="3" rx="1"/><rect x="3" y="5" width="18" height="17" rx="2"/><line x1="9" y1="10" x2="15" y2="10"/><line x1="9" y1="14" x2="15" y2="14"/></svg></div><div class="crm-empty-text">Caricamento…</div></div>
       </div>
     </div>
@@ -2254,30 +2298,39 @@ async function loadMieAttivita(){
     }
 
     // Carica utenti per nome assegnatario
-    var userIds = [...new Set(data.map(function(c){ return c.assigned_id; }).filter(Boolean))];
+    // raccoglie tutti gli user_id (assigned + creator)
+    var _allUids = [...new Set(
+      data.map(function(ct){ return ct.assigned_id; }).concat(
+      data.map(function(ct){ return ct.creator_id;  }))
+      .filter(Boolean)
+    )];
     var usersMap = {};
-    if(userIds.length){
-      var uRes = await fetch(SB+'/rest/v1/cna_users?id=in.('+userIds.map(encodeURIComponent).join(',')+')&select=id,nome,cognome',{headers:H()});
+    if(_allUids.length){
+      var uRes = await fetch(SB+'/rest/v1/cna_users?id=in.('+_allUids.map(encodeURIComponent).join(',')+')&select=id,nome,cognome',{headers:H()});
       if(uRes.ok){ var uArr=await uRes.json(); uArr.forEach(function(u){ usersMap[u.id]=u; }); }
     }
 
     var html = '<div class="crm-section-title">'+data.length+' contatt'+(data.length===1?'o':'i')+'</div>';
-    data.forEach(function(c){
-      var u = usersMap[c.assigned_id];
-      var assignedLabel = u ? (u.nome+' '+u.cognome) : (c.assigned_id===session.id ? 'Me' : '—');
-      var isMine = c.assigned_id===session.id;
-      html += '<div class="crm-contact-card" onclick="openCrmContatto('+c.id+')">'
+    var isAdmin2 = (session && session.ruolo === 'admin');
+    data.forEach(function(ct){
+      var uAssigned = usersMap[ct.assigned_id];
+      var uCreator  = usersMap[ct.creator_id];
+      var assignedLabel = uAssigned ? (uAssigned.nome+' '+uAssigned.cognome) : (ct.assigned_id===session.id ? 'Me' : '—');
+      var creatorLabel  = uCreator  ? (uCreator.nome+' '+uCreator.cognome)   : (ct.creator_id===session.id  ? 'Me' : '—');
+      html += '<div class="crm-contact-card" id="card-'+ct.id+'" onclick="_cardClick(event,'+ct.id+')">'
+        +(isAdmin2 ? '<input type="checkbox" class="crm-cc-checkbox" id="chk-'+ct.id+'" onclick="_cardChk(event,'+ct.id+')" data-id="'+ct.id+'">' : '')
         +'<div class="crm-cc-top">'
-        +'<div class="crm-cc-name">'+esc(c.company_name)+'</div>'
-        +macroPill(c.status)
+        +'<div class="crm-cc-name">'+esc(ct.company_name)+'</div>'
+        +macroPill(ct.status)
         +'</div>'
-        +'<div class="crm-cc-meta">'
-        +'<span class="crm-cc-info">Aggiornato '+esc(fmtDate(c.updated_at))+'</span>'
-        +(isMine ? '<span class="crm-cc-assigned"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg> Assegnato a me</span>' : '<span class="crm-cc-assigned"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg> '+esc(assignedLabel)+'</span>')
+        +'<div class="crm-cc-details">'
+        +'<div class="crm-cc-detail"><span class="crm-cc-detail-lbl">Creato da:</span><span class="crm-cc-detail-val">'+esc(creatorLabel)+'</span></div>'
+        +'<div class="crm-cc-detail"><span class="crm-cc-detail-lbl">Assegnato a:</span><span class="crm-cc-detail-val">'+esc(assignedLabel)+'</span></div>'
+        +'<div class="crm-cc-detail"><span class="crm-cc-detail-lbl">Creato il:</span><span class="crm-cc-detail-val">'+esc(fmtDate(ct.created_at))+'</span></div>'
+        +'<div class="crm-cc-detail"><span class="crm-cc-detail-lbl">Aggiornato:</span><span class="crm-cc-detail-val">'+esc(fmtDate(ct.updated_at))+'</span></div>'
         +'</div>'
         +'</div>';
-    });
-    wrap.innerHTML = html;
+    });p.innerHTML = html;
   } catch(e){ wrap.innerHTML='<div class="crm-empty"><div class="crm-empty-icon">❌</div><div class="crm-empty-text">Errore caricamento</div></div>'; console.error(e); }
 }
 
@@ -4286,6 +4339,137 @@ function openNotifModal() {
   if (badge) badge.classList.remove('show');
   G('modal-notif-bg').classList.add('open');
 }
+
+/* ══════════════════════════════════════════════════
+   SELEZIONE E CANCELLAZIONE CONTATTI (admin)
+══════════════════════════════════════════════════ */
+var _selectMode   = false;
+var _selectedIds  = new Set();
+
+function toggleSelectMode() {
+  if (session.ruolo !== 'admin') return;
+  _selectMode = !_selectMode;
+  _selectedIds.clear();
+  var list  = G('crm-list-content');
+  var tb    = G('select-toolbar');
+  var btn   = G('btn-select-mode');
+  if (list) list.classList.toggle('select-mode', _selectMode);
+  if (tb)   tb.classList.toggle('show', _selectMode);
+  if (btn)  btn.classList.toggle('active', _selectMode);
+  _updateSelCount();
+  // deseleziona tutto visivamente
+  document.querySelectorAll('.crm-contact-card').forEach(function(el){
+    el.classList.remove('selected-card');
+  });
+  document.querySelectorAll('.crm-cc-checkbox').forEach(function(cb){
+    cb.checked = false;
+  });
+}
+
+function _cardClick(e, id) {
+  if (_selectMode) {
+    // in modalità selezione: toggle checkbox invece di aprire la scheda
+    e.stopPropagation();
+    _toggleCard(id);
+  } else {
+    openCrmContatto(id);
+  }
+}
+
+function _cardChk(e, id) {
+  e.stopPropagation();
+  _toggleCard(id);
+}
+
+function _toggleCard(id) {
+  var card = G('card-' + id);
+  var chk  = G('chk-' + id);
+  if (_selectedIds.has(id)) {
+    _selectedIds.delete(id);
+    if (card) card.classList.remove('selected-card');
+    if (chk)  chk.checked = false;
+  } else {
+    _selectedIds.add(id);
+    if (card) card.classList.add('selected-card');
+    if (chk)  chk.checked = true;
+  }
+  _updateSelCount();
+}
+
+function selectAllCards() {
+  document.querySelectorAll('.crm-cc-checkbox').forEach(function(cb){
+    var id = parseInt(cb.getAttribute('data-id'));
+    _selectedIds.add(id);
+    cb.checked = true;
+    var card = G('card-' + id);
+    if (card) card.classList.add('selected-card');
+  });
+  _updateSelCount();
+}
+
+function _updateSelCount() {
+  var n   = _selectedIds.size;
+  var lbl = G('sel-count-label');
+  if (lbl) lbl.textContent = n + ' selezionat' + (n === 1 ? 'o' : 'i');
+  // disabilita pulsante elimina se nessuno selezionato
+  var btn = document.querySelector('.btn-sel-delete');
+  if (btn) btn.style.opacity = n > 0 ? '1' : '.4';
+  if (btn) btn.disabled = n === 0;
+}
+
+async function deleteSelectedContacts() {
+  if (_selectedIds.size === 0) return;
+  var n = _selectedIds.size;
+  var ok = confirm(
+    'Elimina ' + n + ' contatt' + (n===1?'o':'i') + '?\n\n'
+    + 'Questa azione è irreversibile. Verranno eliminati anche\n'
+    + 'tutte le chiamate, gli appuntamenti e il log attività\n'
+    + 'collegati ai contatti selezionati.'
+  );
+  if (!ok) return;
+
+  showLoad('Eliminazione in corso\u2026');
+  var ids = Array.from(_selectedIds);
+  var errors = 0;
+
+  try {
+    // Elimina in cascata (ON DELETE CASCADE già impostato nel DB)
+    // ma per sicurezza eliminiamo prima i record dipendenti
+    for (var i = 0; i < ids.length; i++) {
+      var id = ids[i];
+      await Promise.all([
+        fetch(SB+'/rest/v1/crm_activity_log?contact_id=eq.'+id, {method:'DELETE',headers:H()}),
+        fetch(SB+'/rest/v1/crm_calls?contact_id=eq.'+id,        {method:'DELETE',headers:H()}),
+        fetch(SB+'/rest/v1/crm_appointments?contact_id=eq.'+id, {method:'DELETE',headers:H()}),
+      ]);
+      var r = await fetch(SB+'/rest/v1/crm_contacts?id=eq.'+id, {method:'DELETE',headers:H()});
+      if (!r.ok) errors++;
+    }
+
+    if (errors === 0) {
+      toast(n + ' contatt' + (n===1?'o':'i') + ' eliminat' + (n===1?'o':'i') + ' con successo', 'success');
+    } else {
+      toast('Completato con ' + errors + ' errori', 'error');
+    }
+
+    // Reset e ricarica
+    _selectedIds.clear();
+    _selectMode = false;
+    var tb  = G('select-toolbar');
+    var btn = G('btn-select-mode');
+    var lst = G('crm-list-content');
+    if (tb)  tb.classList.remove('show');
+    if (btn) btn.classList.remove('active');
+    if (lst) lst.classList.remove('select-mode');
+    await loadMieAttivita();
+
+  } catch(e) {
+    toast('Errore durante l\'eliminazione: ' + e.message, 'error');
+  } finally {
+    hideLoad();
+  }
+}
+
 
 /* goHome: logo cliccabile → home */
 function goHome(){
