@@ -600,7 +600,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 .btn-sel-cancel:hover{background:rgba(255,255,255,.15);}
 
 /* ── BOTTONE SELEZIONA (topbar flussi) ──────────── */
-.btn-select-mode{display:inline-flex;align-items:center;gap:5px;padding:7px 14px;border-radius:var(--radius-pill);font-size:12px;font-weight:700;cursor:pointer;border:1.5px solid var(--border-strong);background:var(--surface);color:var(--text-secondary);font-family:var(--font);transition:var(--tr);}
+.btn-select-mode{display:none;align-items:center;gap:5px;padding:7px 14px;border-radius:var(--radius-pill);font-size:12px;font-weight:700;cursor:pointer;border:1.5px solid var(--border-strong);background:var(--surface);color:var(--text-secondary);font-family:var(--font);transition:var(--tr);flex-shrink:0;white-space:nowrap;}
 .btn-select-mode:hover{border-color:var(--primary);color:var(--primary);}
 .btn-select-mode.active{background:var(--primary);color:#fff;border-color:var(--primary);}
 </style>
@@ -886,7 +886,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
             <option value="assigned">Solo assegnati a me</option>
           </select>
         </div>
-        <button class="btn-select-mode" id="btn-select-mode" onclick="toggleSelectMode()" style="flex-shrink:0;" title="Seleziona contatti">
+        <button class="btn-select-mode" id="btn-select-mode" onclick="toggleSelectMode()" style="flex-shrink:0;display:none;" title="Seleziona contatti">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
           Seleziona
         </button>
@@ -1435,11 +1435,15 @@ function startApp(){
   showView('search');
   // inizializza sistema notifiche (polling + Notification API)
   setTimeout(notifInit, 1500);
-  // mostra tab admin solo se ruolo admin
-  if(session.ruolo==='admin'){
+  // mostra tab admin e bottone seleziona solo se admin
+  var _isAdmin = (session.ruolo==='admin');
+  if(_isAdmin){
     var tabAdmin = G('tab-admin');
     if(tabAdmin) tabAdmin.style.display='flex';
   }
+  // bottone Seleziona: visibile solo admin
+  var _btnSel = G('btn-select-mode');
+  if(_btnSel) _btnSel.style.display = _isAdmin ? 'inline-flex' : 'none';
   // tab CRM attivo di default
   crmTab('crm');
 }
@@ -3618,7 +3622,10 @@ async function notifInit() {
     setTimeout(function(){ G('modal-notif-bg').classList.add('open'); }, 2500);
   }
 
-  // Avvia polling ogni 30s
+  // Supabase Realtime — ascolta nuovi contatti assegnati a me
+  _realtimeSubscribe();
+
+  // Avvia polling ogni 30s (fallback + appuntamenti)
   await _pollCheck();
   _pollTimer = setInterval(_pollCheck, 30000);
 
@@ -3626,6 +3633,78 @@ async function notifInit() {
   document.addEventListener('visibilitychange', function(){
     if (!document.hidden) _pollCheck();
   });
+}
+
+/* ── SUPABASE REALTIME ──────────────────────────────────────────── */
+function _realtimeSubscribe() {
+  if (!session || !session.id) return;
+  if (!window.WebSocket) return;
+
+  var uid = session.id;
+  // Connessione WebSocket al Realtime di Supabase
+  // Formato: wss://[project].supabase.co/realtime/v1/websocket
+  var wsUrl = 'wss://ohahuqlfzqckaevaffbt.supabase.co/realtime/v1/websocket'
+    + '?apikey=' + KEY + '&vsn=1.0.0';
+
+  var ws = new WebSocket(wsUrl);
+  var heartbeat = null;
+
+  ws.onopen = function() {
+    console.log('[CRM Realtime] Connesso');
+    // Subscribe al channel postgres_changes per crm_contacts
+    ws.send(JSON.stringify({
+      topic: 'realtime:crm_contacts_' + uid,
+      event: 'phx_join',
+      payload: {
+        config: {
+          broadcast:  { self: false },
+          presence:   { key: '' },
+          postgres_changes: [{
+            event:  'INSERT',
+            schema: 'public',
+            table:  'crm_contacts',
+            filter: 'assigned_id=eq.' + uid
+          }, {
+            event:  'UPDATE',
+            schema: 'public',
+            table:  'crm_contacts',
+            filter: 'assigned_id=eq.' + uid
+          }]
+        }
+      },
+      ref: '1'
+    }));
+    // Heartbeat ogni 25s per mantenere la connessione
+    heartbeat = setInterval(function() {
+      if (ws.readyState === WebSocket.OPEN) {
+        ws.send(JSON.stringify({topic:'phoenix',event:'heartbeat',payload:{},ref:'hb'}));
+      }
+    }, 25000);
+  };
+
+  ws.onmessage = function(e) {
+    try {
+      var msg = JSON.parse(e.data);
+      if (msg.event !== 'postgres_changes') return;
+      var record = msg.payload && msg.payload.data && msg.payload.data.record;
+      if (!record) return;
+      // Filtra: solo contatti assegnati a me creati da altri
+      if (record.assigned_id !== uid) return;
+      if (record.creator_id  === uid) return;
+      _showNotif(
+        'Nuovo contatto assegnato',
+        record.company_name || 'Hai un nuovo contatto da lavorare',
+        '/'
+      );
+    } catch(err) { /* ignora */ }
+  };
+
+  ws.onerror = function(e) { console.warn('[CRM Realtime] Errore WS'); };
+  ws.onclose = function() {
+    clearInterval(heartbeat);
+    // Riconnetti dopo 10s se la sessione è ancora attiva
+    if (session) setTimeout(_realtimeSubscribe, 10000);
+  };
 }
 
 /* ─── MODALE NOTIFICHE ─────────────────────────────────────────── */
@@ -4348,7 +4427,6 @@ var _selectMode   = false;
 var _selectedIds  = new Set();
 
 function toggleSelectMode() {
-  if (session.ruolo !== 'admin') return;
   _selectMode = !_selectMode;
   _selectedIds.clear();
   var list  = G('crm-list-content');
@@ -4419,7 +4497,10 @@ function _updateSelCount() {
 }
 
 async function deleteSelectedContacts() {
-  if (_selectedIds.size === 0) return;
+  if (!_selectMode || _selectedIds.size === 0) {
+    toast('Seleziona almeno un contatto', 'error');
+    return;
+  }
   var n = _selectedIds.size;
   var ok = confirm(
     'Elimina ' + n + ' contatt' + (n===1?'o':'i') + '?\n\n'
