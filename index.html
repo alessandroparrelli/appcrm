@@ -3524,6 +3524,504 @@ document.addEventListener('click', function(e){
   });
 });
 /* ══════════════════════════════════════════════════════════════
+   SISTEMA NOTIFICHE COMPLETO
+   
+   Livello 1 — Web Push VAPID (schermo bloccato, app chiusa)
+     Funziona su: Android Chrome/Firefox, iOS 16.4+ PWA installata
+     Richiede: permesso notifiche + PWA installata su iOS
+   
+   Livello 2 — Polling 30s (app aperta)
+     Funziona su: tutti i browser, sempre
+     Mostra: Notification API nativa + in-app toast
+   
+   Livello 3 — In-app toast (sempre)
+     Funziona su: qualsiasi dispositivo, zero permessi
+══════════════════════════════════════════════════════════════ */
+
+var VAPID_PUBLIC  = 'BHiuy3FD03aOSvzAd95HeAEesKJa1ZPYDEpqLDp9c_fecW8hhasLgSQbHENgC9S0ukT-jdVWHSxOtNmxGlYD0wA';
+var PUSH_FUNC_URL = 'https://ohahuqlfzqckaevaffbt.supabase.co/functions/v1/crm-push-notify';
+
+var _pollTimer        = null;
+var _pollLastCheck    = null;
+var _pollInitialized  = false;
+var _notifPermission  = 'default';
+var _isPWA            = (window.matchMedia('(display-mode: standalone)').matches
+                         || window.navigator.standalone === true);
+
+/* ─── INIT principale ──────────────────────────────────────────── */
+async function notifInit() {
+  if (_pollInitialized) return;
+  _pollInitialized = true;
+  _pollLastCheck   = new Date().toISOString();
+  _notifPermission = ('Notification' in window) ? Notification.permission : 'denied';
+
+  // Se già permesso → sottoscrivi subito alle Web Push
+  if (_notifPermission === 'granted') {
+    _webPushSubscribe();
+  }
+  // Mostra modale se permesso non ancora dato e non dismissed
+  else if (_notifPermission === 'default' && !localStorage.getItem('notif-dismissed')) {
+    setTimeout(function(){ G('modal-notif-bg').classList.add('open'); }, 2500);
+  }
+
+  // Avvia polling ogni 30s
+  await _pollCheck();
+  _pollTimer = setInterval(_pollCheck, 30000);
+
+  // Riattiva quando si torna sulla pagina
+  document.addEventListener('visibilitychange', function(){
+    if (!document.hidden) _pollCheck();
+  });
+}
+
+/* ─── MODALE NOTIFICHE ─────────────────────────────────────────── */
+async function notifModalAccept() {
+  G('modal-notif-bg').classList.remove('open');
+
+  // iOS: se non è PWA → mostra guida installazione
+  var isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+  if (isIOS && !_isPWA) {
+    _showInstallGuide();
+    return;
+  }
+
+  if (!('Notification' in window)) {
+    toast('Questo browser non supporta le notifiche di sistema', 'error');
+    // avvia solo polling
+    return;
+  }
+
+  var perm = await Notification.requestPermission();
+  _notifPermission = perm;
+
+  if (perm === 'granted') {
+    await _webPushSubscribe();
+    toast('Notifiche attivate! Riceverai aggiornamenti anche con l\'app chiusa.', 'success');
+    localStorage.removeItem('notif-dismissed');
+  } else {
+    toast('Notifiche di sistema non autorizzate — riceverai avvisi in-app', 'error');
+  }
+}
+
+function notifModalDismiss() {
+  G('modal-notif-bg').classList.remove('open');
+  localStorage.setItem('notif-dismissed', '1');
+}
+
+/* Chiudi cliccando sfondo */
+(function(){
+  var el = G('modal-notif-bg');
+  if (el) el.addEventListener('click', function(e){
+    if (e.target === this) notifModalDismiss();
+  });
+})();
+
+function openNotifModal() {
+  _badgeCount = 0;
+  document.title = _origTitle;
+  var badge = G('notif-header-badge');
+  if (badge) badge.classList.remove('show');
+  G('modal-notif-bg').classList.add('open');
+}
+
+/* ─── GUIDA INSTALLAZIONE iOS ──────────────────────────────────── */
+function _showInstallGuide() {
+  var html = '<div id="ios-install-guide" style="position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(6px);z-index:30000;display:flex;align-items:flex-end;justify-content:center;padding:16px;">'
+    + '<div style="background:var(--surface);border-radius:20px;width:100%;max-width:400px;overflow:hidden;animation:slideUp .3s ease;">'
+    + '<div style="background:var(--grad-primary);padding:20px 24px;text-align:center;">'
+    + '<div style="font-size:40px;margin-bottom:8px;">📲</div>'
+    + '<div style="font-size:18px;font-weight:800;color:#fff;margin-bottom:6px;">Installa l\'app per le notifiche</div>'
+    + '<div style="font-size:13px;color:rgba(255,255,255,.8);">Su iPhone le notifiche funzionano solo con l\'app installata sulla schermata Home</div>'
+    + '</div>'
+    + '<div style="padding:20px 24px;">'
+    + '<div style="display:flex;align-items:flex-start;gap:14px;margin-bottom:16px;">'
+    + '<div style="width:32px;height:32px;border-radius:50%;background:var(--primary);color:#fff;font-size:14px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;">1</div>'
+    + '<div><div style="font-size:14px;font-weight:700;color:var(--text);">Tocca il tasto Condividi</div>'
+    + '<div style="font-size:12px;color:var(--text-secondary);margin-top:3px;">L\'icona <strong>□↑</strong> in basso nella barra di Safari</div></div>'
+    + '</div>'
+    + '<div style="display:flex;align-items:flex-start;gap:14px;margin-bottom:16px;">'
+    + '<div style="width:32px;height:32px;border-radius:50%;background:var(--primary);color:#fff;font-size:14px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;">2</div>'
+    + '<div><div style="font-size:14px;font-weight:700;color:var(--text);">Scorri e tocca "Aggiungi a Home"</div>'
+    + '<div style="font-size:12px;color:var(--text-secondary);margin-top:3px;">Cerca la voce con l\'icona <strong>+</strong></div></div>'
+    + '</div>'
+    + '<div style="display:flex;align-items:flex-start;gap:14px;">'
+    + '<div style="width:32px;height:32px;border-radius:50%;background:var(--primary);color:#fff;font-size:14px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;">3</div>'
+    + '<div><div style="font-size:14px;font-weight:700;color:var(--text);">Apri l\'app dalla schermata Home</div>'
+    + '<div style="font-size:12px;color:var(--text-secondary);margin-top:3px;">Poi torna qui e attiva le notifiche</div></div>'
+    + '</div>'
+    + '</div>'
+    + '<div style="padding:0 24px 24px;">'
+    + '<button onclick="document.getElementById(\'ios-install-guide\').remove()" style="width:100%;padding:14px;border-radius:var(--radius-pill);background:var(--primary);color:#fff;font-size:15px;font-weight:700;border:none;cursor:pointer;font-family:var(--font);">Ho capito</button>'
+    + '</div>'
+    + '</div>'
+    + '</div>';
+  document.body.insertAdjacentHTML('beforeend', html);
+}
+
+/* ─── WEB PUSH SUBSCRIBE ────────────────────────────────────────── */
+function _urlBase64ToUint8Array(b64) {
+  var pad = b64.replace(/-/g,'+').replace(/_/g,'/');
+  while (pad.length % 4) pad += '=';
+  var raw = atob(pad);
+  var out = new Uint8Array(raw.length);
+  for (var i = 0; i < raw.length; i++) out[i] = raw.charCodeAt(i);
+  return out;
+}
+
+async function _webPushSubscribe() {
+  if (!('serviceWorker' in navigator) || !('PushManager' in window)) return;
+  try {
+    var reg = await navigator.serviceWorker.ready;
+    // Recupera o crea subscription
+    var sub = await reg.pushManager.getSubscription();
+    if (!sub) {
+      sub = await reg.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: _urlBase64ToUint8Array(VAPID_PUBLIC)
+      });
+    }
+    await _savePushSub(sub);
+    console.log('[CRM] Web Push subscription attiva');
+  } catch(e) {
+    console.warn('[CRM] Web Push subscribe error:', e);
+  }
+}
+
+async function _savePushSub(sub) {
+  if (!session || !session.id) return;
+  var j = sub.toJSON();
+  // Elimina vecchia subscription dell'utente e salva la nuova
+  await fetch(SB + '/rest/v1/push_subscriptions?user_id=eq.' + session.id, {
+    method: 'DELETE', headers: H()
+  }).catch(function(){});
+  await fetch(SB + '/rest/v1/push_subscriptions', {
+    method: 'POST',
+    headers: H({'Prefer':'return=minimal','Content-Type':'application/json'}),
+    body: JSON.stringify({
+      user_id:    session.id,
+      endpoint:   j.endpoint,
+      p256dh:     j.keys.p256dh,
+      auth:       j.keys.auth,
+      user_agent: navigator.userAgent.substring(0, 200)
+    })
+  }).catch(function(){});
+}
+
+/* ─── TRIGGER PUSH (chiamato su assegnazione) ──────────────────── */
+async function triggerPush(userIds, title, message, url) {
+  // In-app immediato se l'utente corrente è tra i destinatari
+  if (session && userIds.indexOf(session.id) !== -1) {
+    _showNotif(title, message, url || '/');
+  }
+  // Edge Function per push sui dispositivi con schermo bloccato
+  try {
+    await fetch(PUSH_FUNC_URL, {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({
+        user_ids: userIds,
+        title: title,
+        message: message,
+        url: url || '/',
+        tag: 'crm-event'
+      })
+    });
+  } catch(e) { /* silenzioso */ }
+}
+
+/* ─── POLLING ──────────────────────────────────────────────────── */
+async function _pollCheck() {
+  if (!session || !session.id) return;
+  var since = _pollLastCheck;
+  _pollLastCheck = new Date().toISOString();
+  var uid = session.id;
+
+  try {
+    // 1. Nuovi contatti assegnati a me (da altri)
+    var r1 = await fetch(
+      SB + '/rest/v1/crm_contacts'
+      + '?assigned_id=eq.' + uid
+      + '&created_at=gt.' + encodeURIComponent(since)
+      + '&select=id,company_name,creator_id'
+      + '&order=created_at.desc&limit=5',
+      { headers: H() }
+    );
+    if (r1.ok) {
+      var nuovi = await r1.json();
+      nuovi.forEach(function(ct) {
+        if (ct.creator_id === uid) return; // ignorare i propri
+        _showNotif(
+          'Nuovo contatto assegnato',
+          ct.company_name || 'Nuovo contatto da lavorare',
+          '/'
+        );
+      });
+    }
+
+    // 2. Appuntamenti nelle prossime 2 ore
+    var now  = new Date();
+    var in2h = new Date(now.getTime() + 2 * 3600 * 1000);
+    var r2 = await fetch(
+      SB + '/rest/v1/crm_appointments'
+      + '?user_id=eq.' + uid
+      + '&status=eq.pianificato'
+      + '&appointment_date=gte.' + encodeURIComponent(now.toISOString())
+      + '&appointment_date=lte.' + encodeURIComponent(in2h.toISOString())
+      + '&select=id,appointment_date,appointment_type&limit=3',
+      { headers: H() }
+    );
+    if (r2.ok) {
+      var aptsIn2h = await r2.json();
+      aptsIn2h.forEach(function(apt) {
+        var key = 'apt-notif-' + apt.id;
+        if (localStorage.getItem(key)) return;
+        localStorage.setItem(key, '1');
+        var d    = new Date(apt.appointment_date);
+        var diff = Math.round((d - now) / 60000);
+        var tipo = apt.appointment_type === 'presenza'     ? 'In presenza'
+                 : apt.appointment_type === 'telefono'     ? 'Telefono'
+                 : 'Videochiamata';
+        _showNotif(
+          'Appuntamento tra ' + diff + ' min',
+          tipo + ' — ' + d.toLocaleTimeString('it-IT', {hour:'2-digit', minute:'2-digit'}),
+          '/'
+        );
+      });
+    }
+  } catch(e) { /* silenzioso */ }
+}
+
+/* ─── MOSTRA NOTIFICA (Notification API + in-app) ─────────────── */
+function _showNotif(title, body, url) {
+  // Notification API nativa
+  if (_notifPermission === 'granted' && 'Notification' in window) {
+    try {
+      var n = new Notification(title, {
+        body:  body,
+        icon:  '/icon-192.png',
+        badge: '/icon-144.png',
+        tag:   'crm-' + Date.now(),
+      });
+      n.onclick = function(){ window.focus(); n.close(); };
+      setTimeout(function(){ n.close(); }, 8000);
+    } catch(e) {}
+  }
+  // In-app toast (sempre)
+  _showInAppNotif(title, body);
+  _badgeTick();
+}
+
+/* ─── IN-APP TOAST QUEUE ───────────────────────────────────────── */
+var _inAppQueue   = [];
+var _inAppShowing = false;
+
+function _showInAppNotif(title, msg) {
+  _inAppQueue.push({title: title, msg: msg});
+  if (!_inAppShowing) _nextInAppNotif();
+}
+
+function _nextInAppNotif() {
+  if (!_inAppQueue.length) { _inAppShowing = false; return; }
+  _inAppShowing = true;
+  var item = _inAppQueue.shift();
+  var t  = G('crm-notif-title');
+  var m  = G('crm-notif-msg');
+  var el = G('crm-notif-toast');
+  if (t)  t.textContent = item.title;
+  if (m)  m.textContent = item.msg;
+  if (el) el.classList.add('show');
+  setTimeout(function(){
+    closeInAppNotif();
+    setTimeout(_nextInAppNotif, 400);
+  }, 5000);
+}
+
+function closeInAppNotif() {
+  var el = G('crm-notif-toast');
+  if (el) el.classList.remove('show');
+  _inAppShowing = false;
+}
+
+/* ─── BADGE TITOLO E HEADER ────────────────────────────────────── */
+var _badgeCount = 0;
+var _origTitle  = document.title;
+
+function _badgeTick() {
+  _badgeCount++;
+  document.title = '(' + _badgeCount + ') ' + _origTitle;
+  var badge = G('notif-header-badge');
+  if (badge) {
+    badge.textContent = _badgeCount > 9 ? '9+' : String(_badgeCount);
+    badge.classList.add('show');
+  }
+  document.addEventListener('visibilitychange', function handler() {
+    if (!document.hidden) {
+      _badgeCount = 0;
+      document.title = _origTitle;
+      var b = G('notif-header-badge');
+      if (b) b.classList.remove('show');
+      document.removeEventListener('visibilitychange', handler);
+    }
+  });
+}
+
+
+
+/* ── EXPORT XLSX ────────────────────────────────── */
+async function exportAdmin(tipo){
+  showLoad('Preparazione export…');
+  try {
+    var rows = [], headers = [], filename = '';
+
+    if(tipo==='contacts'){
+      filename = 'flussi_crm_'+new Date().toISOString().slice(0,10)+'.xlsx';
+      headers = ['ID','Impresa','Stato','Creato da','Assegnato a','Data creazione','Ultimo aggiornamento'];
+      var r = await fetch(SB+'/rest/v1/crm_contacts?select=*&order=updated_at.desc',{headers:H()});
+      var data = r.ok ? await r.json() : [];
+      rows = data.map(function(c){
+        var cr = adminAllUsers[c.creator_id];
+        var as = adminAllUsers[c.assigned_id];
+        return [c.id, c.company_name, STATI_LABEL[c.status]||c.status,
+          cr?cr.nome+' '+cr.cognome:'–', as?as.nome+' '+as.cognome:'–',
+          fmtDate(c.created_at), fmtDate(c.updated_at)];
+      });
+    } else if(tipo==='companies'){
+      filename = 'nuove_imprese_'+new Date().toISOString().slice(0,10)+'.xlsx';
+      headers = ['Ragione Sociale','P.IVA','Nome','Cognome','Cellulare','Email','Inserito da','Data'];
+      var r = await fetch(SB+'/rest/v1/crm_new_companies?select=*&order=created_at.desc',{headers:H()});
+      var data = r.ok ? await r.json() : [];
+      rows = data.map(function(c){
+        var u = adminAllUsers[c.created_by];
+        return [c.ragione_sociale,c.partita_iva,c.nome_titolare,c.cognome_titolare,
+          c.cellulare,c.email, u?u.nome+' '+u.cognome:'–', fmtDate(c.created_at)];
+      });
+    } else if(tipo==='users'){
+      filename = 'report_utenti_'+new Date().toISOString().slice(0,10)+'.xlsx';
+      headers = ['Utente','Email','Creati','Assegnati','Chiamate','Appuntamenti','Chiusi positivi'];
+      var [cAll,callAll,aptAll,uAll] = await Promise.all([
+        fetch(SB+'/rest/v1/crm_contacts?select=creator_id,assigned_id,status',{headers:H()}).then(function(r){return r.ok?r.json():[];}),
+        fetch(SB+'/rest/v1/crm_calls?select=user_id',{headers:H()}).then(function(r){return r.ok?r.json():[];}),
+        fetch(SB+'/rest/v1/crm_appointments?select=user_id',{headers:H()}).then(function(r){return r.ok?r.json():[];}),
+        fetch(SB+'/rest/v1/cna_users?attivo=eq.true&select=*&order=cognome.asc',{headers:H()}).then(function(r){return r.ok?r.json():[];})
+      ]);
+      rows = uAll.map(function(u){
+        return [u.nome+' '+u.cognome, u.email,
+          cAll.filter(function(c){return c.creator_id===u.id;}).length,
+          cAll.filter(function(c){return c.assigned_id===u.id;}).length,
+          callAll.filter(function(c){return c.user_id===u.id;}).length,
+          aptAll.filter(function(a){return a.user_id===u.id;}).length,
+          cAll.filter(function(c){return c.assigned_id===u.id&&c.status==='chiuso_positivo';}).length];
+      });
+    }
+
+    // Genera XLSX manualmente (formato CSV-in-XLSX semplice via Blob)
+    xlsxDownload(filename, headers, rows);
+    toast('Export scaricato!','success');
+  } catch(e){ toast('Errore export: '+e.message,'error'); console.error(e); }
+  finally{ hideLoad(); }
+}
+
+function xlsxDownload(filename, headers, rows){
+  // Genera un file CSV con BOM UTF-8 (aperto correttamente da Excel/LibreOffice)
+  var csvName = filename.replace('.xlsx','.csv');
+  var lines = [headers.join('\t')];
+  rows.forEach(function(row){
+    lines.push(row.map(function(v){
+      return String(v==null?'':v).replace(/\t/g,' ');
+    }).join('\t'));
+  });
+  var bom = '\uFEFF';
+  var blob = new Blob([bom+lines.join('\r\n')], {type:'text/tab-separated-values;charset=utf-8'});
+  var a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = csvName;
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+
+/* ══════════════════════════════════════════════════
+   OPENSTREETMAP AUTOCOMPLETE (Nominatim)
+══════════════════════════════════════════════════ */
+var osmDebounceTimers = {};
+var osmSelectedIdx    = {};
+
+function osmSearchDebounced(val, ddId, cbName){
+  clearTimeout(osmDebounceTimers[ddId]);
+  var dd = G(ddId);
+  if(!val||val.length<3){ if(dd) dd.classList.remove('open'); return; }
+  if(dd) dd.innerHTML='<div class="osm-loading">Ricerca…</div>', dd.classList.add('open');
+  osmDebounceTimers[ddId] = setTimeout(function(){ osmFetch(val,ddId,cbName); }, 380);
+}
+
+async function osmFetch(q, ddId, cbName){
+  var dd = G(ddId);
+  if(!dd) return;
+  try {
+    var url = 'https://nominatim.openstreetmap.org/search'
+      +'?format=json&addressdetails=1&limit=6&countrycodes=it'
+      +'&q='+encodeURIComponent(q);
+    var r = await fetch(url, {headers:{'Accept-Language':'it','User-Agent':'CRM-CNA-Roma/1.0'}});
+    var data = r.ok ? await r.json() : [];
+    osmSelectedIdx[ddId] = -1;
+    if(!data.length){
+      dd.innerHTML='<div class="osm-loading">Nessun risultato</div>';
+      return;
+    }
+    dd.innerHTML = data.map(function(d,i){
+      var addr = d.address||{};
+      var main = addr.road||addr.suburb||addr.town||addr.city||d.name||'';
+      var sub  = [addr.city||addr.town||addr.village||addr.county, addr.postcode].filter(Boolean).join(' ');
+      return '<div class="osm-item" data-idx="'+i+'" data-display="'+esc(d.display_name)+'"'
+        +' data-lat="'+esc(d.lat)+'" data-lon="'+esc(d.lon)+'"'
+        +' data-comune="'+esc(addr.city||addr.town||addr.village||addr.county||'')+'"'
+        +' onclick="'+cbName+'(this,\''+ddId+'\')">'
+        +'<div class="osm-item-main">'+esc(main||d.display_name.split(',')[0])+'</div>'
+        +'<div class="osm-item-sub">'+esc(sub||d.display_name)+'</div>'
+        +'</div>';
+    }).join('');
+  } catch(e){
+    dd.innerHTML='<div class="osm-loading">Errore connessione</div>';
+  }
+}
+
+function osmKeyNav(e, ddId){
+  var dd = G(ddId);
+  if(!dd||!dd.classList.contains('open')) return;
+  var items = dd.querySelectorAll('.osm-item');
+  if(!items.length) return;
+  var idx = osmSelectedIdx[ddId]||(-1);
+  if(e.key==='ArrowDown'){ idx=Math.min(idx+1,items.length-1); e.preventDefault(); }
+  else if(e.key==='ArrowUp'){ idx=Math.max(idx-1,0); e.preventDefault(); }
+  else if(e.key==='Enter'&&idx>=0){ items[idx].click(); e.preventDefault(); return; }
+  else if(e.key==='Escape'){ dd.classList.remove('open'); return; }
+  osmSelectedIdx[ddId]=idx;
+  items.forEach(function(el,i){ el.style.background=i===idx?'var(--primary-glow)':''; });
+}
+
+function osmSelectComune(el, ddId){
+  var comune = el.getAttribute('data-comune');
+  var display = el.getAttribute('data-display').split(',')[0].trim();
+  var inp = G('s-com');
+  if(inp) inp.value = comune||display;
+  var dd = G(ddId); if(dd) dd.classList.remove('open');
+}
+
+function osmSelectNc2(el, ddId){
+  // Riempi campo indirizzo con l'indirizzo completo selezionato
+  var display = el.getAttribute('data-display');
+  var inp = G('nc2-indirizzo');
+  if(inp) inp.value = display.split(',').slice(0,3).join(',').trim();
+  var dd = G(ddId); if(dd) dd.classList.remove('open');
+}
+
+// Chiudi dropdown cliccando fuori
+document.addEventListener('click', function(e){
+  document.querySelectorAll('.osm-dropdown.open').forEach(function(dd){
+    if(!dd.parentElement.contains(e.target)) dd.classList.remove('open');
+  });
+});
+/* ══════════════════════════════════════════════════════════════
    SISTEMA NOTIFICHE — Polling + Notification API + In-app toast
    
    Funziona in 3 livelli:
@@ -3802,11 +4300,17 @@ function goHome(){
   if(session) startApp();
   // Registra Service Worker
   if('serviceWorker' in navigator){
-    navigator.serviceWorker.register('./sw.js').then(function(reg){
-      navigator.serviceWorker.addEventListener('message', function(e){
-        if(e.data && e.data.type==='CRM_NAVIGATE') window.focus && window.focus();
+    navigator.serviceWorker.register('./sw.js', {scope:'./'}).then(function(reg){
+      reg.addEventListener('updatefound', function(){
+        var n=reg.installing;
+        n.addEventListener('statechange', function(){
+          if(n.state==='installed'&&navigator.serviceWorker.controller) n.postMessage({type:'SKIP_WAITING'});
+        });
       });
-    }).catch(function(e){ console.warn('SW error',e); });
+      navigator.serviceWorker.addEventListener('message', function(e){
+        if(e.data&&e.data.type==='CRM_NAVIGATE'){window.focus&&window.focus();showView('crm');loadMieAttivita();}
+      });
+    }).catch(function(e){console.warn('[CRM] SW:',e);});
   }
 })();
 </script>
@@ -3875,7 +4379,7 @@ function goHome(){
       </div>
     </div>
     <div class="notif-modal-footer">
-      <button class="btn-notif-yes" onclick="notifModalAccept()">
+      <button class="btn-notif-yes" id="btn-notif-accept" onclick="notifModalAccept()">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
         Attiva notifiche
       </button>
@@ -3883,5 +4387,15 @@ function goHome(){
     </div>
   </div>
 </div>
+<script>
+(function(){
+  var isIOS=(/iphone|ipad|ipod/i.test(navigator.userAgent));
+  var isPWA=(window.navigator.standalone===true||window.matchMedia('(display-mode: standalone)').matches);
+  var btn=document.getElementById('btn-notif-accept');
+  if(btn&&isIOS&&!isPWA){
+    btn.innerHTML='<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg> Installa app per le notifiche';
+  }
+})();
+</script>
 </body>
 </html>
