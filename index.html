@@ -530,7 +530,26 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
   .crm-filter-row .crm-select{flex-shrink:0;font-size:11px;padding:6px 8px;}
   #view-crm .crm-wrap{padding-bottom:90px;}
 }
+
+/* ── PUSH NOTIFICATION BANNER ───────────────────── */
+.push-banner{display:none;align-items:center;gap:10px;padding:10px 16px;background:linear-gradient(135deg,#1E40AF,#005CA9);color:#fff;font-size:12px;font-weight:600;flex-shrink:0;}
+.push-banner.show{display:flex;}
+.push-banner-text{flex:1;}
+.btn-push-yes{padding:5px 14px;border-radius:var(--radius-pill);background:#fff;color:var(--primary);font-size:11px;font-weight:700;border:none;cursor:pointer;font-family:var(--font);}
+.btn-push-no{padding:5px 10px;border-radius:var(--radius-pill);background:transparent;color:rgba(255,255,255,.7);font-size:11px;font-weight:600;border:1px solid rgba(255,255,255,.3);cursor:pointer;font-family:var(--font);margin-left:4px;}
+/* ── ADMIN: notifiche invio ─────────────────────── */
+.admin-notif-form{padding:14px 16px;}
+.admin-notif-form .crm-field-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.admin-notif-preview{background:var(--surface2);border-radius:var(--radius-md);padding:12px;display:flex;gap:10px;align-items:flex-start;margin-top:8px;}
+.admin-notif-icon{width:40px;height:40px;border-radius:var(--radius-sm);background:var(--primary);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.admin-notif-title{font-size:13px;font-weight:700;color:var(--text);}
+.admin-notif-body{font-size:12px;color:var(--text-secondary);margin-top:2px;}
+/* ── KPI colori macro-stato ─────────────────────── */
+.kpi-lavorazione{color:#D97706 !important;}
+.kpi-positivo   {color:#166534 !important;}
+.kpi-negativo   {color:#B91C1C !important;}
 </style>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
 <body>
 
@@ -568,6 +587,13 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 
 <!-- ═══════════ APP ═══════════ -->
 <div id="app">
+  <!-- Banner permesso notifiche push -->
+  <div class="push-banner" id="push-banner">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+    <span class="push-banner-text">Attiva le notifiche per ricevere aggiornamenti sui contatti assegnati</span>
+    <button class="btn-push-yes" onclick="pushSubscribe()">Attiva</button>
+    <button class="btn-push-no" onclick="pushDismiss()">×</button>
+  </div>
 
   <!-- HEADER + NAV TAB (sticky block) -->
   <div id="hdr-main-wrap" style="position:sticky;top:0;z-index:200;flex-shrink:0;">
@@ -814,11 +840,22 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
     <div class="admin-wrap">
 
       <!-- KPI -->
-      <div class="admin-kpi-grid" id="admin-kpi-grid">
-        <div class="admin-kpi"><div class="admin-kpi-val" id="akpi-contatti" style="color:var(--primary)">–</div><div class="admin-kpi-lbl">Contatti totali</div></div>
+      <div class="admin-kpi-grid" id="admin-kpi-grid" style="grid-template-columns:repeat(6,1fr);">
+        <div class="admin-kpi"><div class="admin-kpi-val" id="akpi-contatti" style="color:var(--primary)">–</div><div class="admin-kpi-lbl">Totali</div></div>
+        <div class="admin-kpi"><div class="admin-kpi-val kpi-lavorazione" id="akpi-lavorazione">–</div><div class="admin-kpi-lbl">In lavorazione</div></div>
+        <div class="admin-kpi"><div class="admin-kpi-val kpi-positivo" id="akpi-positivo">–</div><div class="admin-kpi-lbl">Chiusi positivi</div></div>
+        <div class="admin-kpi"><div class="admin-kpi-val kpi-negativo" id="akpi-negativo">–</div><div class="admin-kpi-lbl">Chiusi negativi</div></div>
         <div class="admin-kpi"><div class="admin-kpi-val" id="akpi-chiamate" style="color:var(--warning)">–</div><div class="admin-kpi-lbl">Chiamate</div></div>
         <div class="admin-kpi"><div class="admin-kpi-val" id="akpi-appuntamenti" style="color:var(--success)">–</div><div class="admin-kpi-lbl">Appuntamenti</div></div>
-        <div class="admin-kpi"><div class="admin-kpi-val" id="akpi-chiusi" style="color:var(--primary)">–</div><div class="admin-kpi-lbl">Chiusi positivi</div></div>
+      </div>
+      <!-- Filtro date -->
+      <div style="display:flex;gap:8px;margin-bottom:12px;align-items:center;flex-wrap:wrap;">
+        <label style="font-size:11px;font-weight:700;color:var(--text-secondary);">Periodo:</label>
+        <input type="date" class="crm-input" id="admin-date-from" style="width:auto;font-size:12px;padding:6px 10px;">
+        <span style="font-size:12px;color:var(--text-tertiary)">→</span>
+        <input type="date" class="crm-input" id="admin-date-to" style="width:auto;font-size:12px;padding:6px 10px;">
+        <button class="btn-crm btn-crm-outline btn-crm-sm" onclick="loadAdminDashboard()">Filtra</button>
+        <button class="btn-crm btn-crm-outline btn-crm-sm" onclick="adminResetDate()">Tutto</button>
       </div>
 
       <!-- Sezione: tutti i flussi CRM -->
@@ -884,6 +921,58 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
               <tr><td colspan="7" class="admin-empty">Caricamento…</td></tr>
             </tbody>
           </table>
+        </div>
+      </div>
+
+      <!-- Sezione: invia notifica push -->
+      <div class="admin-section">
+        <div class="admin-section-hdr">
+          <span class="admin-section-title">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+            Invia notifica push
+          </span>
+          <span id="push-iscritti-count" style="font-size:11px;color:var(--text-tertiary);font-weight:600;">– iscritti</span>
+        </div>
+        <div class="admin-notif-form">
+          <div class="crm-field">
+            <label>Destinatari</label>
+            <select class="crm-select" id="push-dest" style="width:100%;" onchange="pushDestChange()">
+              <option value="broadcast">Tutti gli utenti</option>
+              <option value="specific">Utente specifico</option>
+            </select>
+          </div>
+          <div class="crm-field" id="push-user-select" style="display:none;">
+            <label>Seleziona utente</label>
+            <select class="crm-select" id="push-user-id" style="width:100%;"></select>
+          </div>
+          <div class="crm-field-row">
+            <div class="crm-field">
+              <label>Titolo *</label>
+              <input type="text" class="crm-input" id="push-title" placeholder="Es. Nuovo contatto assegnato" oninput="pushPreview()">
+            </div>
+            <div class="crm-field">
+              <label>Link (opzionale)</label>
+              <input type="text" class="crm-input" id="push-url" placeholder="/" value="/">
+            </div>
+          </div>
+          <div class="crm-field">
+            <label>Messaggio *</label>
+            <textarea class="crm-textarea" id="push-body" rows="2" placeholder="Es. Ti è stato assegnato un nuovo contatto da lavorare" oninput="pushPreview()"></textarea>
+          </div>
+          <!-- Anteprima -->
+          <div class="admin-notif-preview" id="push-preview" style="display:none;">
+            <div class="admin-notif-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+            </div>
+            <div>
+              <div class="admin-notif-title" id="push-prev-title"></div>
+              <div class="admin-notif-body" id="push-prev-body"></div>
+            </div>
+          </div>
+          <button class="btn-crm btn-crm-primary" onclick="adminSendPush()" style="margin-top:10px;width:100%;justify-content:center;padding:11px;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+            Invia notifica
+          </button>
         </div>
       </div>
 
@@ -1259,6 +1348,8 @@ function startApp(){
   G('chip-avatar3') && (G('chip-avatar3').textContent = initials);
   updateChipAvatar();
   showView('search');
+  // inizializza push notifications
+  setTimeout(pushInit, 2000);
   // mostra tab admin solo se ruolo admin
   if(session.ruolo==='admin'){
     var tabAdmin = G('tab-admin');
@@ -2465,6 +2556,13 @@ async function salvaAssegnazione(){
     if(!r.ok) throw new Error(await r.text());
     var u = crmAllUsers.find(function(u){ return u.id===crmSelectedUserId; });
     await insertActivityLog(crmContactId,'assegnazione','Contatto assegnato a '+(u?u.nome+' '+u.cognome:'utente'));
+    // notifica push all'assegnatario
+    if (crmSelectedUserId && crmSelectedUserId !== session.id) {
+      triggerPush([crmSelectedUserId],
+        'Nuovo contatto assegnato',
+        'Ti è stato assegnato: ' + (crmContactData ? crmContactData.company_name : 'un contatto'),
+        '/');
+    }
     closeModal('modal-assegna-bg');
     toast('Contatto assegnato!','success');
     await openCrmContatto(crmContactId);
@@ -3035,18 +3133,35 @@ async function loadAdminDashboard(){
   if(session.ruolo!=='admin'){ toast('Accesso negato','error'); return; }
   // carica tutto in parallelo
   try {
-    var [cRes,callRes,aptRes,userRes,ncRes] = await Promise.all([
-      fetch(SB+'/rest/v1/crm_contacts?select=id,status',{headers:H()}),
-      fetch(SB+'/rest/v1/crm_calls?select=id',{headers:H()}),
-      fetch(SB+'/rest/v1/crm_appointments?select=id',{headers:H()}),
+    var dateFrom = G('admin-date-from') ? G('admin-date-from').value : '';
+    var dateTo   = G('admin-date-to')   ? G('admin-date-to').value   : '';
+    var dateQS   = (dateFrom ? '&created_at=gte.'+dateFrom+'T00:00:00' : '')
+                 + (dateTo   ? '&created_at=lte.'+dateTo  +'T23:59:59' : '');
+
+    var [cRes,callRes,aptRes,userRes,ncRes,pushRes] = await Promise.all([
+      fetch(SB+'/rest/v1/crm_contacts?select=id,status'+dateQS,{headers:H()}),
+      fetch(SB+'/rest/v1/crm_calls?select=id'+dateQS,{headers:H()}),
+      fetch(SB+'/rest/v1/crm_appointments?select=id'+dateQS,{headers:H()}),
       fetch(SB+'/rest/v1/cna_users?attivo=eq.true&select=id,nome,cognome,email&order=cognome.asc',{headers:H()}),
-      fetch(SB+'/rest/v1/crm_new_companies?select=id',{headers:H()})
+      fetch(SB+'/rest/v1/crm_new_companies?select=id',{headers:H()}),
+      fetch(SB+'/rest/v1/push_subscriptions?select=user_id',{headers:H()})
     ]);
     var contacts = cRes.ok ? await cRes.json() : [];
     var calls    = callRes.ok ? await callRes.json() : [];
     var apts     = aptRes.ok ? await aptRes.json() : [];
     var users    = userRes.ok ? await userRes.json() : [];
     var ncs      = ncRes.ok ? await ncRes.json() : [];
+    var pushSubs = pushRes && pushRes.ok ? await pushRes.json() : [];
+    // mostra conteggio iscritti push
+    var piEl = G('push-iscritti-count');
+    if (piEl) piEl.textContent = pushSubs.length + ' dispositiv' + (pushSubs.length===1?'o':'i') + ' iscritti';
+    // popola select utente per push
+    var pushUidSel = G('push-user-id');
+    if (pushUidSel && users.length) {
+      pushUidSel.innerHTML = users.map(function(u){
+        return '<option value="'+u.id+'">'+u.nome+' '+u.cognome+'</option>';
+      }).join('');
+    }
 
     // mappa utenti
     adminAllUsers = {};
@@ -3054,10 +3169,16 @@ async function loadAdminDashboard(){
 
     // KPI
     var chiusiPos = contacts.filter(function(c){ return c.status==='chiuso_positivo'; }).length;
-    G('akpi-contatti').textContent    = contacts.length;
-    G('akpi-chiamate').textContent    = calls.length;
-    G('akpi-appuntamenti').textContent= apts.length;
-    G('akpi-chiusi').textContent      = chiusiPos;
+    var nLav = contacts.filter(function(c){ return getMacro(c.status)==='lavorazione'; }).length;
+    var nPos = contacts.filter(function(c){ return c.status==='chiuso_positivo'; }).length;
+    var nNeg = contacts.filter(function(c){ return c.status==='chiuso_negativo'; }).length;
+    var _e=function(id,v){var el=G(id);if(el)el.textContent=v;};
+    _e('akpi-contatti', contacts.length);
+    _e('akpi-lavorazione', nLav);
+    _e('akpi-positivo', nPos);
+    _e('akpi-negativo', nNeg);
+    _e('akpi-chiamate', calls.length);
+    _e('akpi-appuntamenti', apts.length);
 
     // Popola select utenti nei filtri
     var sel = G('af-utente');
@@ -3345,6 +3466,190 @@ document.addEventListener('click', function(e){
     if(!dd.parentElement.contains(e.target)) dd.classList.remove('open');
   });
 });
+/* ══════════════════════════════════════════════════
+   PUSH NOTIFICATIONS
+══════════════════════════════════════════════════ */
+var VAPID_PUBLIC  = 'BHiuy3FD03aOSvzAd95HeAEesKJa1ZPYDEpqLDp9c_fecW8hhasLgSQbHENgC9S0ukT-jdVWHSxOtNmxGlYD0wA';
+var PUSH_FUNC_URL = 'https://ohahuqlfzqckaevaffbt.supabase.co/functions/v1/crm-push-notify';
+
+function urlBase64ToUint8Array(b64) {
+  var pad = b64.replace(/-/g,'+').replace(/_/g,'/');
+  while (pad.length%4) pad+='=';
+  var raw = atob(pad);
+  var out = new Uint8Array(raw.length);
+  for (var i=0;i<raw.length;i++) out[i]=raw.charCodeAt(i);
+  return out;
+}
+
+async function pushInit() {
+  if (!('serviceWorker' in navigator) || !('PushManager' in window)) return;
+  if (localStorage.getItem('push-dismissed')) return;
+  var perm = Notification.permission;
+  if (perm === 'granted') { await pushAutoSubscribe(); return; }
+  if (perm === 'denied') return;
+  // mostra banner dopo 3s
+  setTimeout(function(){
+    var b = G('push-banner');
+    if (b) b.classList.add('show');
+  }, 3000);
+}
+
+async function pushSubscribe() {
+  var b = G('push-banner');
+  if (b) b.classList.remove('show');
+  try {
+    var reg = await navigator.serviceWorker.ready;
+    var sub = await reg.pushManager.subscribe({
+      userVisibleOnly: true,
+      applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC)
+    });
+    await savePushSub(sub);
+    toast('Notifiche attivate!', 'success');
+  } catch(e) {
+    console.warn('Push subscribe error:', e);
+    toast('Notifiche non disponibili su questo browser', 'error');
+  }
+}
+
+async function pushAutoSubscribe() {
+  try {
+    var reg = await navigator.serviceWorker.ready;
+    var existing = await reg.pushManager.getSubscription();
+    if (existing) { await savePushSub(existing); return; }
+    var sub = await reg.pushManager.subscribe({
+      userVisibleOnly: true,
+      applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC)
+    });
+    await savePushSub(sub);
+  } catch(e) { console.warn('Auto-subscribe:', e); }
+}
+
+async function savePushSub(sub) {
+  if (!session || !session.id) return;
+  var j = sub.toJSON();
+  await fetch(SB+'/rest/v1/push_subscriptions', {
+    method: 'POST',
+    headers: H({'Prefer':'resolution=merge-duplicates,return=minimal','Content-Type':'application/json'}),
+    body: JSON.stringify({
+      user_id:   session.id,
+      endpoint:  j.endpoint,
+      p256dh:    j.keys.p256dh,
+      auth:      j.keys.auth,
+      user_agent: navigator.userAgent.substring(0,200)
+    })
+  });
+}
+
+function pushDismiss() {
+  localStorage.setItem('push-dismissed','1');
+  var b = G('push-banner');
+  if (b) b.classList.remove('show');
+}
+
+/* Invia push da frontend (admin) */
+async function adminSendPush() {
+  var title  = G('push-title') ? G('push-title').value.trim() : '';
+  var body   = G('push-body')  ? G('push-body').value.trim()  : '';
+  var url    = G('push-url')   ? G('push-url').value.trim() || '/' : '/';
+  var dest   = G('push-dest')  ? G('push-dest').value  : 'broadcast';
+  var uid    = G('push-user-id') ? G('push-user-id').value : '';
+  if (!title || !body) { toast('Inserisci titolo e messaggio', 'error'); return; }
+  showLoad('Invio notifica\u2026');
+  try {
+    var payload = { title, message: body, url, tag: 'crm-admin' };
+    if (dest === 'specific' && uid) { payload.user_ids = [uid]; }
+    else { payload.broadcast = true; }
+    var r = await fetch(PUSH_FUNC_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    var res = await r.json();
+    if (res.error) throw new Error(res.error);
+    toast('Notifica inviata a ' + (res.sent||0) + ' dispositivi', 'success');
+  } catch(e) { toast('Errore: '+e.message, 'error'); }
+  finally { hideLoad(); }
+}
+
+function pushPreview() {
+  var title = G('push-title') ? G('push-title').value : '';
+  var body  = G('push-body')  ? G('push-body').value  : '';
+  var prev  = G('push-preview');
+  if (!prev) return;
+  if (title || body) {
+    prev.style.display = 'flex';
+    var t = G('push-prev-title'), b2 = G('push-prev-body');
+    if (t) t.textContent = title || 'CRM CNA Roma';
+    if (b2) b2.textContent = body;
+  } else {
+    prev.style.display = 'none';
+  }
+}
+
+function pushDestChange() {
+  var dest = G('push-dest') ? G('push-dest').value : '';
+  var sel  = G('push-user-select');
+  if (sel) sel.style.display = dest==='specific' ? 'block' : 'none';
+}
+
+/* ══════════════════════════════════════════════════
+   HELPER PUSH PER EVENTI CRM
+   Chiamato automaticamente su assegnazione / nuovo appuntamento
+══════════════════════════════════════════════════ */
+async function triggerPush(userIds, title, message, url) {
+  if (!session || session.ruolo !== 'admin') return; // solo admin può inviare push dal client
+  try {
+    await fetch(PUSH_FUNC_URL, {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ user_ids: userIds, title, message, url: url||'/', tag:'crm-event' })
+    });
+  } catch(e) { console.warn('triggerPush:', e); }
+}
+
+/* ══════════════════════════════════════════════════
+   EXPORT XLSX (SheetJS)
+══════════════════════════════════════════════════ */
+function xlsxDownload(filename, headers, rows) {
+  // Se SheetJS disponibile → XLSX vero; altrimenti fallback CSV
+  if (typeof XLSX !== 'undefined') {
+    var wb = XLSX.utils.book_new();
+    var wsData = [headers].concat(rows.map(function(r){
+      return r.map(function(v){ return v==null?'':v; });
+    }));
+    var ws = XLSX.utils.aoa_to_sheet(wsData);
+    // Larghezze colonne
+    ws['!cols'] = headers.map(function(){ return {wch:20}; });
+    // Stile header (grassetto) — limitato in versione community
+    XLSX.utils.book_append_sheet(wb, ws, 'Report');
+    XLSX.writeFile(wb, filename);
+  } else {
+    // Fallback CSV
+    var bom = '\uFEFF';
+    var lines = [headers.join('\t')];
+    rows.forEach(function(row){
+      lines.push(row.map(function(v){ return String(v==null?'':v).replace(/\t/g,' '); }).join('\t'));
+    });
+    var blob = new Blob([bom+lines.join('\r\n')], {type:'text/tab-separated-values;charset=utf-8'});
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = filename.replace('.xlsx','.csv');
+    a.click();
+    URL.revokeObjectURL(a.href);
+  }
+}
+
+/* ══════════════════════════════════════════════════
+   ADMIN DASHBOARD — aggiornamenti
+══════════════════════════════════════════════════ */
+function adminResetDate() {
+  var f=G('admin-date-from'), t=G('admin-date-to');
+  if(f) f.value=''; if(t) t.value='';
+  loadAdminDashboard();
+}
+
+
+
 /* goHome: logo cliccabile → home */
 function goHome(){
   crmTab('crm');
@@ -3353,7 +3658,18 @@ function goHome(){
 /* ══════════════════════════════════════════════════
    INIT
 ══════════════════════════════════════════════════ */
-(function(){ loadSession(); if(session) startApp(); })();
+(function(){
+  loadSession();
+  if(session) startApp();
+  // Registra Service Worker
+  if('serviceWorker' in navigator){
+    navigator.serviceWorker.register('./sw.js').then(function(reg){
+      navigator.serviceWorker.addEventListener('message', function(e){
+        if(e.data && e.data.type==='CRM_NAVIGATE') window.focus && window.focus();
+      });
+    }).catch(function(e){ console.warn('SW error',e); });
+  }
+})();
 </script>
 
 <!-- Service Worker rimosso: non necessario, interferisce con iOS apple-touch-icon -->
