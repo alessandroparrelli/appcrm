@@ -604,7 +604,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 .btn-select-mode:hover{border-color:var(--primary);color:var(--primary);}
 .btn-select-mode.active{background:var(--primary);color:#fff;border-color:var(--primary);}
 </style>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
 </head>
 <body>
 
@@ -3481,23 +3481,7 @@ async function exportAdmin(tipo){
   finally{ hideLoad(); }
 }
 
-function xlsxDownload(filename, headers, rows){
-  // Genera un file CSV con BOM UTF-8 (aperto correttamente da Excel/LibreOffice)
-  var csvName = filename.replace('.xlsx','.csv');
-  var lines = [headers.join('\t')];
-  rows.forEach(function(row){
-    lines.push(row.map(function(v){
-      return String(v==null?'':v).replace(/\t/g,' ');
-    }).join('\t'));
-  });
-  var bom = '\uFEFF';
-  var blob = new Blob([bom+lines.join('\r\n')], {type:'text/tab-separated-values;charset=utf-8'});
-  var a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = csvName;
-  a.click();
-  URL.revokeObjectURL(a.href);
-}
+
 
 
 /* ══════════════════════════════════════════════════
@@ -4054,23 +4038,7 @@ async function exportAdmin(tipo){
   finally{ hideLoad(); }
 }
 
-function xlsxDownload(filename, headers, rows){
-  // Genera un file CSV con BOM UTF-8 (aperto correttamente da Excel/LibreOffice)
-  var csvName = filename.replace('.xlsx','.csv');
-  var lines = [headers.join('\t')];
-  rows.forEach(function(row){
-    lines.push(row.map(function(v){
-      return String(v==null?'':v).replace(/\t/g,' ');
-    }).join('\t'));
-  });
-  var bom = '\uFEFF';
-  var blob = new Blob([bom+lines.join('\r\n')], {type:'text/tab-separated-values;charset=utf-8'});
-  var a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = csvName;
-  a.click();
-  URL.revokeObjectURL(a.href);
-}
+
 
 
 /* ══════════════════════════════════════════════════
