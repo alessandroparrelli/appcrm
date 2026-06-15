@@ -1280,7 +1280,11 @@ function normDoc(s){
   var desc = m ? m[0] : t.substring(0,55)+(t.length>55?'\u2026':'');
   return desc.trim().toLowerCase().replace(/(?:^|\s)\S/g,function(c){return c.toUpperCase();});
 }
-function H(ex){ return Object.assign({'Content-Type':'application/json','apikey':KEY,'Authorization':'Bearer '+KEY},ex||{}); }
+function H(ex){
+  var base = {'Content-Type':'application/json','apikey':KEY,'Authorization':'Bearer '+KEY};
+  if (session && session.id) base['X-User-Id'] = session.id;
+  return Object.assign(base, ex||{});
+}
 
 /* Formatta data: accetta ISO (2024-03-15 o 2024-03-15T...) → gg/mm/aaaa */
 function fmtDate(v){
@@ -2041,6 +2045,13 @@ function crmTab(tab){
 /* ══════════════════════════════════════════════════
    CRM — UTILS
 ══════════════════════════════════════════════════ */
+/* Filtro visibilità contatti — solo i propri (non admin) */
+function userFilter() {
+  if (session && session.ruolo === 'admin') return '';
+  var uid = session ? session.id : '';
+  return '&or=(creator_id.eq.' + uid + ',assigned_id.eq.' + uid + ')';
+}
+
 var STATI_LABEL = {
   'da_contattare':          'Da contattare',
   'assegnato':              'Assegnato',
@@ -2187,7 +2198,7 @@ async function loadMieAttivita(){
     var macroFiltro = G('crm-filter-stato').value;
     var ruolo       = G('crm-filter-ruolo').value;
 
-    var qs = 'crm_contacts?select=id,company_name,company_source,status,creator_id,assigned_id,created_at,updated_at&order=updated_at.desc&limit=200';
+    var qs = 'crm_contacts?select=id,company_name,company_source,status,creator_id,assigned_id,created_at,updated_at&order=updated_at.desc&limit=200'+userFilter();
     // filtro macro-stato lato server dove possibile
     if(macroFiltro==='chiuso_positivo') qs += '&status=eq.chiuso_positivo';
     else if(macroFiltro==='chiuso_negativo') qs += '&status=eq.chiuso_negativo';
@@ -3101,6 +3112,15 @@ async function wizSalva(){
       });
     }
 
+    // push all'assegnatario se diverso da me
+    if (wiz.assignedId && wiz.assignedId !== session.id) {
+      triggerPush(
+        [wiz.assignedId],
+        'Nuovo contatto assegnato',
+        'Ti è stato assegnato: ' + (wiz.companyName || 'un contatto'),
+        '/'
+      );
+    }
     closeWizard();
     toast('Contatto CRM salvato!','success');
     // apri direttamente la scheda contatto
@@ -3207,7 +3227,7 @@ async function loadAdminContacts(){
     var utente  = G('af-utente') ? G('af-utente').value : '';
     var search  = G('af-search') ? G('af-search').value.trim() : '';
 
-    var qs = 'crm_contacts?select=id,company_name,status,creator_id,assigned_id,created_at,updated_at&order=updated_at.desc';
+    var qs = 'crm_contacts?select=id,company_name,status,creator_id,assigned_id,created_at,updated_at&order=updated_at.desc'+userFilter();
     if(macroF==='chiuso_positivo') qs += '&status=eq.chiuso_positivo';
     else if(macroF==='chiuso_negativo') qs += '&status=eq.chiuso_negativo';
     else if(macroF==='lavorazione') qs += '&status=not.in.(chiuso_positivo,chiuso_negativo)';
@@ -3527,17 +3547,24 @@ async function pushAutoSubscribe() {
 async function savePushSub(sub) {
   if (!session || !session.id) return;
   var j = sub.toJSON();
+  // Prima rimuovi eventuale vecchia subscription di questo user
+  await fetch(SB+'/rest/v1/push_subscriptions?user_id=eq.'+session.id, {
+    method: 'DELETE',
+    headers: H()
+  });
+  // Poi inserisci la nuova
   await fetch(SB+'/rest/v1/push_subscriptions', {
     method: 'POST',
-    headers: H({'Prefer':'resolution=merge-duplicates,return=minimal','Content-Type':'application/json'}),
+    headers: H({'Prefer':'return=minimal','Content-Type':'application/json'}),
     body: JSON.stringify({
-      user_id:   session.id,
-      endpoint:  j.endpoint,
-      p256dh:    j.keys.p256dh,
-      auth:      j.keys.auth,
+      user_id:    session.id,
+      endpoint:   j.endpoint,
+      p256dh:     j.keys.p256dh,
+      auth:       j.keys.auth,
       user_agent: navigator.userAgent.substring(0,200)
     })
   });
+  console.log('Push subscription salvata per', session.nome);
 }
 
 function pushDismiss() {
@@ -3597,7 +3624,7 @@ function pushDestChange() {
    Chiamato automaticamente su assegnazione / nuovo appuntamento
 ══════════════════════════════════════════════════ */
 async function triggerPush(userIds, title, message, url) {
-  if (!session || session.ruolo !== 'admin') return; // solo admin può inviare push dal client
+  if (!session) return;
   try {
     await fetch(PUSH_FUNC_URL, {
       method: 'POST',
