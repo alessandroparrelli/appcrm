@@ -1054,6 +1054,11 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
             Invia notifica
           </button>
+          <button class="btn-crm" onclick="adminTestPush()" style="margin-top:6px;width:100%;justify-content:center;padding:9px;background:var(--surface2);color:var(--text-secondary);font-size:12px;">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+            Test push su questo dispositivo
+          </button>
+          <div id="push-diag" style="margin-top:8px;font-size:11px;color:var(--text-tertiary);line-height:1.6;display:none;background:var(--surface2);border-radius:8px;padding:10px;font-family:monospace;white-space:pre-wrap;"></div>
         </div>
       </div>
 
@@ -3901,28 +3906,111 @@ async function adminSendPush() {
 
   showLoad('Invio notifica push...');
   try {
+    console.log('[CRM] adminSendPush payload:', JSON.stringify(payload));
     var res = await fetch(PUSH_FUNC_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload)
     });
-    var data = res.ok ? await res.json() : {};
+    var raw = await res.text();
+    console.log('[CRM] adminSendPush response:', res.status, raw);
     hideLoad();
+    try { var data = JSON.parse(raw); } catch(pe) { var data = {}; }
     if (res.ok) {
       var msg = 'Notifica inviata: ' + (data.sent || 0) + ' riuscit' + ((data.sent||0)===1?'a':'e');
       if (data.failed) msg += ', ' + data.failed + ' fallite';
       if (data.sent === 0 && data.failed === 0) msg = 'Nessun dispositivo iscritto alle notifiche push';
       toast(msg, data.sent > 0 ? 'success' : 'error');
+      if (data.errors && data.errors.length) {
+        var diag = G('push-diag');
+        if (diag) { diag.style.display = 'block'; diag.textContent = 'Errori:\n' + data.errors.join('\n'); }
+      }
       if (title) title.value = '';
       if (body) body.value = '';
       var prev = G('push-preview');
       if (prev) prev.style.display = 'none';
     } else {
-      toast('Errore invio: ' + (data.error || 'sconosciuto'), 'error');
+      toast('Errore invio: ' + (data.error || res.status + ' ' + raw.substring(0,100)), 'error');
     }
   } catch(e) {
     hideLoad();
-    toast('Errore di rete nell\'invio push', 'error');
+    console.error('[CRM] adminSendPush error:', e);
+    toast('Errore di rete: ' + e.message, 'error');
+  }
+}
+
+async function adminTestPush() {
+  var diag = G('push-diag');
+  var lines = [];
+  function log(s) { lines.push(s); if (diag) { diag.style.display = 'block'; diag.textContent = lines.join('\n'); } }
+
+  log('=== DIAGNOSTICA PUSH ===');
+
+  if (!('serviceWorker' in navigator)) { log('ERRORE: ServiceWorker non supportato'); return; }
+  log('ServiceWorker: supportato');
+
+  var reg = await navigator.serviceWorker.getRegistration();
+  if (!reg) { log('ERRORE: ServiceWorker non registrato'); return; }
+  log('ServiceWorker: registrato, scope=' + reg.scope);
+  log('SW attivo: ' + (reg.active ? 'si' : 'no'));
+
+  if (!('PushManager' in window)) { log('ERRORE: PushManager non supportato (su iOS serve PWA installata)'); return; }
+  log('PushManager: supportato');
+
+  var perm = Notification.permission;
+  log('Notification.permission: ' + perm);
+  if (perm !== 'granted') { log('ERRORE: permesso notifiche non concesso'); return; }
+
+  var sub = await reg.pushManager.getSubscription();
+  if (!sub) {
+    log('Nessuna subscription push attiva, riprovo a sottoscrivere...');
+    try { await _webPushSubscribe(); sub = await reg.pushManager.getSubscription(); } catch(e) { log('Subscribe fallito: ' + e.message); }
+  }
+  if (!sub) { log('ERRORE: subscription ancora assente dopo retry'); return; }
+  log('Subscription: attiva');
+  log('Endpoint: ' + sub.endpoint.substring(0, 80) + '...');
+
+  log('Verifico salvataggio in DB...');
+  try {
+    var dbRes = await fetch(SB + '/rest/v1/push_subscriptions?user_id=eq.' + session.id + '&select=id,endpoint', { headers: H() });
+    var dbSubs = dbRes.ok ? await dbRes.json() : [];
+    log('Record in DB: ' + dbSubs.length);
+    if (!dbSubs.length) {
+      log('Subscription non salvata nel DB, salvo ora...');
+      await _savePushSub(sub);
+      log('Salvata. Verifico...');
+      var dbRes2 = await fetch(SB + '/rest/v1/push_subscriptions?user_id=eq.' + session.id + '&select=id,endpoint', { headers: H() });
+      var dbSubs2 = dbRes2.ok ? await dbRes2.json() : [];
+      log('Record in DB: ' + dbSubs2.length);
+    }
+  } catch(e) { log('Errore DB: ' + e.message); }
+
+  log('Invio test push tramite Edge Function...');
+  try {
+    var res = await fetch(PUSH_FUNC_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        user_ids: [session.id],
+        title: 'Test CRM Push',
+        message: 'Se vedi questa notifica, le push funzionano!',
+        url: '/',
+        tag: 'crm-test'
+      })
+    });
+    var raw = await res.text();
+    log('Edge Function risposta (' + res.status + '): ' + raw);
+    try { var data = JSON.parse(raw); } catch(pe) { var data = {}; }
+    if (data.sent > 0) {
+      log('\nSUCCESSO! Notifica inviata. Controlla le notifiche del telefono.');
+    } else if (data.errors && data.errors.length) {
+      log('\nFALLITO. Errori dal server:');
+      data.errors.forEach(function(e) { log('  ' + e); });
+    } else {
+      log('Risultato: sent=' + (data.sent||0) + ' failed=' + (data.failed||0));
+    }
+  } catch(e) {
+    log('ERRORE fetch Edge Function: ' + e.message);
   }
 }
 
