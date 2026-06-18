@@ -3846,6 +3846,87 @@ async function triggerPush(userIds, title, message, url) {
   } catch(e) { /* silenzioso */ }
 }
 
+/* --- ADMIN: PUSH FUNCTIONS -------------------------------------------- */
+function pushDestChange() {
+  var dest = G('push-dest');
+  var userSel = G('push-user-select');
+  if (dest && userSel) {
+    userSel.style.display = dest.value === 'specific' ? 'block' : 'none';
+  }
+}
+
+function pushPreview() {
+  var title = G('push-title');
+  var body  = G('push-body');
+  var prev  = G('push-preview');
+  var pT    = G('push-prev-title');
+  var pB    = G('push-prev-body');
+  if (!title || !body || !prev || !pT || !pB) return;
+  var t = title.value.trim();
+  var b = body.value.trim();
+  if (t || b) {
+    pT.textContent = t || 'Titolo';
+    pB.textContent = b || 'Messaggio';
+    prev.style.display = 'flex';
+  } else {
+    prev.style.display = 'none';
+  }
+}
+
+async function adminSendPush() {
+  var dest  = G('push-dest');
+  var title = G('push-title');
+  var body  = G('push-body');
+  var url   = G('push-url');
+
+  if (!title || !body) return;
+  var t = title.value.trim();
+  var b = body.value.trim();
+  if (!t || !b) { toast('Inserisci titolo e messaggio', 'error'); return; }
+
+  var payload = {
+    title:   t,
+    message: b,
+    url:     (url && url.value.trim()) || '/',
+    tag:     'crm-admin'
+  };
+
+  if (dest && dest.value === 'specific') {
+    var userSel = G('push-user-id');
+    if (!userSel || !userSel.value) { toast('Seleziona un utente', 'error'); return; }
+    payload.user_ids = [userSel.value];
+  } else {
+    payload.broadcast = true;
+  }
+
+  showLoad('Invio notifica push...');
+  try {
+    var res = await fetch(PUSH_FUNC_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    var data = res.ok ? await res.json() : {};
+    hideLoad();
+    if (res.ok) {
+      var msg = 'Notifica inviata: ' + (data.sent || 0) + ' riuscit' + ((data.sent||0)===1?'a':'e');
+      if (data.failed) msg += ', ' + data.failed + ' fallite';
+      if (data.sent === 0 && data.failed === 0) msg = 'Nessun dispositivo iscritto alle notifiche push';
+      toast(msg, data.sent > 0 ? 'success' : 'error');
+      if (title) title.value = '';
+      if (body) body.value = '';
+      var prev = G('push-preview');
+      if (prev) prev.style.display = 'none';
+    } else {
+      toast('Errore invio: ' + (data.error || 'sconosciuto'), 'error');
+    }
+  } catch(e) {
+    hideLoad();
+    toast('Errore di rete nell\'invio push', 'error');
+  }
+}
+
+
 /* ─── POLLING ──────────────────────────────────────────────────── */
 async function _pollCheck() {
   if (!session || !session.id) return;
@@ -3981,359 +4062,6 @@ function _badgeTick() {
     }
   });
 }
-
-
-
-/* ── EXPORT XLSX ────────────────────────────────── */
-async function exportAdmin(tipo){
-  showLoad('Preparazione export…');
-  try {
-    var rows = [], headers = [], filename = '';
-
-    if(tipo==='contacts'){
-      filename = 'flussi_crm_'+new Date().toISOString().slice(0,10)+'.xlsx';
-      headers = ['ID','Impresa','Stato','Creato da','Assegnato a','Data creazione','Ultimo aggiornamento'];
-      var r = await fetch(SB+'/rest/v1/crm_contacts?select=*&order=updated_at.desc',{headers:H()});
-      var data = r.ok ? await r.json() : [];
-      rows = data.map(function(c){
-        var cr = adminAllUsers[c.creator_id];
-        var as = adminAllUsers[c.assigned_id];
-        return [c.id, c.company_name, STATI_LABEL[c.status]||c.status,
-          cr?cr.nome+' '+cr.cognome:'–', as?as.nome+' '+as.cognome:'–',
-          fmtDate(c.created_at), fmtDate(c.updated_at)];
-      });
-    } else if(tipo==='companies'){
-      filename = 'nuove_imprese_'+new Date().toISOString().slice(0,10)+'.xlsx';
-      headers = ['Ragione Sociale','P.IVA','Nome','Cognome','Cellulare','Email','Inserito da','Data'];
-      var r = await fetch(SB+'/rest/v1/crm_new_companies?select=*&order=created_at.desc',{headers:H()});
-      var data = r.ok ? await r.json() : [];
-      rows = data.map(function(c){
-        var u = adminAllUsers[c.created_by];
-        return [c.ragione_sociale,c.partita_iva,c.nome_titolare,c.cognome_titolare,
-          c.cellulare,c.email, u?u.nome+' '+u.cognome:'–', fmtDate(c.created_at)];
-      });
-    } else if(tipo==='users'){
-      filename = 'report_utenti_'+new Date().toISOString().slice(0,10)+'.xlsx';
-      headers = ['Utente','Email','Creati','Assegnati','Chiamate','Appuntamenti','Chiusi positivi'];
-      var [cAll,callAll,aptAll,uAll] = await Promise.all([
-        fetch(SB+'/rest/v1/crm_contacts?select=creator_id,assigned_id,status',{headers:H()}).then(function(r){return r.ok?r.json():[];}),
-        fetch(SB+'/rest/v1/crm_calls?select=user_id',{headers:H()}).then(function(r){return r.ok?r.json():[];}),
-        fetch(SB+'/rest/v1/crm_appointments?select=user_id',{headers:H()}).then(function(r){return r.ok?r.json():[];}),
-        fetch(SB+'/rest/v1/cna_users?attivo=eq.true&select=*&order=cognome.asc',{headers:H()}).then(function(r){return r.ok?r.json():[];})
-      ]);
-      rows = uAll.map(function(u){
-        return [u.nome+' '+u.cognome, u.email,
-          cAll.filter(function(c){return c.creator_id===u.id;}).length,
-          cAll.filter(function(c){return c.assigned_id===u.id;}).length,
-          callAll.filter(function(c){return c.user_id===u.id;}).length,
-          aptAll.filter(function(a){return a.user_id===u.id;}).length,
-          cAll.filter(function(c){return c.assigned_id===u.id&&c.status==='chiuso_positivo';}).length];
-      });
-    }
-
-    // Genera XLSX manualmente (formato CSV-in-XLSX semplice via Blob)
-    xlsxDownload(filename, headers, rows);
-    toast('Export scaricato!','success');
-  } catch(e){ toast('Errore export: '+e.message,'error'); console.error(e); }
-  finally{ hideLoad(); }
-}
-
-
-
-
-/* ══════════════════════════════════════════════════
-   OPENSTREETMAP AUTOCOMPLETE (Nominatim)
-══════════════════════════════════════════════════ */
-var osmDebounceTimers = {};
-var osmSelectedIdx    = {};
-
-function osmSearchDebounced(val, ddId, cbName){
-  clearTimeout(osmDebounceTimers[ddId]);
-  var dd = G(ddId);
-  if(!val||val.length<3){ if(dd) dd.classList.remove('open'); return; }
-  if(dd) dd.innerHTML='<div class="osm-loading">Ricerca…</div>', dd.classList.add('open');
-  osmDebounceTimers[ddId] = setTimeout(function(){ osmFetch(val,ddId,cbName); }, 380);
-}
-
-async function osmFetch(q, ddId, cbName){
-  var dd = G(ddId);
-  if(!dd) return;
-  try {
-    var url = 'https://nominatim.openstreetmap.org/search'
-      +'?format=json&addressdetails=1&limit=6&countrycodes=it'
-      +'&q='+encodeURIComponent(q);
-    var r = await fetch(url, {headers:{'Accept-Language':'it','User-Agent':'CRM-CNA-Roma/1.0'}});
-    var data = r.ok ? await r.json() : [];
-    osmSelectedIdx[ddId] = -1;
-    if(!data.length){
-      dd.innerHTML='<div class="osm-loading">Nessun risultato</div>';
-      return;
-    }
-    dd.innerHTML = data.map(function(d,i){
-      var addr = d.address||{};
-      var main = addr.road||addr.suburb||addr.town||addr.city||d.name||'';
-      var sub  = [addr.city||addr.town||addr.village||addr.county, addr.postcode].filter(Boolean).join(' ');
-      return '<div class="osm-item" data-idx="'+i+'" data-display="'+esc(d.display_name)+'"'
-        +' data-lat="'+esc(d.lat)+'" data-lon="'+esc(d.lon)+'"'
-        +' data-comune="'+esc(addr.city||addr.town||addr.village||addr.county||'')+'"'
-        +' onclick="'+cbName+'(this,\''+ddId+'\')">'
-        +'<div class="osm-item-main">'+esc(main||d.display_name.split(',')[0])+'</div>'
-        +'<div class="osm-item-sub">'+esc(sub||d.display_name)+'</div>'
-        +'</div>';
-    }).join('');
-  } catch(e){
-    dd.innerHTML='<div class="osm-loading">Errore connessione</div>';
-  }
-}
-
-function osmKeyNav(e, ddId){
-  var dd = G(ddId);
-  if(!dd||!dd.classList.contains('open')) return;
-  var items = dd.querySelectorAll('.osm-item');
-  if(!items.length) return;
-  var idx = osmSelectedIdx[ddId]||(-1);
-  if(e.key==='ArrowDown'){ idx=Math.min(idx+1,items.length-1); e.preventDefault(); }
-  else if(e.key==='ArrowUp'){ idx=Math.max(idx-1,0); e.preventDefault(); }
-  else if(e.key==='Enter'&&idx>=0){ items[idx].click(); e.preventDefault(); return; }
-  else if(e.key==='Escape'){ dd.classList.remove('open'); return; }
-  osmSelectedIdx[ddId]=idx;
-  items.forEach(function(el,i){ el.style.background=i===idx?'var(--primary-glow)':''; });
-}
-
-function osmSelectComune(el, ddId){
-  var comune = el.getAttribute('data-comune');
-  var display = el.getAttribute('data-display').split(',')[0].trim();
-  var inp = G('s-com');
-  if(inp) inp.value = comune||display;
-  var dd = G(ddId); if(dd) dd.classList.remove('open');
-}
-
-function osmSelectNc2(el, ddId){
-  // Riempi campo indirizzo con l'indirizzo completo selezionato
-  var display = el.getAttribute('data-display');
-  var inp = G('nc2-indirizzo');
-  if(inp) inp.value = display.split(',').slice(0,3).join(',').trim();
-  var dd = G(ddId); if(dd) dd.classList.remove('open');
-}
-
-// Chiudi dropdown cliccando fuori
-document.addEventListener('click', function(e){
-  document.querySelectorAll('.osm-dropdown.open').forEach(function(dd){
-    if(!dd.parentElement.contains(e.target)) dd.classList.remove('open');
-  });
-});
-/* ══════════════════════════════════════════════════════════════
-   SISTEMA NOTIFICHE — Polling + Notification API + In-app toast
-   
-   Funziona in 3 livelli:
-   1. Polling ogni 30s: controlla nuovi contatti/appuntamenti
-   2. Notification API nativa: mostra notifica di sistema se permesso
-   3. In-app toast: sempre visibile dentro l'app (anche senza permesso)
-══════════════════════════════════════════════════════════════ */
-
-var _pollTimer       = null;
-var _pollLastCheck   = null;   // ISO timestamp ultimo controllo
-var _pollInitialized = false;
-var _notifPermission = 'default';
-
-/* ─── INIT ─────────────────────────────────────────────────────── */
-async function notifInit() {
-  if (_pollInitialized) return;
-  _pollInitialized = true;
-  _pollLastCheck   = new Date().toISOString();
-  _notifPermission = Notification.permission;
-
-  // Mostra modale se permesso non ancora dato e non dismissed
-  if (_notifPermission === 'default' && !localStorage.getItem('notif-dismissed')) {
-    setTimeout(function(){ G('modal-notif-bg').classList.add('open'); }, 2500);
-  }
-
-  // Avvia polling immediato + ripeti ogni 30s
-  await _pollCheck();
-  _pollTimer = setInterval(_pollCheck, 30000);
-
-  // Polling anche quando la pagina torna in focus (cambio tab)
-  document.addEventListener('visibilitychange', function(){
-    if (!document.hidden) _pollCheck();
-  });
-}
-
-/* ─── MODALE NOTIFICHE ─────────────────────────────────────────── */
-async function notifModalAccept() {
-  G('modal-notif-bg').classList.remove('open');
-  if (!('Notification' in window)) {
-    toast('Questo browser non supporta le notifiche', 'error');
-    return;
-  }
-  var perm = await Notification.requestPermission();
-  _notifPermission = perm;
-  if (perm === 'granted') {
-    toast('Notifiche attivate!', 'success');
-    localStorage.removeItem('notif-dismissed');
-  } else {
-    toast('Notifiche non autorizzate — riceverai aggiornamenti in-app', 'error');
-  }
-}
-
-function notifModalDismiss() {
-  G('modal-notif-bg').classList.remove('open');
-  localStorage.setItem('notif-dismissed', '1');
-}
-
-/* Chiudi cliccando sfondo */
-(function(){
-  var el = G('modal-notif-bg');
-  if (el) el.addEventListener('click', function(e){
-    if (e.target === this) notifModalDismiss();
-  });
-})();
-
-/* ─── POLLING ──────────────────────────────────────────────────── */
-async function _pollCheck() {
-  if (!session || !session.id) return;
-  var since = _pollLastCheck;
-  _pollLastCheck = new Date().toISOString();
-
-  try {
-    // Controlla nuovi contatti assegnati a me dopo l'ultimo check
-    var uid = session.id;
-    var r1 = await fetch(
-      SB + '/rest/v1/crm_contacts' +
-      '?assigned_id=eq.' + uid +
-      '&created_at=gt.' + encodeURIComponent(since) +
-      '&select=id,company_name,creator_id,created_at' +
-      '&order=created_at.desc&limit=5',
-      { headers: H() }
-    );
-    if (r1.ok) {
-      var nuovi = await r1.json();
-      nuovi.forEach(function(ct) {
-        // Ignora quelli creati da me stesso
-        if (ct.creator_id === uid) return;
-        _showNotif(
-          'Nuovo contatto assegnato',
-          ct.company_name || 'Un contatto',
-          '/'
-        );
-      });
-    }
-
-    // Controlla appuntamenti in arrivo nelle prossime 2 ore
-    var now  = new Date();
-    var in2h = new Date(now.getTime() + 2*3600*1000);
-    var r2 = await fetch(
-      SB + '/rest/v1/crm_appointments' +
-      '?user_id=eq.' + uid +
-      '&status=eq.pianificato' +
-      '&appointment_date=gte.' + encodeURIComponent(now.toISOString()) +
-      '&appointment_date=lte.' + encodeURIComponent(in2h.toISOString()) +
-      '&select=id,appointment_date,appointment_type,contact_id&limit=3',
-      { headers: H() }
-    );
-    if (r2.ok) {
-      var aptsIn2h = await r2.json();
-      aptsIn2h.forEach(function(apt) {
-        var key = 'apt-notif-' + apt.id;
-        if (localStorage.getItem(key)) return; // già notificato
-        localStorage.setItem(key, '1');
-        var d = new Date(apt.appointment_date);
-        var diff = Math.round((d - now) / 60000); // minuti
-        _showNotif(
-          'Appuntamento tra ' + diff + ' min',
-          'Tipo: ' + (apt.appointment_type === 'presenza' ? 'In presenza' :
-                      apt.appointment_type === 'telefono' ? 'Telefono' : 'Videochiamata'),
-          '/'
-        );
-      });
-    }
-  } catch(e) { /* silenzioso */ }
-}
-
-/* ─── MOSTRA NOTIFICA ──────────────────────────────────────────── */
-function _showNotif(title, body, url) {
-  // 1. Notification API nativa (se permesso)
-  if (_notifPermission === 'granted' && 'Notification' in window) {
-    try {
-      var n = new Notification(title, {
-        body:  body,
-        icon:  '/icon-192.png',
-        badge: '/icon-144.png',
-        tag:   'crm-' + Date.now(),
-        requireInteraction: false,
-      });
-      n.onclick = function(){ window.focus(); n.close(); };
-      setTimeout(function(){ n.close(); }, 6000);
-    } catch(e) { /* fallback in-app */ }
-  }
-
-  // 2. In-app toast (sempre, anche senza permesso)
-  _showInAppNotif(title, body);
-
-  // 3. Badge titolo pagina
-  _badgeTick();
-}
-
-/* ─── IN-APP TOAST ─────────────────────────────────────────────── */
-var _inAppQueue = [];
-var _inAppShowing = false;
-
-function _showInAppNotif(title, msg) {
-  _inAppQueue.push({ title: title, msg: msg });
-  if (!_inAppShowing) _nextInAppNotif();
-}
-
-function _nextInAppNotif() {
-  if (!_inAppQueue.length) { _inAppShowing = false; return; }
-  _inAppShowing = true;
-  var item = _inAppQueue.shift();
-  var t = G('crm-notif-title'), m = G('crm-notif-msg'), el = G('crm-notif-toast');
-  if (t) t.textContent = item.title;
-  if (m) m.textContent = item.msg;
-  if (el) el.classList.add('show');
-  // auto-chiudi dopo 5s
-  setTimeout(function(){
-    closeInAppNotif();
-    setTimeout(_nextInAppNotif, 400);
-  }, 5000);
-}
-
-function closeInAppNotif() {
-  var el = G('crm-notif-toast');
-  if (el) el.classList.remove('show');
-  _inAppShowing = false;
-}
-
-/* ─── BADGE TITOLO PAGINA ──────────────────────────────────────── */
-var _badgeCount = 0;
-var _origTitle  = document.title;
-
-function _badgeTick() {
-  _badgeCount++;
-  document.title = '(' + _badgeCount + ') ' + _origTitle;
-  var badge = G('notif-header-badge');
-  if (badge) { badge.textContent = _badgeCount > 9 ? '9+' : _badgeCount; badge.classList.add('show'); }
-  // reset quando l'utente torna sulla pagina
-  document.addEventListener('visibilitychange', function() {
-    if (!document.hidden) { _badgeCount = 0; document.title = _origTitle; }
-  }, { once: true });
-}
-
-/* ─── PUSH MANUALE (compatibilità con admin dashboard) ─────────── */
-async function triggerPush(userIds, title, message, url) {
-  // Usa la Notification API locale se l'utente corrente è nel lista
-  if (session && userIds.indexOf(session.id) !== -1) {
-    _showNotif(title, message, url || '/');
-  }
-  // Tenta anche la Edge Function per gli altri dispositivi
-  try {
-    await fetch(PUSH_FUNC_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ user_ids: userIds, title: title, message: message, url: url || '/', tag: 'crm-event' })
-    });
-  } catch(e) { /* silenzioso */ }
-}
-
 
 
 /* ══════════════════════════════════════════════════

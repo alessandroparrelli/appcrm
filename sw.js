@@ -1,5 +1,5 @@
 // Service Worker — CRM CNA Roma v4
-const CACHE  = 'crm-cna-v4';
+const CACHE  = 'crm-cna-v5';
 const ASSETS = ['./', './index.html', './manifest.json', './icon-192.png', './icon-512.png', './apple-touch-icon.png'];
 
 self.addEventListener('install', e => {
