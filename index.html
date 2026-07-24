@@ -1074,6 +1074,81 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
         </div>
 
       </div>
+
+      <!-- SEZIONE SOLLECITO -->
+      <div style="margin-top:24px;">
+        <div class="com-header" style="margin-bottom:12px;">
+          <div class="com-header-title" style="color:#7C3AED;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+            Template sollecito
+          </div>
+          <div class="com-header-sub">Questo template viene usato dal pulsante "Sollecito" nella scheda contatto. Le variabili vengono sostituite con i dati reali del contatto.</div>
+        </div>
+
+        <div class="com-layout">
+          <!-- Sidebar sollecito -->
+          <div class="com-sidebar">
+            <div class="com-card">
+              <div class="com-card-title">Oggetto sollecito</div>
+              <input type="text" class="crm-input" id="sol-tpl-oggetto" placeholder="Es. Aggiornamento sulla tua pratica — {{nome_azienda}}" style="font-size:13px;">
+            </div>
+
+            <div class="com-card">
+              <div class="com-card-title">Variabili disponibili</div>
+              <div class="com-vars">
+                <span class="com-var-chip" onclick="solInserisciVar('{{nome_azienda}}')">{{nome_azienda}}</span>
+                <span class="com-var-chip" onclick="solInserisciVar('{{referente}}')">{{referente}}</span>
+                <span class="com-var-chip" onclick="solInserisciVar('{{telefono}}')">{{telefono}}</span>
+                <span class="com-var-chip" onclick="solInserisciVar('{{email_contatto}}')">{{email_contatto}}</span>
+                <span class="com-var-chip" onclick="solInserisciVar('{{stato}}')">{{stato}}</span>
+                <span class="com-var-chip" onclick="solInserisciVar('{{assegnato_a}}')">{{assegnato_a}}</span>
+                <span class="com-var-chip" onclick="solInserisciVar('{{data_creazione}}')">{{data_creazione}}</span>
+                <span class="com-var-chip" onclick="solInserisciVar('{{fonte}}')">{{fonte}}</span>
+              </div>
+              <p style="font-size:11px;color:var(--text-tertiary);margin:8px 0 0;">Clicca per inserire nel blocco attivo</p>
+            </div>
+
+            <div class="com-card">
+              <div class="com-card-title">Logo email</div>
+              <input type="url" class="crm-input" id="sol-tpl-logo" placeholder="URL logo (usa quello generale se vuoto)" style="font-size:12px;">
+            </div>
+
+            <button class="btn-crm btn-crm-outline btn-crm-sm" onclick="solSalvaTemplate()" style="border-color:#7C3AED;color:#7C3AED;width:100%;justify-content:center;padding:10px;">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13"/><polyline points="7 3 7 8 15 8"/></svg>
+              Salva template sollecito
+            </button>
+            <div id="sol-save-msg" style="font-size:11px;text-align:center;color:var(--success);display:none;">Template salvato nel browser</div>
+          </div>
+
+          <!-- Editor blocchi sollecito -->
+          <div class="com-editor-col">
+            <div class="com-card">
+              <div class="com-card-title" style="display:flex;justify-content:space-between;align-items:center;">
+                <span>Corpo sollecito</span>
+                <div style="display:flex;gap:6px;">
+                  <button class="btn-crm btn-crm-outline btn-crm-sm" onclick="solAddBlocco('titolo')">+ Titolo</button>
+                  <button class="btn-crm btn-crm-outline btn-crm-sm" onclick="solAddBlocco('testo')">+ Testo</button>
+                  <button class="btn-crm btn-crm-outline btn-crm-sm" onclick="solAddBlocco('bottone')">+ Bottone</button>
+                  <button class="btn-crm btn-crm-outline btn-crm-sm" onclick="solAddBlocco('separatore')">+ Sep.</button>
+                </div>
+              </div>
+              <div id="sol-blocchi" style="min-height:160px;"></div>
+              <div id="sol-empty-hint" style="padding:24px;text-align:center;color:var(--text-tertiary);font-size:13px;">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="display:block;margin:0 auto 8px;opacity:.3"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+                Aggiungi blocchi per il template sollecito
+              </div>
+            </div>
+            <div class="com-card">
+              <div class="com-card-title" style="display:flex;justify-content:space-between;align-items:center;">
+                <span>Anteprima sollecito</span>
+                <button class="btn-crm btn-crm-outline btn-crm-sm" onclick="solRefreshPreview()">Aggiorna</button>
+              </div>
+              <div id="sol-preview-frame" style="border:1px solid var(--border);border-radius:8px;overflow:hidden;background:#F0F2F5;min-height:200px;"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
     </div>
   </div>
 
@@ -1450,6 +1525,42 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
       <button class="btn-crm btn-crm-primary" onclick="salvaNota()">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13"/><polyline points="7 3 7 8 15 8"/></svg>
         Salva nota</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODALE: SOLLECITO -->
+<div class="crm-modal-bg" id="modal-sollecito-bg">
+  <div class="crm-modal" style="max-width:560px;width:95%;">
+    <div class="crm-modal-header">
+      <h3><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="vertical-align:middle"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg> Invia mail di sollecito</h3>
+      <button class="modal-close" onclick="closeModal('modal-sollecito-bg')">×</button>
+    </div>
+    <div class="crm-modal-body">
+      <!-- Info destinatario -->
+      <div id="sol-dest-info" style="background:var(--surface2);border-radius:8px;padding:10px 14px;margin-bottom:12px;font-size:12px;color:var(--text-secondary);">
+        Caricamento…
+      </div>
+      <!-- Oggetto -->
+      <div class="crm-field" style="margin-bottom:10px;">
+        <label style="font-size:12px;font-weight:700;color:var(--text-secondary);">Oggetto</label>
+        <input type="text" class="crm-input" id="sol-oggetto" style="font-size:13px;">
+      </div>
+      <!-- Anteprima corpo (read-only, da template) -->
+      <div style="border:1.5px solid var(--border);border-radius:8px;overflow:hidden;margin-bottom:4px;">
+        <div style="background:var(--surface2);padding:7px 12px;font-size:11px;font-weight:700;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.3px;display:flex;justify-content:space-between;align-items:center;">
+          <span>Anteprima email</span>
+          <span style="font-weight:400;color:var(--text-tertiary);text-transform:none;">Basata sul template sollecito</span>
+        </div>
+        <div id="sol-preview" style="max-height:280px;overflow-y:auto;background:#F0F2F5;"></div>
+      </div>
+    </div>
+    <div class="crm-modal-footer">
+      <button class="btn-crm btn-crm-outline" onclick="closeModal('modal-sollecito-bg')">Annulla</button>
+      <button class="btn-crm btn-crm-primary" id="sol-btn-invia" onclick="inviaSollecito()" style="background:#7C3AED;border-color:#7C3AED;">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+        Invia sollecito
+      </button>
     </div>
   </div>
 </div>
@@ -2449,7 +2560,7 @@ function closeModal(id){ G(id).classList.remove('open'); }
 function openModal(id){ G(id).classList.add('open'); }
 
 /* Chiudi modal cliccando sfondo */
-['modal-chiamata-bg','modal-appuntamento-bg','modal-stato-bg','modal-assegna-bg','modal-new-company-bg','modal-nota-bg'].forEach(function(id){
+['modal-chiamata-bg','modal-appuntamento-bg','modal-stato-bg','modal-assegna-bg','modal-new-company-bg','modal-nota-bg','modal-sollecito-bg'].forEach(function(id){
   var el = G(id);
   if(el) el.addEventListener('click', function(e){ if(e.target===this) closeModal(id); });
 });
@@ -2639,7 +2750,10 @@ async function openCrmContatto(contactId){
       +'Assegna</button>'
       +'<button class="btn-crm btn-crm-outline" onclick="openModalNota()">'
       +'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>'
-      +'Nota</button>'
+      +'Nota</button>'\
+      +'<button class="btn-crm btn-crm-outline" onclick="openModalSollecito()" style="border-color:#7C3AED;color:#7C3AED;">'\
+      +'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>'\
+      +'Sollecito</button>'\
       +'</div>';
 
     // ── Chiamate ──
@@ -3737,6 +3851,237 @@ async function loadAdminUserReport(contacts, calls, apts, users){
   } catch(e){ tbody.innerHTML='<tr><td colspan="6" class="admin-empty">Errore</td></tr>'; }
 }
 
+/* ══════════════════════════════════════════════════
+   SOLLECITO — template editor + modale invio
+══════════════════════════════════════════════════ */
+var solBlocchi = [];
+var solActiveBloccoIdx = null;
+var SOL_TPL_KEY = 'crm_sol_template';
+
+// ── Carica template salvato ──────────────────────
+function solCaricaTemplate() {
+  try {
+    var raw = localStorage.getItem(SOL_TPL_KEY);
+    if (!raw) { solImpostaDefault(); return; }
+    var tpl = JSON.parse(raw);
+    solBlocchi = tpl.blocchi || [];
+    var ogg = G('sol-tpl-oggetto'); if(ogg) ogg.value = tpl.oggetto || '';
+    var logo = G('sol-tpl-logo');   if(logo) logo.value = tpl.logo_url || '';
+  } catch(e) { solImpostaDefault(); }
+  solRenderBlocchi();
+  solRefreshPreview();
+}
+
+function solImpostaDefault() {
+  solBlocchi = [
+    { tipo:'titolo', testo:'Gentile operatore,', livello:'h2' },
+    { tipo:'testo',  html:'Ti scriviamo riguardo al contatto {{nome_azienda}} (stato attuale: {{stato}}).\n\nTi chiediamo di aggiornare la pratica al più presto.' },
+    { tipo:'separatore' },
+    { tipo:'testo',  html:'Per qualsiasi chiarimento, contattaci rispondendo a questa email.\n\nGrazie,\nCNA Roma' },
+  ];
+  var ogg = G('sol-tpl-oggetto');
+  if(ogg) ogg.value = 'Sollecito pratica — {{nome_azienda}}';
+}
+
+function solSalvaTemplate() {
+  var ogg  = (G('sol-tpl-oggetto')||{}).value || '';
+  var logo = (G('sol-tpl-logo')||{}).value || '';
+  localStorage.setItem(SOL_TPL_KEY, JSON.stringify({ oggetto: ogg, blocchi: solBlocchi, logo_url: logo }));
+  var msg = G('sol-save-msg');
+  if(msg){ msg.style.display='block'; setTimeout(function(){ msg.style.display='none'; }, 2500); }
+  toast('Template sollecito salvato!', 'success');
+}
+
+// ── Editor blocchi (stesso pattern di com) ────────
+function solAddBlocco(tipo) {
+  var defaults = {
+    titolo:     { tipo:'titolo', testo:'Titolo', livello:'h2' },
+    testo:      { tipo:'testo',  html:'' },
+    bottone:    { tipo:'bottone', testo:'Clicca qui', url:'' },
+    separatore: { tipo:'separatore' },
+  };
+  solBlocchi.push(Object.assign({}, defaults[tipo]||{tipo:tipo}));
+  solActiveBloccoIdx = solBlocchi.length - 1;
+  solRenderBlocchi();
+  solRefreshPreview();
+}
+
+function solRenderBlocchi() {
+  var wrap = G('sol-blocchi');
+  var hint = G('sol-empty-hint');
+  if (!wrap) return;
+  if (!solBlocchi.length) { wrap.innerHTML=''; if(hint) hint.style.display='block'; return; }
+  if (hint) hint.style.display='none';
+  wrap.innerHTML = solBlocchi.map(function(b, i) {
+    var isActive = (solActiveBloccoIdx === i);
+    var tipoLabel = {titolo:'Titolo',testo:'Testo',bottone:'Bottone',separatore:'Separatore'}[b.tipo]||b.tipo;
+    var bodyHtml = '';
+    if (b.tipo === 'titolo')
+      bodyHtml = '<input type="text" value="'+esc(b.testo||'')+'" placeholder="Testo titolo" oninput="solUpdateBlocco('+i+',\'testo\',this.value)" onfocus="solActiveBloccoIdx='+i+'">';
+    else if (b.tipo === 'testo')
+      bodyHtml = '<textarea rows="4" placeholder="Testo del paragrafo..." oninput="solUpdateBlocco('+i+',\'html\',this.value)" onfocus="solActiveBloccoIdx='+i+'">'+esc(b.html||'')+'</textarea>';
+    else if (b.tipo === 'bottone')
+      bodyHtml = '<input type="text" value="'+esc(b.testo||'')+'" placeholder="Testo bottone" oninput="solUpdateBlocco('+i+',\'testo\',this.value)" style="margin-bottom:6px;" onfocus="solActiveBloccoIdx='+i+'">'
+               + '<input type="url" value="'+esc(b.url||'')+'" placeholder="URL destinazione" oninput="solUpdateBlocco('+i+',\'url\',this.value)">';
+    else if (b.tipo === 'separatore')
+      bodyHtml = '<div style="height:1px;background:var(--border);margin:4px 0;"></div>';
+    return '<div class="com-blocco'+(isActive?' active-focus':'')+'" onclick="solActiveBloccoIdx='+i+';solRenderBlocchi();">'
+      +'<div class="com-blocco-hdr">'+tipoLabel
+      +'<div class="com-b-actions">'
+      +(i>0?'<button class="com-b-btn" onclick="event.stopPropagation();solMoveBlocco('+i+',-1)">↑</button>':'')
+      +(i<solBlocchi.length-1?'<button class="com-b-btn" onclick="event.stopPropagation();solMoveBlocco('+i+',1)">↓</button>':'')
+      +'<button class="com-b-btn" onclick="event.stopPropagation();solDeleteBlocco('+i+')" style="color:var(--danger)">✕</button>'
+      +'</div></div>'
+      +'<div class="com-blocco-body">'+bodyHtml+'</div>'
+      +'</div>';
+  }).join('');
+}
+
+function solUpdateBlocco(i, field, val) { if(solBlocchi[i]) solBlocchi[i][field]=val; setTimeout(solRefreshPreview,300); }
+function solDeleteBlocco(i) { solBlocchi.splice(i,1); solActiveBloccoIdx=null; solRenderBlocchi(); solRefreshPreview(); }
+function solMoveBlocco(i,dir) { var j=i+dir; if(j<0||j>=solBlocchi.length)return; var t=solBlocchi[i];solBlocchi[i]=solBlocchi[j];solBlocchi[j]=t; solActiveBloccoIdx=j; solRenderBlocchi(); solRefreshPreview(); }
+
+function solInserisciVar(varStr) {
+  if (solActiveBloccoIdx === null) { toast('Seleziona prima un blocco','error'); return; }
+  var b = solBlocchi[solActiveBloccoIdx];
+  if (!b) return;
+  if (b.tipo==='testo') b.html=(b.html||'')+varStr;
+  else if (b.tipo==='titolo') b.testo=(b.testo||'')+varStr;
+  else if (b.tipo==='bottone') b.testo=(b.testo||'')+varStr;
+  else { toast('Seleziona un blocco Testo, Titolo o Bottone','error'); return; }
+  solRenderBlocchi(); solRefreshPreview();
+}
+
+function solRefreshPreview() {
+  var frame = G('sol-preview-frame');
+  if (!frame) return;
+  if (!solBlocchi.length) { frame.innerHTML='<div style="padding:24px;text-align:center;color:#9CA3AF;font-size:13px;">Nessun contenuto</div>'; return; }
+  var logoUrl = (G('sol-tpl-logo')||{}).value || _emailLogoUrl || '';
+  var bodyHtml = comBlocchiToHtml(solBlocchi, COM_PREV_VARS);
+  var full = comBuildFullHtml(bodyHtml, logoUrl);
+  frame.innerHTML = '<iframe srcdoc="'+full.replace(/"/g,'&quot;')+'" style="width:100%;height:380px;border:none;" title="Anteprima sollecito"></iframe>';
+}
+
+// ── Modale invio sollecito dalla scheda ──────────
+async function openModalSollecito() {
+  if (!crmContactId || !crmContactData) { toast('Nessun contatto aperto','error'); return; }
+
+  // Carica template
+  var tpl = {};
+  try { var r=localStorage.getItem(SOL_TPL_KEY); if(r) tpl=JSON.parse(r); } catch(e){}
+  if (!tpl.blocchi || !tpl.blocchi.length) { toast('Configura prima il template sollecito nella tab Comunicazione','error'); return; }
+
+  // Carica dati operatore assegnato
+  var assignedId = crmContactData.assigned_id || crmContactData.creator_id;
+  var operatore = { nome:'', cognome:'', email:'' };
+  if (assignedId) {
+    try {
+      var ur = await fetch(SB+'/rest/v1/cna_users?id=eq.'+assignedId+'&select=nome,cognome,email',{headers:H()});
+      if(ur.ok){ var us=await ur.json(); if(us[0]) operatore=us[0]; }
+    } catch(e){}
+  }
+
+  // Info destinatario nel modale
+  var infoEl = G('sol-dest-info');
+  if (infoEl) {
+    if (operatore.email) {
+      infoEl.innerHTML = '<strong>A:</strong> '+esc(operatore.nome+' '+operatore.cognome)+' &lt;'+esc(operatore.email)+'&gt;<br>'
+        +'<strong>Contatto:</strong> '+esc(crmContactData.company_name||'')
+        +(crmContactData.status?' &nbsp;·&nbsp; <strong>Stato:</strong> '+esc(STATI_LABEL[crmContactData.status]||crmContactData.status):'');
+    } else {
+      infoEl.innerHTML = '<span style="color:var(--danger)">Operatore senza email — impossibile inviare</span>';
+    }
+  }
+
+  // Oggetto
+  var vars = solGetVars(operatore);
+  var oggetto = tpl.oggetto || 'Sollecito — {{nome_azienda}}';
+  oggetto = solReplaceVars(oggetto, vars);
+  var ogg = G('sol-oggetto'); if(ogg) ogg.value = oggetto;
+
+  // Anteprima corpo
+  var bodyHtml = comBlocchiToHtml(tpl.blocchi, vars);
+  var logoUrl = tpl.logo_url || _emailLogoUrl || '';
+  var full = comBuildFullHtml(bodyHtml, logoUrl);
+  var prev = G('sol-preview'); if(prev) prev.innerHTML='<iframe srcdoc="'+full.replace(/"/g,'&quot;')+'" style="width:100%;height:260px;border:none;"></iframe>';
+
+  // Disabilita invio se no email
+  var btn = G('sol-btn-invia'); if(btn) btn.disabled = !operatore.email;
+
+  openModal('modal-sollecito-bg');
+}
+
+function solGetVars(operatore) {
+  var c = crmContactData || {};
+  return {
+    nome_azienda:   c.company_name   || '',
+    referente:      c.contact_name   || '',
+    telefono:       c.contact_phone  || '',
+    email_contatto: c.contact_email  || '',
+    stato:          STATI_LABEL[c.status] || c.status || '',
+    assegnato_a:    operatore ? (operatore.nome+' '+operatore.cognome).trim() : '',
+    data_creazione: c.created_at ? new Date(c.created_at).toLocaleDateString('it-IT') : '',
+    fonte:          c.company_source || '',
+  };
+}
+
+function solReplaceVars(s, vars) {
+  return (s||'').replace(/\{\{(\w+)\}\}/g, function(_, k){ return vars[k] !== undefined ? vars[k] : '{{'+k+'}}'; });
+}
+
+async function inviaSollecito() {
+  var oggetto = (G('sol-oggetto')||{}).value||'';
+  if (!oggetto.trim()) { toast('Oggetto mancante','error'); return; }
+
+  var tpl = {};
+  try { var r=localStorage.getItem(SOL_TPL_KEY); if(r) tpl=JSON.parse(r); } catch(e){}
+
+  var assignedId = crmContactData.assigned_id || crmContactData.creator_id;
+  var operatore = { nome:'', cognome:'', email:'' };
+  if (assignedId) {
+    try {
+      var ur = await fetch(SB+'/rest/v1/cna_users?id=eq.'+assignedId+'&select=nome,cognome,email',{headers:H()});
+      if(ur.ok){ var us=await ur.json(); if(us[0]) operatore=us[0]; }
+    } catch(e){}
+  }
+  if (!operatore.email) { toast('Operatore senza email','error'); return; }
+
+  var btn = G('sol-btn-invia'); if(btn) btn.disabled=true;
+  showLoad('Invio sollecito…');
+  try {
+    var vars = solGetVars(operatore);
+    var dest = [{
+      contact_id: crmContactId,
+      company_name: crmContactData.company_name||'',
+      contact_name: crmContactData.contact_name||'',
+      contact_phone: crmContactData.contact_phone||'',
+      contact_email: crmContactData.contact_email||'',
+      status: crmContactData.status||'',
+      source: crmContactData.company_source||'',
+      created_at: crmContactData.created_at||'',
+      operatore_nome: (operatore.nome+' '+operatore.cognome).trim(),
+      operatore_email: operatore.email,
+    }];
+    var r = await fetch(SB+'/functions/v1/crm-bulk-email', {
+      method: 'POST',
+      headers: H({'Content-Type':'application/json'}),
+      body: JSON.stringify({
+        oggetto: oggetto,
+        blocchi: tpl.blocchi,
+        destinatari: dest,
+        logo_url: tpl.logo_url || _emailLogoUrl || null,
+      })
+    });
+    var data = await r.json();
+    if (!r.ok) throw new Error(data.error||r.status);
+    closeModal('modal-sollecito-bg');
+    toast('Sollecito inviato a '+operatore.email, 'success');
+    await insertActivityLog(crmContactId, 'nota', '[SOLLECITO] Email sollecito inviata a '+operatore.email);
+    await openCrmContatto(crmContactId);
+  } catch(e) { toast('Errore: '+e.message,'error'); }
+  finally { hideLoad(); if(btn) btn.disabled=false; }
+}
+
 /* ── EMAIL ADMIN ────────────────────────────────── */
 var _emailLogoUrl = localStorage.getItem('crm_email_logo_url') || '';
 
@@ -3823,6 +4168,8 @@ function loadComunicazione() {
   if (logoInp && _emailLogoUrl) { logoInp.value = _emailLogoUrl; comPreviewLogo(); }
   comRenderBlocchi();
   comAggiornaDest();
+  // carica template sollecito
+  solCaricaTemplate();
 }
 
 /* ── Destinatari ─────────────────────────────── */
