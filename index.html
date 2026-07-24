@@ -313,11 +313,12 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 ═══════════════════════════════════════════════════ */
 
 /* ── NAV TAB ────────────────────────────────────── */
-.crm-nav{display:flex;background:var(--surface);border-bottom:1.5px solid var(--border);padding:0;gap:0;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;}
+.crm-nav{display:flex;background:#fff;border-bottom:2px solid var(--border);padding:0 6px;gap:4px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;}
 .crm-nav::-webkit-scrollbar{display:none;}
-.crm-tab{flex:1;display:flex;align-items:center;justify-content:center;gap:6px;padding:11px 14px;font-size:12px;font-weight:700;color:var(--text-secondary);border-bottom:2.5px solid transparent;cursor:pointer;transition:var(--tr);white-space:nowrap;background:none;border-left:none;border-right:none;border-top:none;font-family:var(--font);}
-.crm-tab:hover{color:var(--primary);background:var(--surface2);}
-.crm-tab.active{color:var(--primary);border-bottom-color:var(--primary);background:rgba(0,92,169,.04);}
+.crm-tab{flex:1;display:flex;align-items:center;justify-content:center;gap:6px;padding:9px 14px;font-size:12px;font-weight:700;color:#6b7280;border-radius:8px 8px 0 0;border-bottom:3px solid transparent;cursor:pointer;transition:all .18s;white-space:nowrap;background:none;border-left:none;border-right:none;border-top:none;font-family:var(--font);margin-top:4px;}
+.crm-tab:hover{color:var(--primary);background:rgba(0,92,169,.07);}
+.crm-tab.active{color:#fff;background:var(--primary);border-bottom-color:var(--primary);box-shadow:0 2px 8px rgba(0,92,169,.25);}
+.crm-tab.active svg{stroke:#fff;}
 
 /* ── PILL STATO contatto ────────────────────────── */
 .stato-pill{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:var(--radius-pill);font-size:11px;font-weight:700;border:1px solid transparent;}
@@ -1222,7 +1223,14 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
     </div>
     <div class="crm-modal-body">
       <div class="user-search-box"><input type="text" class="user-search-inp" id="user-search-inp" placeholder="Cerca per nome o email…" autocomplete="off" oninput="renderUserList(this.value)"></div>
-      <div class="user-list-scroll" id="user-list-modal" style="max-height:300px;padding:8px;"></div>
+      <div class="user-list-scroll" id="user-list-modal" style="max-height:220px;padding:8px;"></div>
+      <div style="margin-top:12px;">
+        <label style="display:flex;align-items:center;gap:6px;font-size:12px;font-weight:700;color:var(--text-secondary);margin-bottom:6px;">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+          Note per il collega
+        </label>
+        <textarea id="assegna-note-handover" class="crm-textarea" rows="3" placeholder="Scrivi informazioni utili per chi prende in carico il contatto… (es. orari disponibili, interessi, promesse fatte, ecc.)" style="font-size:13px;resize:vertical;"></textarea>
+      </div>
     </div>
     <div class="crm-modal-footer">
       <button class="btn-crm btn-crm-outline" onclick="closeModal('modal-assegna-bg')">Annulla</button>
@@ -2612,6 +2620,7 @@ var crmAllUsers = [];
 async function openModalAssegna(){
   var _si=G('user-search-inp');if(_si)_si.value='';
   G('user-list-modal').innerHTML='<div style="padding:16px;text-align:center;color:var(--text-tertiary)">Caricamento…</div>';
+  var _hn=G('assegna-note-handover');if(_hn)_hn.value='';
   openModal('modal-assegna-bg');
   try {
     var r = await fetch(SB+'/rest/v1/cna_users?attivo=eq.true&select=id,nome,cognome,email&order=cognome.asc',{headers:H()});
@@ -2656,24 +2665,33 @@ function selectUser(uid){
 async function salvaAssegnazione(){
   if(!crmSelectedUserId){ closeModal('modal-assegna-bg'); return; }
   if(crmSelectedUserId===crmContactData.assigned_id){ closeModal('modal-assegna-bg'); return; }
+  var handoverNote = (G('assegna-note-handover')||{}).value||'';
+  handoverNote = handoverNote.trim();
   showLoad('Assegnazione in corso…');
   try {
+    var patchBody = {assigned_id:crmSelectedUserId, status:'assegnato'};
+    if(handoverNote) patchBody.handover_notes = handoverNote;
     var r = await fetch(SB+'/rest/v1/crm_contacts?id=eq.'+crmContactId,{
       method:'PATCH',
       headers:H({'Prefer':'return=minimal','Content-Type':'application/json'}),
-      body:JSON.stringify({assigned_id:crmSelectedUserId, status:'assegnato'})
+      body:JSON.stringify(patchBody)
     });
     if(!r.ok) throw new Error(await r.text());
     var u = crmAllUsers.find(function(u){ return u.id===crmSelectedUserId; });
-    await insertActivityLog(crmContactId,'assegnazione','Contatto assegnato a '+(u?u.nome+' '+u.cognome:'utente'));
+    var logMsg = 'Contatto assegnato a '+(u?u.nome+' '+u.cognome:'utente');
+    if(handoverNote) logMsg += ' — Note: '+handoverNote;
+    await insertActivityLog(crmContactId,'assegnazione',logMsg);
     // notifica push all'assegnatario
     if (crmSelectedUserId && crmSelectedUserId !== session.id) {
+      var pushBody = 'Ti è stato assegnato: ' + (crmContactData ? crmContactData.company_name : 'un contatto');
+      if(handoverNote) pushBody += '\n\nNote: '+handoverNote;
       triggerPush([crmSelectedUserId],
         'Nuovo contatto assegnato',
-        'Ti è stato assegnato: ' + (crmContactData ? crmContactData.company_name : 'un contatto'),
+        pushBody,
         '/');
     }
     closeModal('modal-assegna-bg');
+    if(G('assegna-note-handover')) G('assegna-note-handover').value='';
     toast('Contatto assegnato!','success');
     await openCrmContatto(crmContactId);
   } catch(e){ toast('Errore: '+e.message,'error'); }
