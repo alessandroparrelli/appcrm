@@ -1008,6 +1008,42 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
         </div>
       </div>
 
+      <!-- Sezione: email assegnazione -->
+      <div class="admin-section">
+        <div class="admin-section-hdr">
+          <span class="admin-section-title">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle"><rect x="2" y="4" width="20" height="16" rx="2"/><polyline points="2,4 12,13 22,4"/></svg>
+            Email assegnazione contatti
+          </span>
+        </div>
+        <div style="padding:14px 16px;">
+          <div class="crm-field" style="margin-bottom:12px;">
+            <label style="font-size:12px;font-weight:700;color:var(--text-secondary);display:block;margin-bottom:6px;">
+              URL logo nell'email (lascia vuoto per usare il logo CNA Roma di default)
+            </label>
+            <div style="display:flex;gap:8px;">
+              <input type="url" class="crm-input" id="email-logo-url" placeholder="https://esempio.com/logo.png" style="flex:1;font-size:13px;">
+              <button class="btn-crm btn-crm-outline" onclick="adminSalvaLogoEmail()">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13"/><polyline points="7 3 7 8 15 8"/></svg>
+                Salva
+              </button>
+            </div>
+            <div id="email-logo-preview" style="margin-top:10px;display:none;">
+              <p style="font-size:11px;color:var(--text-tertiary);margin:0 0 6px;">Anteprima logo:</p>
+              <img id="email-logo-img" src="" alt="Logo" style="height:44px;max-width:200px;object-fit:contain;border:1px solid var(--border);border-radius:6px;padding:6px;background:#fff;">
+            </div>
+          </div>
+          <div style="border-top:1px solid var(--border);padding-top:12px;">
+            <p style="font-size:12px;color:var(--text-secondary);margin:0 0 10px;">Invia un'email di test a te stesso per verificare il sistema.</p>
+            <button class="btn-crm btn-crm-primary" onclick="adminTestEmail()">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+              Invia email di test a me
+            </button>
+            <span id="email-test-result" style="font-size:12px;margin-left:10px;color:var(--text-tertiary);"></span>
+          </div>
+        </div>
+      </div>
+
       <!-- Sezione: invia notifica push -->
       <div class="admin-section">
         <div class="admin-section-hdr">
@@ -3357,6 +3393,7 @@ var adminDebounceTimer = null;
 
 async function loadAdminDashboard(){
   if(session.ruolo!=='admin'){ toast('Accesso negato','error'); return; }
+  adminInitEmailSection();
   // carica tutto in parallelo
   try {
     var dateFrom = G('admin-date-from') ? G('admin-date-from').value : '';
@@ -3536,6 +3573,68 @@ async function loadAdminUserReport(contacts, calls, apts, users){
         +'</tr>';
     }).join('');
   } catch(e){ tbody.innerHTML='<tr><td colspan="6" class="admin-empty">Errore</td></tr>'; }
+}
+
+/* ── EMAIL ADMIN ────────────────────────────────── */
+var _emailLogoUrl = localStorage.getItem('crm_email_logo_url') || '';
+
+function adminInitEmailSection() {
+  var inp = G('email-logo-url');
+  if (inp && _emailLogoUrl) {
+    inp.value = _emailLogoUrl;
+    adminUpdateLogoPreview(_emailLogoUrl);
+  }
+}
+
+function adminUpdateLogoPreview(url) {
+  var prev = G('email-logo-preview');
+  var img  = G('email-logo-img');
+  if (!prev || !img) return;
+  if (url) {
+    img.src = url;
+    prev.style.display = 'block';
+  } else {
+    prev.style.display = 'none';
+  }
+}
+
+function adminSalvaLogoEmail() {
+  var url = (G('email-logo-url')||{}).value||'';
+  url = url.trim();
+  _emailLogoUrl = url;
+  localStorage.setItem('crm_email_logo_url', url);
+  adminUpdateLogoPreview(url);
+  toast('Logo salvato!', 'success');
+}
+
+async function adminTestEmail() {
+  if (!session || !session.email) { toast('Nessuna email nel profilo', 'error'); return; }
+  var btn = document.querySelector('[onclick="adminTestEmail()"]');
+  var res = G('email-test-result');
+  if (btn) btn.disabled = true;
+  if (res) res.textContent = 'Invio in corso…';
+  try {
+    var r = await fetch(SB+'/functions/v1/crm-send-assignment-email', {
+      method: 'POST',
+      headers: H({'Content-Type':'application/json'}),
+      body: JSON.stringify({
+        test: true,
+        test_email: session.email,
+        test_nome: (session.nome||'') + ' ' + (session.cognome||''),
+        logo_url: _emailLogoUrl || null
+      })
+    });
+    var data = await r.json();
+    if (!r.ok) throw new Error(data.error || r.status);
+    if (res) { res.textContent = 'Email inviata a ' + session.email; res.style.color = 'var(--success)'; }
+    toast('Email di test inviata!', 'success');
+  } catch(e) {
+    if (res) { res.textContent = 'Errore: ' + e.message; res.style.color = 'var(--danger)'; }
+    toast('Errore: ' + e.message, 'error');
+  } finally {
+    if (btn) btn.disabled = false;
+    setTimeout(function(){ if(res) { res.textContent=''; res.style.color=''; } }, 6000);
+  }
 }
 
 /* ── EXPORT XLSX ────────────────────────────────── */
