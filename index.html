@@ -2740,15 +2740,19 @@ async function salvaAssegnazione(){
     if (crmSelectedUserId) {
       fetch(SB+'/functions/v1/crm-send-assignment-email', {
         method: 'POST',
-        headers: {'Content-Type':'application/json'},
+        headers: H({'Content-Type':'application/json'}),
         body: JSON.stringify({
           contact_id: crmContactId,
           assigned_to_id: crmSelectedUserId,
           assigned_by_id: session.id,
           handover_notes: handoverNote || null
         })
-      }).then(function(r){ if(!r.ok) r.text().then(function(t){console.warn('Email assegnazione:',t);}); })
-        .catch(function(e){ console.warn('Email assegnazione fallita:',e); });
+      }).then(function(r){
+        r.text().then(function(t){
+          if(!r.ok) console.warn('Email assegnazione errore:', r.status, t);
+          else console.log('Email assegnazione inviata:', t);
+        });
+      }).catch(function(e){ console.warn('Email assegnazione fallita:',e); });
     }
     closeModal('modal-assegna-bg');
     if(G('assegna-note-handover')) G('assegna-note-handover').value='';
