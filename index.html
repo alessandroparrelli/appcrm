@@ -1148,6 +1148,8 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
                 <button class="btn-crm btn-crm-outline btn-crm-sm" onclick="comAddBlocco('bottone')">+ Bottone</button>
                 <button class="btn-crm btn-crm-outline btn-crm-sm" onclick="comAddBlocco('immagine')">+ Immagine</button>
                 <button class="btn-crm btn-crm-outline btn-crm-sm" onclick="comAddBlocco('citazione')">+ Citazione</button>
+                <button class="btn-crm btn-crm-outline btn-crm-sm" onclick="comAddBlocco('tabella_contatto')">+ Tabella</button>
+                <button class="btn-crm btn-crm-outline btn-crm-sm" onclick="comAddBlocco('alert')">+ Alert</button>
                 <button class="btn-crm btn-crm-outline btn-crm-sm" onclick="comAddBlocco('separatore')">+ Sep.</button>
               </div>
             </div>
@@ -1239,6 +1241,8 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
                   <button class="btn-crm btn-crm-outline btn-crm-sm" onclick="solAddBlocco('bottone')">+ Bottone</button>
                   <button class="btn-crm btn-crm-outline btn-crm-sm" onclick="solAddBlocco('immagine')">+ Immagine</button>
                   <button class="btn-crm btn-crm-outline btn-crm-sm" onclick="solAddBlocco('citazione')">+ Citazione</button>
+                <button class="btn-crm btn-crm-outline btn-crm-sm" onclick="solAddBlocco('tabella_contatto')">+ Tabella</button>
+                <button class="btn-crm btn-crm-outline btn-crm-sm" onclick="solAddBlocco('alert')">+ Alert</button>
                   <button class="btn-crm btn-crm-outline btn-crm-sm" onclick="solAddBlocco('separatore')">+ Sep.</button>
                 </div>
               </div>
@@ -4766,6 +4770,11 @@ var BLOCCO_DEFAULTS = {
   immagine:   { tipo:'immagine',  src:'', alt:'', align:'center',   width:'100%' },
   separatore: { tipo:'separatore', color:'#E5E7EB', spessore:1 },
   citazione:  { tipo:'citazione', html:'Scrivi qui la citazione...' },
+  tabella_contatto: { tipo:'tabella_contatto',
+    righe: ['azienda','referente','telefono','email_contatto','fonte','stato'],
+    titolo: 'DETTAGLI CONTATTO' },
+  alert: { tipo:'alert', testo:'Testo del messaggio in evidenza.', titolo:'NOTA IMPORTANTE',
+    color:'#F59E0B', bg:'#FFF7ED', textColor:'#92400E' },
 };
 
 function edDeepCopy(obj){ return JSON.parse(JSON.stringify(obj)); }
@@ -5025,7 +5034,7 @@ function edRender(prefix){
 
   var html=arr.map(function(b,i){
     var isActive=(aIdx===i);
-    var lbl={titolo:'Titolo',testo:'Testo',bottone:'Bottone',immagine:'Immagine',separatore:'Separatore',citazione:'Citazione'}[b.tipo]||b.tipo;
+    var lbl={titolo:'Titolo',testo:'Testo',bottone:'Bottone',immagine:'Immagine',separatore:'Separatore',citazione:'Citazione',tabella_contatto:'Tabella contatto',alert:'Alert'}[b.tipo]||b.tipo;
     var body='';
 
     if(b.tipo==='titolo'||b.tipo==='testo'){
@@ -5069,6 +5078,50 @@ function edRender(prefix){
       var upd_q='(function(v){var a='+pf_q+'===\'com\'?comBlocchi:solBlocchi;a['+i+'].html=v;setTimeout('+pf_q+'===\'com\'?comRefreshPreview:solRefreshPreview,300);})';
       body='<div style="padding:8px;">'
         +'<textarea style="width:100%;box-sizing:border-box;min-height:72px;border:none;resize:vertical;font-style:italic;font-size:14px;color:#1E40AF;background:#F0F7FF;border-left:4px solid #005CA9;padding:10px 14px;border-radius:0 6px 6px 0;font-family:Inter,Arial,sans-serif;outline:none;" oninput="'+upd_q+'(this.value)">'+esc(b.html||'Scrivi la citazione...')+'</textarea>'
+        +'</div>';
+
+    }else if(b.tipo==='tabella_contatto'){
+      var RIGHE_OPTS = ['azienda','referente','telefono','email_contatto','fonte','stato','data_creazione','assegnato_a','creato_da'];
+      var RIGHE_LABEL = {azienda:'Azienda',referente:'Referente',telefono:'Telefono',email_contatto:'Email',fonte:'Fonte',stato:'Stato',data_creazione:'Data',assegnato_a:'Assegnato a',creato_da:'Creato da'};
+      var pft='\''+prefix+'\'';
+      var righeSelezionate = b.righe || ['azienda','referente','telefono','stato'];
+      body = '<div class="ed-props-grid" style="grid-template-columns:1fr;">'
+        +'<div class="ed-prop"><label>Titolo sezione</label>'
+        +'<input class="crm-input" value="'+esc(b.titolo||'DETTAGLI CONTATTO')+'" oninput="(function(v){var a='+pft+'===\'com\'?comBlocchi:solBlocchi;a['+i+'].titolo=v;setTimeout('+pft+'===\'com\'?comRefreshPreview:solRefreshPreview,300);})(this.value)"></div>'
+        +'<div class="ed-prop"><label>Righe da mostrare</label>'
+        +'<div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:4px;">'
+        + RIGHE_OPTS.map(function(r){
+            var checked = righeSelezionate.indexOf(r)>=0;
+            return '<label style="display:flex;align-items:center;gap:4px;font-size:12px;cursor:pointer;font-weight:400;">'
+              +'<input type="checkbox"'+(checked?' checked':'')
+              +' onchange="(function(v,c){var a='+pft+'===\'com\'?comBlocchi:solBlocchi;var b=a['+i+'];b.righe=b.righe||[];if(c){if(b.righe.indexOf(v)<0)b.righe.push(v);}else{b.righe=b.righe.filter(function(x){return x!==v;});}setTimeout('+pft+'===\'com\'?comRefreshPreview:solRefreshPreview,200);})(\''+r+'\',this.checked)">'
+              + RIGHE_LABEL[r] + '</label>';
+          }).join('')
+        +'</div></div>'
+        +'</div>';
+
+    }else if(b.tipo==='alert'){
+      var pfa='\''+prefix+'\'';
+      var upda='(function(f,v){var a='+pfa+'===\'com\'?comBlocchi:solBlocchi;a['+i+'][f]=v;setTimeout('+pfa+'===\'com\'?comRefreshPreview:solRefreshPreview,200);})(';
+      body = '<div class="ed-props-grid">'
+        +'<div class="ed-prop" style="grid-column:1/-1"><label>Titolo alert</label>'
+        +'<input class="crm-input" value="'+esc(b.titolo||'NOTA IMPORTANTE')+'" oninput="'+upda+'\'titolo\',this.value)"></div>'
+        +'<div class="ed-prop" style="grid-column:1/-1"><label>Testo</label>'
+        +'<textarea class="crm-input" rows="3" style="resize:vertical;" oninput="'+upda+'\'testo\',this.value)">'+esc(b.testo||'')+'</textarea></div>'
+        +'<div class="ed-prop"><label>Colore bordo</label><div class="ed-color-row">'
+        +'<input type="color" value="'+(b.color||'#F59E0B')+'" oninput="'+upda+'\'color\',this.value);this.nextElementSibling.value=this.value;">'
+        +'<input class="crm-input" value="'+(b.color||'#F59E0B')+'" style="font-family:monospace;font-size:11px;" oninput="if(/^#[0-9a-fA-F]{6}$/.test(this.value)){'+upda+'\'color\',this.value);this.previousElementSibling.value=this.value;}"></div></div>'
+        +'<div class="ed-prop"><label>Sfondo</label><div class="ed-color-row">'
+        +'<input type="color" value="'+(b.bg||'#FFF7ED')+'" oninput="'+upda+'\'bg\',this.value);this.nextElementSibling.value=this.value;">'
+        +'<input class="crm-input" value="'+(b.bg||'#FFF7ED')+'" style="font-family:monospace;font-size:11px;" oninput="if(/^#[0-9a-fA-F]{6}$/.test(this.value)){'+upda+'\'bg\',this.value);this.previousElementSibling.value=this.value;}"></div></div>'
+        +'<div class="ed-prop"><label>Colore testo</label><div class="ed-color-row">'
+        +'<input type="color" value="'+(b.textColor||'#92400E')+'" oninput="'+upda+'\'textColor\',this.value);this.nextElementSibling.value=this.value;">'
+        +'<input class="crm-input" value="'+(b.textColor||'#92400E')+'" style="font-family:monospace;font-size:11px;" oninput="if(/^#[0-9a-fA-F]{6}$/.test(this.value)){'+upda+'\'textColor\',this.value);this.previousElementSibling.value=this.value;}"></div></div>'
+        +'<div class="ed-prop" style="grid-column:1/-1;margin-top:4px;">'
+        +'<div style="border-left:4px solid '+(b.color||'#F59E0B')+';background:'+(b.bg||'#FFF7ED')+';border-radius:0 6px 6px 0;padding:10px 14px;">'
+        +'<p style="margin:0 0 4px;font-size:11px;font-weight:700;color:'+(b.textColor||'#92400E')+';text-transform:uppercase;">'+(b.titolo||'NOTA')+'</p>'
+        +'<p style="margin:0;font-size:13px;color:'+(b.textColor||'#92400E')+';font-style:italic;">'+(b.testo||'...')+'</p>'
+        +'</div></div>'
         +'</div>';
 
     }else if(b.tipo==='separatore'){
@@ -5175,6 +5228,37 @@ function edBlocchiToHtml(arr,vars){
     if(b.tipo==='bottone')    return '<div style="text-align:'+(b.align||'center')+';margin:20px 0;"><a href="'+rv(b.url||'#')+'" style="background:'+(b.color||'#005CA9')+';color:'+(b.textColor||'#fff')+';padding:12px 30px;border-radius:'+(b.radius||8)+'px;text-decoration:none;font-size:15px;font-weight:700;display:inline-block;font-family:Inter,Arial,sans-serif;">'+rv(b.testo||'Clicca qui')+'</a></div>';
     if(b.tipo==='immagine')   return b.src?'<div style="text-align:'+(b.align||'center')+';margin:0 0 16px;"><img src="'+b.src+'" alt="'+(b.alt||'')+'" style="max-width:'+(b.width||'100%')+';height:auto;display:inline-block;border-radius:4px;"/></div>':'';
     if(b.tipo==='citazione')   return '<blockquote style="border-left:4px solid #005CA9;margin:16px 0;padding:12px 18px;background:#F0F7FF;color:#1E40AF;font-style:italic;border-radius:0 8px 8px 0;font-family:Inter,Arial,sans-serif;font-size:15px;line-height:1.7;">'+rv(b.html||'')+'</blockquote>';
+    if(b.tipo==='tabella_contatto'){
+      var RLABELS = {azienda:'Azienda',referente:'Referente',telefono:'Telefono',
+        email_contatto:'Email',fonte:'Fonte',stato:'Stato',
+        data_creazione:'Data creazione',assegnato_a:'Assegnato a',creato_da:'Creato da'};
+      var RVARS   = {azienda:'nome_azienda',referente:'referente',telefono:'telefono',
+        email_contatto:'email_contatto',fonte:'fonte',stato:'stato',
+        data_creazione:'data_creazione',assegnato_a:'assegnato_a',creato_da:'creato_da'};
+      var righe = b.righe || ['azienda','referente','telefono','email_contatto','fonte','stato'];
+      var titolo = b.titolo || 'DETTAGLI CONTATTO';
+      var rows = righe.map(function(r, idx){
+        var val = rv('{{' + (RVARS[r]||r) + '}}');
+        if(!val) return '';
+        var border = idx > 0 ? 'border-top:1px solid #E5E7EB;' : '';
+        return '<tr style="'+border+'">'
+          +'<td style="padding:8px 16px;font-size:13px;color:#6B7280;font-family:Inter,Arial,sans-serif;width:130px;vertical-align:top;">'+RLABELS[r]+'</td>'
+          +'<td style="padding:8px 16px;font-size:14px;font-weight:600;color:#0A0A0A;font-family:Inter,Arial,sans-serif;">'+val+'</td>'
+          +'</tr>';
+      }).filter(Boolean).join('');
+      return '<table style="width:100%;border-collapse:collapse;background:#F9FAFB;border-radius:10px;overflow:hidden;margin:0 0 16px;">'
+        +'<tr><td colspan="2" style="padding:10px 16px 6px;font-size:11px;font-weight:700;color:#6B7280;text-transform:uppercase;letter-spacing:.06em;font-family:Inter,Arial,sans-serif;">'+rv(titolo)+'</td></tr>'
+        + rows
+        +'</table>';
+    }
+    if(b.tipo==='alert'){
+      var ac = b.color||'#F59E0B'; var abg = b.bg||'#FFF7ED'; var atc = b.textColor||'#92400E';
+      var at = rv(b.titolo||''); var atxt = rv(b.testo||'');
+      return '<div style="border-left:4px solid '+ac+';background:'+abg+';border-radius:0 8px 8px 0;padding:12px 18px;margin:16px 0;">'
+        +(at?'<p style="margin:0 0 5px;font-size:11px;font-weight:700;color:'+atc+';text-transform:uppercase;letter-spacing:.06em;font-family:Inter,Arial,sans-serif;">'+at+'</p>':'')
+        +'<p style="margin:0;font-size:14px;color:'+atc+';line-height:1.6;font-family:Inter,Arial,sans-serif;white-space:pre-wrap;">'+atxt+'</p>'
+        +'</div>';
+    }
     if(b.tipo==='separatore') return '<hr style="border:none;border-top:1px solid '+(b.color||'#E5E7EB')+';margin:20px 0;"/>';
     return '';
   }).join('\n');
