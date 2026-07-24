@@ -282,6 +282,8 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
   .kpi-strip{grid-template-columns:repeat(2,1fr);}
   .log-table td:nth-child(5){display:none;}
   .log-table th:nth-child(5){display:none;}
+  .log-table td:nth-child(6){display:none;}
+  .log-table th:nth-child(6){display:none;}
 }
 
 /* ── AVATAR nel chip header ─────────────────── */
@@ -947,12 +949,17 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
       <div class="log-filters">
         <select class="log-select" id="log-filter-esito" onchange="logPage=0;loadLogs()">
           <option value="">Tutti gli esiti</option>
-          <option value="successo">✓ Successo</option>
-          <option value="fallito">✗ Fallito</option>
+          <option value="successo">Successo</option>
+          <option value="fallito">Fallito</option>
         </select>
         <select class="log-select" id="log-filter-user" onchange="logPage=0;loadLogs()">
           <option value="">Tutti gli utenti</option>
         </select>
+        <span style="flex:1"></span>
+        <button class="btn-crm btn-crm-outline btn-crm-sm" onclick="clearAllLogs()" style="color:var(--danger);border-color:var(--danger);">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="vertical-align:middle"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+          Pulisci log
+        </button>
       </div>
       <div class="log-table-wrap">
         <table class="log-table">
@@ -960,13 +967,14 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
             <tr>
               <th>Data/Ora</th>
               <th>Nome</th>
-              <th>Email</th>
               <th>Esito</th>
               <th>Browser</th>
+              <th>Device</th>
+              <th>OS</th>
             </tr>
           </thead>
           <tbody id="logs-tbody">
-            <tr><td colspan="5" style="text-align:center;padding:20px;color:var(--text-tertiary)">Caricamento…</td></tr>
+            <tr><td colspan="6" style="text-align:center;padding:20px;color:var(--text-tertiary)">Caricamento…</td></tr>
           </tbody>
         </table>
       </div>
@@ -2406,14 +2414,26 @@ var logPage=0, logPageSize=50, logTotal=0;
 function escHtml(s){ return String(s||'').replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];}); }
 
 function parseUA(ua){
-  if(!ua) return '–';
-  if(ua.includes('iPhone')||ua.includes('iPad')) return '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg> iOS';
-  if(ua.includes('Android')) return '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg> Android';
-  if(ua.includes('Chrome')&&!ua.includes('Edg')) return '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg> Chrome';
-  if(ua.includes('Firefox')) return '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle"><circle cx="12" cy="12" r="10"/></svg> Firefox';
-  if(ua.includes('Safari')&&!ua.includes('Chrome')) return '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg> Safari';
-  if(ua.includes('Edg')) return '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg> Edge';
-  return '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg> Desktop';
+  if(!ua) return {browser:'–',os:'–',device:'–'};
+  var browser='Altro', os='Altro', device='Desktop';
+  // Browser
+  if(ua.includes('Edg')) browser='Edge';
+  else if(ua.includes('OPR')||ua.includes('Opera')) browser='Opera';
+  else if(ua.includes('Chrome')&&ua.includes('Safari')) browser='Chrome';
+  else if(ua.includes('Firefox')) browser='Firefox';
+  else if(ua.includes('Safari')&&!ua.includes('Chrome')) browser='Safari';
+  // OS
+  if(ua.includes('Windows')) os='Windows';
+  else if(ua.includes('Mac OS')) os='macOS';
+  else if(ua.includes('iPhone')) os='iOS';
+  else if(ua.includes('iPad')) os='iPadOS';
+  else if(ua.includes('Android')) os='Android';
+  else if(ua.includes('Linux')) os='Linux';
+  else if(ua.includes('CrOS')) os='ChromeOS';
+  // Device
+  if(ua.includes('iPhone')||ua.includes('Android')&&ua.includes('Mobile')) device='Smartphone';
+  else if(ua.includes('iPad')||ua.includes('Tablet')) device='Tablet';
+  return {browser:browser,os:os,device:device};
 }
 
 async function openLog(){
@@ -2472,20 +2492,22 @@ async function loadLogs(){
     // Tabella
     var tb = G('logs-tbody');
     if(!rows.length){
-      tb.innerHTML='<tr><td colspan="5" style="text-align:center;padding:20px;color:var(--text-tertiary)">Nessun accesso registrato</td></tr>';
+      tb.innerHTML='<tr><td colspan="6" style="text-align:center;padding:20px;color:var(--text-tertiary)">Nessun accesso registrato</td></tr>';
       G('log-pagination').innerHTML='';
       return;
     }
     tb.innerHTML = rows.map(function(r){
       var badge = r.esito==='successo'
-        ? '<span class="esito-ok">✓ Successo</span>'
-        : '<span class="esito-fail">✗ Fallito</span>';
+        ? '<span class="esito-ok">Successo</span>'
+        : '<span class="esito-fail">Fallito</span>';
+      var ua = parseUA(r.user_agent||'');
       return '<tr>'
         +'<td style="white-space:nowrap;font-size:12px">'+escHtml(fmtDate(r.created_at))+'</td>'
-        +'<td style="font-weight:600">'+escHtml(r.nome_completo||'–')+'</td>'
-        +'<td style="font-size:12px">'+escHtml(r.email)+'</td>'
+        +'<td><span style="font-weight:600">'+escHtml(r.nome_completo||'–')+'</span><br><span style="font-size:11px;color:var(--text-tertiary)">'+escHtml(r.email)+'</span></td>'
         +'<td>'+badge+'</td>'
-        +'<td style="font-size:11px;color:var(--text-tertiary)">'+escHtml(parseUA(r.user_agent||''))+'</td>'
+        +'<td style="font-size:12px">'+escHtml(ua.browser)+'</td>'
+        +'<td style="font-size:12px">'+escHtml(ua.device)+'</td>'
+        +'<td style="font-size:12px">'+escHtml(ua.os)+'</td>'
         +'</tr>';
     }).join('');
 
@@ -2500,6 +2522,19 @@ async function loadLogs(){
 }
 
 function logGoPage(p){ logPage=p; loadLogs(); }
+
+async function clearAllLogs() {
+  if (!confirm('Eliminare tutti i log di accesso?\n\nQuesta azione è irreversibile.')) return;
+  showLoad('Eliminazione log…');
+  try {
+    var r = await fetch(SB+'/rest/v1/cna_login_logs?id=not.is.null', {method:'DELETE', headers:H()});
+    if (!r.ok) throw new Error('HTTP '+r.status);
+    toast('Log eliminati', 'success');
+    logPage = 0;
+    await loadLogs();
+  } catch(e) { toast('Errore: '+e.message, 'error'); }
+  finally { hideLoad(); }
+}
 
 /* ══════════════════════════════════════════════════
    CRM — Config e stato globale
