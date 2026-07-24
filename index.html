@@ -282,8 +282,10 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
   .kpi-strip{grid-template-columns:repeat(2,1fr);}
   .log-table td:nth-child(5){display:none;}
   .log-table th:nth-child(5){display:none;}
-  .log-table td:nth-child(6){display:none;}
-  .log-table th:nth-child(6){display:none;}
+  .log-table td:nth-child(7){display:none;}
+  .log-table th:nth-child(7){display:none;}
+  .log-table td:nth-child(8){display:none;}
+  .log-table th:nth-child(8){display:none;}
 }
 
 /* ── AVATAR nel chip header ─────────────────── */
@@ -968,16 +970,18 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
         <table class="log-table">
           <thead>
             <tr>
-              <th>Data/Ora</th>
+              <th>Data</th>
+              <th>Ora</th>
               <th>Nome</th>
               <th>Esito</th>
+              <th>Posizione</th>
               <th>Browser</th>
               <th>Device</th>
               <th>OS</th>
             </tr>
           </thead>
           <tbody id="logs-tbody">
-            <tr><td colspan="6" style="text-align:center;padding:20px;color:var(--text-tertiary)">Caricamento…</td></tr>
+            <tr><td colspan="8" style="text-align:center;padding:20px;color:var(--text-tertiary)">Caricamento…</td></tr>
           </tbody>
         </table>
       </div>
@@ -2495,7 +2499,7 @@ async function loadLogs(){
     // Tabella
     var tb = G('logs-tbody');
     if(!rows.length){
-      tb.innerHTML='<tr><td colspan="6" style="text-align:center;padding:20px;color:var(--text-tertiary)">Nessun accesso registrato</td></tr>';
+      tb.innerHTML='<tr><td colspan="8" style="text-align:center;padding:20px;color:var(--text-tertiary)">Nessun accesso registrato</td></tr>';
       G('log-pagination').innerHTML='';
       return;
     }
@@ -2504,10 +2508,15 @@ async function loadLogs(){
         ? '<span class="esito-ok">Successo</span>'
         : '<span class="esito-fail">Fallito</span>';
       var ua = parseUA(r.user_agent||'');
+      var dt = r.created_at ? new Date(r.created_at) : null;
+      var dataStr = dt ? dt.toLocaleDateString('it-IT') : '–';
+      var oraStr  = dt ? dt.toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'}) : '–';
       return '<tr>'
-        +'<td style="white-space:nowrap;font-size:12px">'+escHtml(fmtDate(r.created_at))+'</td>'
+        +'<td style="white-space:nowrap;font-size:12px">'+escHtml(dataStr)+'</td>'
+        +'<td style="white-space:nowrap;font-size:12px;font-weight:600">'+escHtml(oraStr)+'</td>'
         +'<td><span style="font-weight:600">'+escHtml(r.nome_completo||'–')+'</span><br><span style="font-size:11px;color:var(--text-tertiary)">'+escHtml(r.email)+'</span></td>'
         +'<td>'+badge+'</td>'
+        +'<td style="font-size:12px">'+escHtml(r.location||'–')+'</td>'
         +'<td style="font-size:12px">'+escHtml(ua.browser)+'</td>'
         +'<td style="font-size:12px">'+escHtml(ua.device)+'</td>'
         +'<td style="font-size:12px">'+escHtml(ua.os)+'</td>'
