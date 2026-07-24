@@ -608,6 +608,20 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 .btn-select-mode.active{background:var(--primary);color:#fff;border-color:var(--primary);}
 
 /* ══════════════════════════════════════════════
+   EDITOR WYSIWYG TOOLBAR
+══════════════════════════════════════════════ */
+.com-blocco-toolbar{display:flex;gap:2px;flex-wrap:wrap;padding:6px 8px;background:#F8FAFC;border-bottom:1px solid var(--border);align-items:center;}
+.tb-btn{background:none;border:1px solid transparent;border-radius:4px;cursor:pointer;padding:3px 6px;font-size:12px;font-weight:700;color:var(--text-secondary);line-height:1.4;min-width:26px;transition:all .12s;}
+.tb-btn:hover{background:var(--surface2);border-color:var(--border);color:var(--text);}
+.tb-btn.active{background:#EFF6FF;border-color:#BFDBFE;color:#1D4ED8;}
+.tb-sep{width:1px;height:18px;background:var(--border);margin:0 3px;flex-shrink:0;}
+.tb-color{width:22px;height:22px;border:1px solid var(--border);border-radius:4px;cursor:pointer;padding:1px;}
+.tb-select{border:1px solid var(--border);border-radius:4px;font-size:11px;padding:2px 4px;background:var(--bg);color:var(--text);cursor:pointer;font-family:var(--font);}
+.com-blocco-editable{min-height:60px;padding:10px 12px;outline:none;font-family:Inter,Arial,sans-serif;font-size:14px;line-height:1.7;color:#374151;word-break:break-word;}
+.com-blocco-editable:focus{background:#FAFCFF;}
+.com-blocco-editable[data-placeholder]:empty:before{content:attr(data-placeholder);color:#9CA3AF;pointer-events:none;}
+
+/* ══════════════════════════════════════════════
    STORICO NOTE
 ══════════════════════════════════════════════ */
 .note-card{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius-md);margin-bottom:12px;overflow:hidden;}
@@ -1038,14 +1052,28 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
             </div>
           </div>
 
-          <!-- Logo -->
+          <!-- Header email -->
           <div class="com-card">
-            <div class="com-card-title">Logo email</div>
-            <div style="display:flex;gap:8px;align-items:center;">
-              <input type="url" class="crm-input" id="com-logo-url" placeholder="URL logo (opzionale)" style="flex:1;font-size:12px;">
-              <button class="btn-crm btn-crm-outline btn-crm-sm" onclick="comPreviewLogo()">Anteprima</button>
+            <div class="com-card-title">Header email</div>
+            <div class="crm-field" style="margin-bottom:8px;">
+              <label style="font-size:11px;font-weight:700;color:var(--text-secondary);">URL Logo</label>
+              <div style="display:flex;gap:6px;margin-top:4px;">
+                <input type="url" class="crm-input" id="com-logo-url" placeholder="https://…/logo.png" style="flex:1;font-size:12px;" oninput="comPreviewLogo()">
+              </div>
+            </div>
+            <div class="crm-field" style="margin-bottom:8px;">
+              <label style="font-size:11px;font-weight:700;color:var(--text-secondary);">Colore sfondo header</label>
+              <div style="display:flex;gap:6px;margin-top:4px;align-items:center;">
+                <input type="color" id="com-header-color" value="#005CA9" oninput="comRefreshPreview()" style="width:40px;height:32px;border:1px solid var(--border);border-radius:6px;cursor:pointer;padding:2px;">
+                <input type="text" class="crm-input" id="com-header-color-txt" value="#005CA9" placeholder="#005CA9" style="font-size:12px;font-family:monospace;flex:1;" oninput="comSyncHeaderColor(this.value)">
+              </div>
+            </div>
+            <div class="crm-field" style="margin-bottom:8px;">
+              <label style="font-size:11px;font-weight:700;color:var(--text-secondary);">Altezza logo (px)</label>
+              <input type="number" class="crm-input" id="com-logo-height" value="44" min="20" max="120" oninput="comRefreshPreview()" style="font-size:12px;width:80px;margin-top:4px;">
             </div>
             <div id="com-logo-preview" style="margin-top:8px;display:none;">
+              <p style="font-size:11px;color:var(--text-tertiary);margin:0 0 4px;">Anteprima logo:</p>
               <img id="com-logo-img" src="" style="height:36px;max-width:160px;object-fit:contain;border:1px solid var(--border);border-radius:6px;padding:4px;background:#fff;">
             </div>
           </div>
@@ -1096,10 +1124,11 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
           <div class="com-card" style="flex:1;">
             <div class="com-card-title" style="display:flex;justify-content:space-between;align-items:center;">
               <span>Corpo email</span>
-              <div style="display:flex;gap:6px;">
+              <div style="display:flex;gap:4px;flex-wrap:wrap;">
                 <button class="btn-crm btn-crm-outline btn-crm-sm" onclick="comAddBlocco('titolo')">+ Titolo</button>
                 <button class="btn-crm btn-crm-outline btn-crm-sm" onclick="comAddBlocco('testo')">+ Testo</button>
                 <button class="btn-crm btn-crm-outline btn-crm-sm" onclick="comAddBlocco('bottone')">+ Bottone</button>
+                <button class="btn-crm btn-crm-outline btn-crm-sm" onclick="comAddBlocco('immagine')">+ Immagine</button>
                 <button class="btn-crm btn-crm-outline btn-crm-sm" onclick="comAddBlocco('separatore')">+ Sep.</button>
               </div>
             </div>
@@ -1183,10 +1212,11 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
             <div class="com-card">
               <div class="com-card-title" style="display:flex;justify-content:space-between;align-items:center;">
                 <span>Corpo sollecito</span>
-                <div style="display:flex;gap:6px;">
+                <div style="display:flex;gap:4px;flex-wrap:wrap;">
                   <button class="btn-crm btn-crm-outline btn-crm-sm" onclick="solAddBlocco('titolo')">+ Titolo</button>
                   <button class="btn-crm btn-crm-outline btn-crm-sm" onclick="solAddBlocco('testo')">+ Testo</button>
                   <button class="btn-crm btn-crm-outline btn-crm-sm" onclick="solAddBlocco('bottone')">+ Bottone</button>
+                  <button class="btn-crm btn-crm-outline btn-crm-sm" onclick="solAddBlocco('immagine')">+ Immagine</button>
                   <button class="btn-crm btn-crm-outline btn-crm-sm" onclick="solAddBlocco('separatore')">+ Sep.</button>
                 </div>
               </div>
@@ -4483,18 +4513,123 @@ function comPreviewLogo() {
 /* ── Editor blocchi ──────────────────────────── */
 function comAddBlocco(tipo) {
   var defaults = {
-    titolo:     { tipo:'titolo', testo:'Titolo', livello:'h2' },
-    testo:      { tipo:'testo',  html:'' },
-    bottone:    { tipo:'bottone', testo:'Clicca qui', url:'' },
-    separatore: { tipo:'separatore' },
+    titolo:     { tipo:'titolo', html:'<h2>Titolo</h2>', align:'left', color:'#0A0A0A', size:22 },
+    testo:      { tipo:'testo',  html:'<p>Scrivi il tuo testo qui...</p>', color:'#374151', size:15 },
+    bottone:    { tipo:'bottone', testo:'Clicca qui', url:'', color:'#005CA9', textColor:'#ffffff', align:'center', radius:8 },
+    immagine:   { tipo:'immagine', src:'', alt:'', align:'center', width:'100%' },
+    separatore: { tipo:'separatore', color:'#E5E7EB' },
   };
-  comBlocchi.push(Object.assign({}, defaults[tipo]||{tipo:tipo}));
+  comBlocchi.push(JSON.parse(JSON.stringify(defaults[tipo]||{tipo:tipo,html:''})));
   comActiveBloccoIdx = comBlocchi.length - 1;
   comRenderBlocchi();
+  setTimeout(function(){
+    var ed = document.querySelector('#com-blocchi .com-blocco:last-child .com-blocco-editable');
+    if(ed){ ed.focus(); placeCaretAtEnd(ed); }
+  }, 50);
+}
+
+function placeCaretAtEnd(el) {
+  try {
+    var range = document.createRange();
+    var sel   = window.getSelection();
+    range.selectNodeContents(el);
+    range.collapse(false);
+    sel.removeAllRanges();
+    sel.addRange(range);
+  } catch(e){}
+}
+
+function comGetEditorHtml(i) {
+  var ed = document.getElementById('com-ed-'+i);
+  return ed ? ed.innerHTML : (comBlocchi[i].html||'');
+}
+
+function comSyncFromDOM() {
+  // Sincronizza HTML da tutti i contenteditable prima di salvare/preview
+  comBlocchi.forEach(function(b, i) {
+    if (b.tipo === 'titolo' || b.tipo === 'testo') {
+      var ed = document.getElementById('com-ed-'+i);
+      if (ed) b.html = ed.innerHTML;
+    }
+  });
+}
+
+/* ── Toolbar WYSIWYG ─────────────────────────── */
+function comExec(cmd, val) {
+  document.execCommand(cmd, false, val||null);
+  // sincronizza immediatamente il blocco attivo
+  if (comActiveBloccoIdx !== null) {
+    var ed = document.getElementById('com-ed-'+comActiveBloccoIdx);
+    if (ed) comBlocchi[comActiveBloccoIdx].html = ed.innerHTML;
+  }
+  setTimeout(comRefreshPreview, 200);
+}
+
+function comFocusEditor(i) {
+  comActiveBloccoIdx = i;
+  // aggiorna stato toolbar
+  document.querySelectorAll('#com-blocchi .com-blocco').forEach(function(el,idx){
+    el.classList.toggle('active-focus', idx===i);
+  });
+}
+
+function comSyncHeaderColor(val) {
+  if (/^#[0-9a-fA-F]{6}$/.test(val)) {
+    var cp = G('com-header-color');
+    if(cp) cp.value = val;
+    comRefreshPreview();
+  }
+}
+
+function comPreviewLogo() {
+  var url = (G('com-logo-url')||{}).value||'';
+  var prev = G('com-logo-preview'); var img = G('com-logo-img');
+  if (!prev||!img) return;
+  if (url) { img.src=url; prev.style.display='block'; } else { prev.style.display='none'; }
   comRefreshPreview();
 }
 
+function comToolbar(i, b) {
+  if (b.tipo !== 'titolo' && b.tipo !== 'testo') return '';
+  var placeholder = b.tipo==='titolo' ? 'Scrivi il titolo...' : 'Scrivi il testo... usa le variabili {{nome_azienda}}';
+  return '<div class="com-blocco-toolbar">'
+    +'<select class="tb-select" onchange="comExec(\'fontName\',this.value)" title="Font">'
+    +'<option value="Inter,Arial,sans-serif">Inter</option>'
+    +'<option value="Arial,sans-serif">Arial</option>'
+    +'<option value="Georgia,serif">Georgia</option>'
+    +'<option value="\'Courier New\',monospace">Monospace</option>'
+    +'</select>'
+    +'<select class="tb-select" onchange="comExec(\'fontSize\',this.value)" title="Dimensione">'
+    +'<option value="2">12px</option><option value="3" selected>14px</option><option value="4">16px</option>'
+    +'<option value="5">18px</option><option value="6">22px</option><option value="7">28px</option>'
+    +'</select>'
+    +'<span class="tb-sep"></span>'
+    +'<button class="tb-btn" onmousedown="event.preventDefault();comExec(\'bold\')" title="Grassetto"><b>B</b></button>'
+    +'<button class="tb-btn" onmousedown="event.preventDefault();comExec(\'italic\')" title="Corsivo"><i>I</i></button>'
+    +'<button class="tb-btn" onmousedown="event.preventDefault();comExec(\'underline\')" title="Sottolineato"><u>U</u></button>'
+    +'<span class="tb-sep"></span>'
+    +'<button class="tb-btn" onmousedown="event.preventDefault();comExec(\'justifyLeft\')" title="Sinistra">&#9664;</button>'
+    +'<button class="tb-btn" onmousedown="event.preventDefault();comExec(\'justifyCenter\')" title="Centro">&#9646;</button>'
+    +'<button class="tb-btn" onmousedown="event.preventDefault();comExec(\'justifyRight\')" title="Destra">&#9654;</button>'
+    +'<button class="tb-btn" onmousedown="event.preventDefault();comExec(\'justifyFull\')" title="Giustifica">&#9646;&#9646;</button>'
+    +'<span class="tb-sep"></span>'
+    +'<label title="Colore testo" style="display:flex;align-items:center;gap:3px;cursor:pointer;font-size:11px;color:var(--text-secondary);">A<input type="color" class="tb-color" value="#374151" oninput="comExec(\'foreColor\',this.value)" title="Colore testo"></label>'
+    +'<label title="Evidenzia" style="display:flex;align-items:center;gap:3px;cursor:pointer;font-size:11px;color:var(--text-secondary);">H<input type="color" class="tb-color" value="#ffffff" oninput="comExec(\'hiliteColor\',this.value)" title="Evidenzia"></label>'
+    +'<span class="tb-sep"></span>'
+    +'<button class="tb-btn" onmousedown="event.preventDefault();comExec(\'insertUnorderedList\')" title="Elenco">&#8226;</button>'
+    +'<button class="tb-btn" onmousedown="event.preventDefault();comExec(\'insertOrderedList\')" title="Numerato">1.</button>'
+    +'<button class="tb-btn" onmousedown="event.preventDefault();comExec(\'removeFormat\')" title="Rimuovi formattazione" style="font-size:10px;">&#10006;fmt</button>'
+    +'</div>'
+    +'<div class="com-blocco-editable" id="com-ed-'+i+'" contenteditable="true" '
+    +'data-placeholder="'+placeholder+'" '
+    +'oninput="comBlocchi['+i+'].html=this.innerHTML;setTimeout(comRefreshPreview,400);" '
+    +'onfocus="comFocusEditor('+i+')">'
+    +( b.html||'' )+'</div>';
+}
+
 function comRenderBlocchi() {
+  // Prima sincronizza HTML corrente dai DOM
+  comSyncFromDOM();
   var wrap = G('com-blocchi');
   var hint = G('com-empty-hint');
   if (!wrap) return;
@@ -4503,26 +4638,63 @@ function comRenderBlocchi() {
 
   wrap.innerHTML = comBlocchi.map(function(b, i) {
     var isActive = (comActiveBloccoIdx === i);
-    var tipoLabel = {titolo:'Titolo',testo:'Testo',bottone:'Bottone',separatore:'Separatore'}[b.tipo]||b.tipo;
+    var tipoLabel = {titolo:'Titolo',testo:'Testo',bottone:'Bottone',immagine:'Immagine',separatore:'Separatore'}[b.tipo]||b.tipo;
     var bodyHtml = '';
-    if (b.tipo === 'titolo') {
-      bodyHtml = '<input type="text" value="'+esc(b.testo||'')+'" placeholder="Testo del titolo" oninput="comUpdateBlocco('+i+',\'testo\',this.value)" onfocus="comActiveBloccoIdx='+i+'">';
-    } else if (b.tipo === 'testo') {
-      bodyHtml = '<textarea rows="4" placeholder="Testo del paragrafo. Puoi usare le variabili es: Ciao, ti scriviamo riguardo {{nome_azienda}}" oninput="comUpdateBlocco('+i+',\'html\',this.value)" onfocus="comActiveBloccoIdx='+i+'">'+esc(b.html||'')+'</textarea>';
+
+    if (b.tipo === 'titolo' || b.tipo === 'testo') {
+      bodyHtml = comToolbar(i, b);
     } else if (b.tipo === 'bottone') {
-      bodyHtml = '<input type="text" value="'+esc(b.testo||'')+'" placeholder="Testo bottone" oninput="comUpdateBlocco('+i+',\'testo\',this.value)" style="margin-bottom:6px;" onfocus="comActiveBloccoIdx='+i+'">'
-               + '<input type="url" value="'+esc(b.url||'')+'" placeholder="URL destinazione (es. https://...)" oninput="comUpdateBlocco('+i+',\'url\',this.value)">';
+      bodyHtml = '<div style="padding:10px;display:grid;grid-template-columns:1fr 1fr;gap:6px;">'
+        +'<div><label style="font-size:11px;font-weight:700;color:var(--text-secondary);">Testo</label>'
+        +'<input class="crm-input" value="'+esc(b.testo||'')+'" placeholder="Testo bottone" oninput="comBlocchi['+i+'].testo=this.value;setTimeout(comRefreshPreview,200)" style="font-size:12px;margin-top:3px;"></div>'
+        +'<div><label style="font-size:11px;font-weight:700;color:var(--text-secondary);">URL</label>'
+        +'<input class="crm-input" type="url" value="'+esc(b.url||'')+'" placeholder="https://…" oninput="comBlocchi['+i+'].url=this.value;setTimeout(comRefreshPreview,200)" style="font-size:12px;margin-top:3px;"></div>'
+        +'<div><label style="font-size:11px;font-weight:700;color:var(--text-secondary);">Colore sfondo</label>'
+        +'<div style="display:flex;gap:4px;margin-top:3px;align-items:center;">'
+        +'<input type="color" value="'+(b.color||'#005CA9')+'" oninput="comBlocchi['+i+'].color=this.value;setTimeout(comRefreshPreview,200)" style="width:32px;height:28px;border:1px solid var(--border);border-radius:4px;cursor:pointer;">'
+        +'<input class="crm-input" value="'+(b.color||'#005CA9')+'" placeholder="#005CA9" oninput="comBlocchi['+i+'].color=this.value;setTimeout(comRefreshPreview,200)" style="font-size:11px;font-family:monospace;flex:1;"></div></div>'
+        +'<div><label style="font-size:11px;font-weight:700;color:var(--text-secondary);">Colore testo</label>'
+        +'<div style="display:flex;gap:4px;margin-top:3px;align-items:center;">'
+        +'<input type="color" value="'+(b.textColor||'#ffffff')+'" oninput="comBlocchi['+i+'].textColor=this.value;setTimeout(comRefreshPreview,200)" style="width:32px;height:28px;border:1px solid var(--border);border-radius:4px;cursor:pointer;">'
+        +'<input class="crm-input" value="'+(b.textColor||'#ffffff')+'" placeholder="#ffffff" oninput="comBlocchi['+i+'].textColor=this.value;setTimeout(comRefreshPreview,200)" style="font-size:11px;font-family:monospace;flex:1;"></div></div>'
+        +'<div><label style="font-size:11px;font-weight:700;color:var(--text-secondary);">Allineamento</label>'
+        +'<select class="crm-select" style="font-size:12px;margin-top:3px;" onchange="comBlocchi['+i+'].align=this.value;setTimeout(comRefreshPreview,200)">'
+        +'<option value="center"'+(b.align==='center'?' selected':'')+'>Centro</option>'
+        +'<option value="left"'+(b.align==='left'?' selected':'')+'>Sinistra</option>'
+        +'<option value="right"'+(b.align==='right'?' selected':'')+'>Destra</option>'
+        +'</select></div>'
+        +'<div><label style="font-size:11px;font-weight:700;color:var(--text-secondary);">Bordi (px)</label>'
+        +'<input type="number" class="crm-input" value="'+(b.radius||8)+'" min="0" max="40" oninput="comBlocchi['+i+'].radius=parseInt(this.value)||0;setTimeout(comRefreshPreview,200)" style="font-size:12px;margin-top:3px;"></div>'
+        +'</div>';
+    } else if (b.tipo === 'immagine') {
+      bodyHtml = '<div style="padding:10px;display:grid;grid-template-columns:1fr 1fr;gap:6px;">'
+        +'<div style="grid-column:1/-1;"><label style="font-size:11px;font-weight:700;color:var(--text-secondary);">URL Immagine</label>'
+        +'<input class="crm-input" type="url" value="'+esc(b.src||'')+'" placeholder="https://…/immagine.jpg" oninput="comBlocchi['+i+'].src=this.value;setTimeout(comRefreshPreview,400)" style="font-size:12px;margin-top:3px;"></div>'
+        +'<div><label style="font-size:11px;font-weight:700;color:var(--text-secondary);">Larghezza</label>'
+        +'<input class="crm-input" value="'+(b.width||'100%')+'" placeholder="100% o 300px" oninput="comBlocchi['+i+'].width=this.value;setTimeout(comRefreshPreview,200)" style="font-size:12px;margin-top:3px;"></div>'
+        +'<div><label style="font-size:11px;font-weight:700;color:var(--text-secondary);">Allineamento</label>'
+        +'<select class="crm-select" style="font-size:12px;margin-top:3px;" onchange="comBlocchi['+i+'].align=this.value;setTimeout(comRefreshPreview,200)">'
+        +'<option value="center"'+(b.align==='center'?' selected':'')+'>Centro</option>'
+        +'<option value="left"'+(b.align==='left'?' selected':'')+'>Sinistra</option>'
+        +'<option value="right"'+(b.align==='right'?' selected':'')+'>Destra</option>'
+        +'</select></div>'
+        +(b.src?'<div style="grid-column:1/-1;margin-top:6px;"><img src="'+esc(b.src)+'" style="max-width:100%;height:60px;object-fit:cover;border-radius:6px;border:1px solid var(--border);"></div>':'')
+        +'</div>';
     } else if (b.tipo === 'separatore') {
-      bodyHtml = '<div style="height:1px;background:var(--border);margin:4px 0;"></div>';
+      bodyHtml = '<div style="padding:10px;display:flex;gap:8px;align-items:center;">'
+        +'<label style="font-size:11px;font-weight:700;color:var(--text-secondary);">Colore</label>'
+        +'<input type="color" value="'+(b.color||'#E5E7EB')+'" oninput="comBlocchi['+i+'].color=this.value;setTimeout(comRefreshPreview,200)" style="width:32px;height:28px;border:1px solid var(--border);border-radius:4px;cursor:pointer;">'
+        +'<hr style="flex:1;border:none;border-top:2px solid '+(b.color||'#E5E7EB')+';"></div>';
     }
-    return '<div class="com-blocco'+(isActive?' active-focus':'')+'" onclick="comActiveBloccoIdx='+i+';comRenderBlocchi();">'
+
+    return '<div class="com-blocco'+(isActive?' active-focus':'')+'">'
       +'<div class="com-blocco-hdr">'+tipoLabel
       +'<div class="com-b-actions">'
-      +(i>0?'<button class="com-b-btn" onclick="event.stopPropagation();comMoveBlocco('+i+',-1)" title="Su">↑</button>':'')
-      +(i<comBlocchi.length-1?'<button class="com-b-btn" onclick="event.stopPropagation();comMoveBlocco('+i+',1)" title="Giù">↓</button>':'')
-      +'<button class="com-b-btn" onclick="event.stopPropagation();comDeleteBlocco('+i+')" title="Elimina" style="color:var(--danger)">✕</button>'
+      +(i>0?'<button class="com-b-btn" onmousedown="event.preventDefault();comMoveBlocco('+i+',-1)" title="Su">↑</button>':'')
+      +(i<comBlocchi.length-1?'<button class="com-b-btn" onmousedown="event.preventDefault();comMoveBlocco('+i+',1)" title="Giù">↓</button>':'')
+      +'<button class="com-b-btn" onmousedown="event.preventDefault();comDeleteBlocco('+i+')" title="Elimina" style="color:var(--danger)">✕</button>'
       +'</div></div>'
-      +'<div class="com-blocco-body">'+bodyHtml+'</div>'
+      +'<div class="com-blocco-body" style="padding:0;">'+bodyHtml+'</div>'
       +'</div>';
   }).join('');
 }
@@ -4533,6 +4705,7 @@ function comUpdateBlocco(i, field, val) {
 }
 
 function comDeleteBlocco(i) {
+  comSyncFromDOM();
   comBlocchi.splice(i, 1);
   comActiveBloccoIdx = null;
   comRenderBlocchi();
@@ -4540,6 +4713,7 @@ function comDeleteBlocco(i) {
 }
 
 function comMoveBlocco(i, dir) {
+  comSyncFromDOM();
   var j = i + dir;
   if (j < 0 || j >= comBlocchi.length) return;
   var tmp = comBlocchi[i]; comBlocchi[i] = comBlocchi[j]; comBlocchi[j] = tmp;
@@ -4550,35 +4724,43 @@ function comMoveBlocco(i, dir) {
 
 /* ── Variabili ───────────────────────────────── */
 function comInserisciVar(varStr) {
-  // Cerca il textarea/input attivo nel blocco selezionato
   if (comActiveBloccoIdx === null) { toast('Seleziona prima un blocco testo', 'error'); return; }
   var b = comBlocchi[comActiveBloccoIdx];
   if (!b) return;
-  if (b.tipo === 'testo') {
-    b.html = (b.html||'') + varStr;
-  } else if (b.tipo === 'titolo') {
-    b.testo = (b.testo||'') + varStr;
+  if (b.tipo === 'testo' || b.tipo === 'titolo') {
+    var ed = document.getElementById('com-ed-'+comActiveBloccoIdx);
+    if (ed) {
+      ed.focus();
+      document.execCommand('insertText', false, varStr);
+      b.html = ed.innerHTML;
+    } else {
+      b.html = (b.html||'') + varStr;
+    }
   } else if (b.tipo === 'bottone') {
     b.testo = (b.testo||'') + varStr;
+    comRenderBlocchi();
   } else {
-    toast('Seleziona un blocco Testo, Titolo o Bottone', 'error'); return;
+    toast('Seleziona un blocco Testo o Titolo', 'error'); return;
   }
-  comRenderBlocchi();
-  comRefreshPreview();
+  setTimeout(comRefreshPreview, 200);
 }
 
 /* ── Preview ─────────────────────────────────── */
 function comBlocchiToHtml(blocchi, vars) {
   vars = vars || {};
-  var BLU = '#005CA9';
   function replVar(s) {
     return (s||'').replace(/\{\{(\w+)\}\}/g, function(_, k) { return vars[k] !== undefined ? vars[k] : '{{'+k+'}}'; });
   }
+  function cleanHtml(h) {
+    // Sostituisce font-family inline da execCommand con versione email-safe
+    return replVar((h||'').replace(/font-family:[^;"]*/g, 'font-family:Inter,Arial,sans-serif'));
+  }
   return blocchi.map(function(b) {
-    if (b.tipo === 'titolo') return '<'+( b.livello||'h2')+' style="font-family:Inter,Arial,sans-serif;font-weight:800;color:#0A0A0A;margin:0 0 12px;font-size:22px;">'+replVar(b.testo)+'</'+( b.livello||'h2')+'>';
-    if (b.tipo === 'testo')  return '<div style="font-family:Inter,Arial,sans-serif;font-size:15px;line-height:1.7;color:#374151;margin:0 0 16px;white-space:pre-wrap;">'+replVar(b.html)+'</div>';
-    if (b.tipo === 'bottone') return '<div style="text-align:center;margin:20px 0"><a href="'+esc(b.url||'#')+'" style="background:'+BLU+';color:#fff;padding:13px 32px;border-radius:8px;text-decoration:none;font-size:14px;font-weight:700;display:inline-block;font-family:Inter,Arial,sans-serif;">'+replVar(b.testo||'Clicca qui')+'</a></div>';
-    if (b.tipo === 'separatore') return '<hr style="border:none;border-top:1px solid #E5E7EB;margin:20px 0"/>';
+    if (b.tipo === 'titolo') return '<div style="margin:0 0 12px;">'+cleanHtml(b.html)+'</div>';
+    if (b.tipo === 'testo')  return '<div style="font-family:Inter,Arial,sans-serif;font-size:15px;line-height:1.7;color:#374151;margin:0 0 16px;">'+cleanHtml(b.html)+'</div>';
+    if (b.tipo === 'bottone') return '<div style="text-align:'+( b.align||'center')+ ';margin:20px 0"><a href="'+(b.url||'#')+'" style="background:'+(b.color||'#005CA9')+';color:'+(b.textColor||'#fff')+';padding:13px 32px;border-radius:'+(b.radius||8)+'px;text-decoration:none;font-size:14px;font-weight:700;display:inline-block;font-family:Inter,Arial,sans-serif;">'+replVar(b.testo||'Clicca qui')+'</a></div>';
+    if (b.tipo === 'immagine') return b.src ? '<div style="text-align:'+(b.align||'center')+';margin:0 0 16px;"><img src="'+b.src+'" alt="'+(b.alt||'')+'" style="max-width:'+(b.width||'100%')+';height:auto;display:inline-block;"/></div>' : '';
+    if (b.tipo === 'separatore') return '<hr style="border:none;border-top:1px solid '+(b.color||'#E5E7EB')+';margin:20px 0"/>';
     return '';
   }).join('\n');
 }
@@ -4595,25 +4777,27 @@ var COM_PREV_VARS = {
 };
 
 function comBuildFullHtml(bodyHtml, logoUrl) {
-  var BLU = '#005CA9';
+  var BLU = (G('com-header-color')||{}).value || '#005CA9';
   var LOGO = logoUrl || (G('com-logo-url')||{}).value || _emailLogoUrl ||
     'https://raw.githubusercontent.com/alessandroparrelli/fileappoggio/main/NUOVO-LOGO-CNA-ROMA-SOLO-ROMA.png';
-  var css = '<style>body,table,td{-webkit-text-size-adjust:100%}</style>';
-  var header = '<div style="background:linear-gradient(135deg,'+BLU+' 0%,#003d73 100%)"><table width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td style="padding:18px 28px"><img src="'+LOGO+'" alt="CNA Roma" style="height:44px;display:block;max-width:200px"/></td></tr></table></div>';
+  var logoH = parseInt((G('com-logo-height')||{}).value||'44')||44;
+  var css = '<style>body,table,td{-webkit-text-size-adjust:100%;-ms-text-size-adjust:100%}h1,h2,h3,h4{margin:0 0 10px;font-family:Inter,Arial,sans-serif;line-height:1.3}p{margin:0 0 10px;font-family:Inter,Arial,sans-serif}a{color:inherit}@media only screen and (max-width:620px){.ew{width:100%!important;padding:8px!important}}</style>';
+  var header = '<div style="background:'+BLU+'"><table width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td style="padding:16px 24px"><img src="'+LOGO+'" alt="Logo" style="height:'+logoH+'px;display:block;max-width:240px"/></td></tr></table></div>';
   var footer = '<div style="background:#F9FAFB;border-top:1px solid #E5E7EB;padding:16px 24px"><p style="margin:0;font-size:11px;color:#9CA3AF;font-family:Inter,Arial,sans-serif">CRM CNA Roma &mdash; Confederazione Nazionale dell&rsquo;Artigianato</p></div>';
-  return '<!DOCTYPE html><html lang="it"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">'+css+'</head><body style="margin:0;padding:0;background:#F0F2F5"><table width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#F0F2F5"><tr><td align="center" style="padding:24px 16px"><table cellpadding="0" cellspacing="0" border="0" style="width:100%;max-width:600px;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 2px 20px rgba(0,0,0,.1)"><tr><td>'+header+'</td></tr><tr><td style="padding:32px">'+bodyHtml+'</td></tr><tr><td>'+footer+'</td></tr></table></td></tr></table></body></html>';
+  return '<!DOCTYPE html><html lang="it"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">'+css+'</head><body style="margin:0;padding:0;background:#F0F2F5"><table class="ew" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#F0F2F5"><tr><td align="center" style="padding:24px 16px"><table cellpadding="0" cellspacing="0" border="0" style="width:100%;max-width:600px;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 2px 20px rgba(0,0,0,.1)"><tr><td>'+header+'</td></tr><tr><td style="padding:32px">'+bodyHtml+'</td></tr><tr><td>'+footer+'</td></tr></table></td></tr></table></body></html>';
 }
 
 function comRefreshPreview() {
   var frame = G('com-preview-frame');
   if (!frame) return;
+  comSyncFromDOM();
   if (!comBlocchi.length) { frame.innerHTML='<div style="padding:24px;text-align:center;color:#9CA3AF;font-size:13px;">Nessun contenuto</div>'; return; }
   var bodyHtml = comBlocchiToHtml(comBlocchi, COM_PREV_VARS);
   var full = comBuildFullHtml(bodyHtml);
-  frame.innerHTML = '<iframe srcdoc="'+full.replace(/"/g,'&quot;')+'" style="width:100%;height:420px;border:none;" title="Anteprima email"></iframe>';
+  frame.innerHTML = '<iframe srcdoc="'+full.replace(/"/g,'&quot;').replace(/\n/g,'')+'\" style=\"width:100%;height:100%;min-height:calc(100vh - 300px);border:none;\" title=\"Anteprima email\"></iframe>';
 }
 
-/* ── Invio ───────────────────────────────────── */
+/* ── Invio /* ── Invio ───────────────────────────────────── */
 async function comInvia() {
   var oggetto = (G('com-oggetto')||{}).value||'';
   if (!oggetto.trim()) { toast('Inserisci l\'oggetto dell\'email','error'); return; }
