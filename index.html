@@ -4312,15 +4312,21 @@ async function inviaSollecito() {
       created_at: crmContactData.created_at||'',
       operatore_nome: (operatore.nome+' '+operatore.cognome).trim(),
       operatore_email: operatore.email,
+      creato_da: creatoreNomeI,
+      note: noteTextI,
     }];
+    // Leggi header config dal template COM
+    var _solComTpl = {}; try { _solComTpl = JSON.parse(localStorage.getItem('crm_com_template')||'{}'); } catch(e){}
     var r = await fetch(SB+'/functions/v1/crm-bulk-email', {
       method: 'POST',
       headers: H({'Content-Type':'application/json'}),
       body: JSON.stringify({
-        oggetto: oggetto,
-        blocchi: tpl.blocchi,
-        destinatari: dest,
-        logo_url: tpl.logo_url || _emailLogoUrl || null,
+        oggetto:      oggetto,
+        blocchi:      tpl.blocchi,
+        destinatari:  dest,
+        logo_url:     tpl.logo_url || _emailLogoUrl || null,
+        header_color: _solComTpl.header_color || null,
+        logo_height:  String(_solComTpl.logo_height || '44'),
       })
     });
     var data = await r.json();
@@ -4416,7 +4422,7 @@ async function sendAssignmentEmail(contactId, assignedToId, assignedByName, hand
     // 7. Invia via crm-bulk-email
     var payload = {
       oggetto: oggetto.replace(/\{\{(\w+)\}\}/g, function(_,k){ return vars[k]||''; }),
-      blocchi: [{ tipo:'testo', html: bodyHtml }],
+      blocchi: blocchi,
       destinatari: [{
         contact_id:      String(contactId),
         company_name:    ct.company_name    || '',
@@ -4428,8 +4434,12 @@ async function sendAssignmentEmail(contactId, assignedToId, assignedByName, hand
         created_at:      ct.created_at      || '',
         operatore_nome:  toNome,
         operatore_email: toEmail,
+        creato_da:       creatoreNome,
+        note:            '',
       }],
-      logo_url: logoUrl || null,
+      logo_url:     logoUrl     || null,
+      header_color: headerColor || null,
+      logo_height:  String(logoH),
     };
 
     console.log('sendAssignmentEmail -> crm-bulk-email a:', toEmail, 'azienda:', ct.company_name);
