@@ -2158,7 +2158,7 @@ function showView(name){
   if(btnCrm) btnCrm.style.display = (isScheda && crmCurrentAna) ? 'inline-flex' : 'none';
   var _fab=G('fab-crm');
   if(_fab)_fab.style.display=((name==='crm')&&window.innerWidth<=640)?'flex':'none';
-  ['search','results','scheda','log','crm','crm-contatto','admin'].forEach(function(v){
+  ['search','results','scheda','log','crm','crm-contatto','admin','comunicazione'].forEach(function(v){
     var el = G('view-'+v);
     if(el) el.classList.toggle('active', v===name);
   });
