@@ -629,6 +629,12 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 .ed-color-row{display:flex;gap:6px;align-items:center;}
 .ed-color-row input[type=color]{width:34px;height:30px;border:1px solid var(--border);border-radius:4px;cursor:pointer;padding:1px;flex-shrink:0;}
 .tb-color-lbl{display:flex;align-items:center;gap:3px;cursor:pointer;font-size:11px;font-weight:700;color:var(--text-secondary);}
+.tb-dropdown{position:relative;display:inline-block;}
+.tb-dropdown-btn{min-width:44px;}
+.tb-dropdown-menu{display:none;position:absolute;top:100%;left:0;z-index:999;background:var(--surface);border:1.5px solid var(--border);border-radius:8px;box-shadow:0 4px 16px rgba(0,0,0,.12);padding:4px;min-width:110px;margin-top:2px;}
+.tb-dropdown.open .tb-dropdown-menu{display:grid;grid-template-columns:1fr;}
+.tb-ddi{background:none;border:none;border-radius:5px;padding:6px 10px;font-size:13px;font-family:var(--font);cursor:pointer;text-align:left;color:var(--text);white-space:nowrap;}
+.tb-ddi:hover{background:var(--surface2);}
 @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&display=swap');
 
 /* ══════════════════════════════════════════════
@@ -4716,79 +4722,135 @@ function edSyncDOM(prefix){
 
 /* ── Toolbar ─────────────────────────────────────── */
 // Salva/ripristina selezione (persa quando si clicca toolbar)
-var _edSavedRange = null;
-var _edSavedPrefix = null;
+// ── Toolbar: gestione selezione e stili ─────────────
+// Strategia: tutti i pulsanti usano onmousedown+preventDefault
+// per non perdere mai il focus/selezione nel contenteditable.
+// Per font e size usiamo execCommand con styleWithCSS=true
+// che produce <span style="font-size:..."> invece di <font size="...">.
 
-function edSaveSelection() {
-  var sel = window.getSelection();
-  if(sel && sel.rangeCount > 0) {
-    _edSavedRange = sel.getRangeAt(0).cloneRange();
-    // salva anche quale editor era attivo
-    var ae = document.activeElement;
-    var ed = ae && ae.closest ? ae.closest('.ed-content') : null;
-    if(ed) _edSavedPrefix = ed.id.indexOf('sol-ed')===0 ? 'sol' : 'com';
-  }
+function edFocusEditor(prefix, i) {
+  // Riporta il focus nell'editor e posiziona il cursore alla fine
+  var ed = document.getElementById(prefix+'-ed-'+i);
+  if(ed) { ed.focus(); }
+  if(prefix==='com') comActiveBloccoIdx=i; else solActiveBloccoIdx=i;
 }
 
-function edRestoreSelection() {
-  if(!_edSavedRange) return false;
-  var sel = window.getSelection();
-  sel.removeAllRanges();
-  sel.addRange(_edSavedRange);
-  return true;
+function edExecStyled(cmd, val) {
+  // Abilita styleWithCSS per produrre span inline invece di tag legacy
+  try { document.execCommand('styleWithCSS', false, true); } catch(e){}
+  document.execCommand(cmd, false, val||null);
+  try { document.execCommand('styleWithCSS', false, false); } catch(e){}
+  edSyncActiveEditor();
+  setTimeout(edRefreshActive, 150);
 }
 
-function edApplyStyle(style) {
-  // Ripristina selezione salvata (persa al click sulla toolbar)
-  if(!edRestoreSelection()) return;
+function edSetFontFamily(family) {
+  // execCommand fontName con styleWithCSS produce <span style="font-family:...">
+  edExecStyled('fontName', family);
+}
+
+function edSetFontSize(px) {
+  // Usiamo fontSize 1-7 con styleWithCSS: il browser produce font-size inline
+  // Mappa px -> valore execCommand (1=10px 2=13px 3=16px 4=18px 5=24px 6=32px 7=48px)
+  // Ma con styleWithCSS=true Chrome scrive lo style direttamente in px
+  // Alternativa più affidabile: insertHTML con span
   var sel = window.getSelection();
-  if(!sel || sel.rangeCount === 0) return;
-  var r = sel.getRangeAt(0);
-  if(r.collapsed) {
-    // Nessuna selezione: toast di aiuto
-    toast('Seleziona prima il testo da formattare', 'error');
-    return;
-  }
-  var sp = document.createElement('span');
-  sp.setAttribute('style', style);
-  try {
-    r.surroundContents(sp);
-  } catch(e) {
-    var f = r.extractContents();
-    sp.appendChild(f);
-    r.insertNode(sp);
-  }
-  // Deseleziona
-  sel.removeAllRanges();
-  _edSavedRange = null;
+  if(!sel || sel.rangeCount===0 || sel.isCollapsed) return;
+  try { document.execCommand('styleWithCSS', false, true); } catch(e){}
+  // Trick: usiamo fontSize con un valore che il browser traduce, poi lo correggiamo
+  // Meglio: wrapping manuale con insertHTML
+  var html = '<span style="font-size:'+px+'px;line-height:1.4;">'+sel.toString()+'</span>';
+  document.execCommand('insertHTML', false, html);
+  try { document.execCommand('styleWithCSS', false, false); } catch(e){}
+  edSyncActiveEditor();
+  setTimeout(edRefreshActive, 150);
+}
+
+function edApplyColor(prop, color) {
+  try { document.execCommand('styleWithCSS', false, true); } catch(e){}
+  document.execCommand(prop==='bg' ? 'hiliteColor' : 'foreColor', false, color);
+  try { document.execCommand('styleWithCSS', false, false); } catch(e){}
   edSyncActiveEditor();
   setTimeout(edRefreshActive, 150);
 }
 
 function edInsertCitazione(prefix, i) {
-  // Inserisce un blocco citazione nel contenteditable attivo
   var ed = document.getElementById(prefix+'-ed-'+i);
   if(!ed) return;
   ed.focus();
-  var q = document.createElement('blockquote');
-  q.setAttribute('style', 'border-left:4px solid #005CA9;margin:12px 0;padding:10px 16px;background:#F0F7FF;color:#1E40AF;font-style:italic;border-radius:0 6px 6px 0;');
-  q.innerHTML = 'Scrivi qui la citazione...';
-  var sel = window.getSelection();
-  if(sel && sel.rangeCount > 0) {
-    var r = sel.getRangeAt(0);
-    r.collapse(false);
-    r.insertNode(q);
-    // Posiziona cursore dentro la citazione
-    r.selectNodeContents(q);
-    r.collapse(false);
-    sel.removeAllRanges();
-    sel.addRange(r);
-  } else {
-    ed.appendChild(q);
-  }
+  var html = '<blockquote style="border-left:4px solid #005CA9;margin:12px 0;padding:10px 16px;background:#F0F7FF;color:#1E40AF;font-style:italic;border-radius:0 6px 6px 0;font-family:Inter,Arial,sans-serif;font-size:15px;line-height:1.7;">Scrivi qui la citazione...</blockquote><br>';
+  document.execCommand('insertHTML', false, html);
   var arr = prefix==='com' ? comBlocchi : solBlocchi;
   if(arr[i]) arr[i].html = ed.innerHTML;
   setTimeout(prefix==='com' ? comRefreshPreview : solRefreshPreview, 200);
+}
+
+function edToolbarHtml(prefix, i) {
+  var p = prefix; var ix = i;
+  // Tutti i pulsanti usano onmousedown+preventDefault = non perdono mai la selezione
+  return '<div class="com-blocco-toolbar">'
+
+    // ── Font (dropdown visuale con pulsanti) ────────────
+    +'<div class="tb-dropdown" onmousedown="event.preventDefault()">'
+    +'<button class="tb-btn tb-dropdown-btn" onmousedown="event.preventDefault();this.parentNode.classList.toggle(\'open\')">Font ▾</button>'
+    +'<div class="tb-dropdown-menu">'
+    +'<button class="tb-ddi" onmousedown="event.preventDefault();edSetFontFamily(\'Outfit,Inter,sans-serif\')">Outfit</button>'
+    +'<button class="tb-ddi" onmousedown="event.preventDefault();edSetFontFamily(\'Inter,Arial,sans-serif\')">Inter</button>'
+    +'<button class="tb-ddi" onmousedown="event.preventDefault();edSetFontFamily(\'Arial,sans-serif\')">Arial</button>'
+    +'<button class="tb-ddi" onmousedown="event.preventDefault();edSetFontFamily(\'Georgia,serif\')" style="font-family:Georgia,serif">Georgia</button>'
+    +'<button class="tb-ddi" onmousedown="event.preventDefault();edSetFontFamily(\'Courier New,monospace\')" style="font-family:monospace">Mono</button>'
+    +'</div></div>'
+
+    // ── Size (dropdown) ──────────────────────────────────
+    +'<div class="tb-dropdown" onmousedown="event.preventDefault()">'
+    +'<button class="tb-btn tb-dropdown-btn" onmousedown="event.preventDefault();this.parentNode.classList.toggle(\'open\')">px ▾</button>'
+    +'<div class="tb-dropdown-menu" style="display:grid;grid-template-columns:1fr 1fr;min-width:100px;">'
+    +'<button class="tb-ddi" onmousedown="event.preventDefault();edSetFontSize(11)">11</button>'
+    +'<button class="tb-ddi" onmousedown="event.preventDefault();edSetFontSize(12)">12</button>'
+    +'<button class="tb-ddi" onmousedown="event.preventDefault();edSetFontSize(13)">13</button>'
+    +'<button class="tb-ddi" onmousedown="event.preventDefault();edSetFontSize(14)">14</button>'
+    +'<button class="tb-ddi" onmousedown="event.preventDefault();edSetFontSize(15)">15</button>'
+    +'<button class="tb-ddi" onmousedown="event.preventDefault();edSetFontSize(16)">16</button>'
+    +'<button class="tb-ddi" onmousedown="event.preventDefault();edSetFontSize(18)">18</button>'
+    +'<button class="tb-ddi" onmousedown="event.preventDefault();edSetFontSize(20)">20</button>'
+    +'<button class="tb-ddi" onmousedown="event.preventDefault();edSetFontSize(24)">24</button>'
+    +'<button class="tb-ddi" onmousedown="event.preventDefault();edSetFontSize(28)">28</button>'
+    +'<button class="tb-ddi" onmousedown="event.preventDefault();edSetFontSize(32)">32</button>'
+    +'<button class="tb-ddi" onmousedown="event.preventDefault();edSetFontSize(36)">36</button>'
+    +'</div></div>'
+
+    +'<span class="tb-sep"></span>'
+    +'<button class="tb-btn" onmousedown="event.preventDefault();edExecStyled(\'bold\')" title="Grassetto"><b>B</b></button>'
+    +'<button class="tb-btn" onmousedown="event.preventDefault();edExecStyled(\'italic\')" title="Corsivo"><i>I</i></button>'
+    +'<button class="tb-btn" onmousedown="event.preventDefault();edExecStyled(\'underline\')" title="Sottolineato"><u>U</u></button>'
+    +'<span class="tb-sep"></span>'
+    +'<button class="tb-btn" onmousedown="event.preventDefault();edExecStyled(\'justifyLeft\')"   title="Sinistra">&#8676;</button>'
+    +'<button class="tb-btn" onmousedown="event.preventDefault();edExecStyled(\'justifyCenter\')" title="Centro">&#9644;</button>'
+    +'<button class="tb-btn" onmousedown="event.preventDefault();edExecStyled(\'justifyRight\')"  title="Destra">&#8677;</button>'
+    +'<span class="tb-sep"></span>'
+    // Colore testo — label+color picker, mousedown sul label salva, onchange applica
+    +'<label class="tb-color-lbl" title="Colore testo" onmousedown="event.stopPropagation()">'
+    +'<span style="font-weight:700;font-size:11px;text-decoration:underline;text-decoration-color:#374151;">A</span>'
+    +'<input type="color" class="tb-color" value="#374151"'
+    +' onmousedown="event.stopPropagation()"'
+    +' onchange="edApplyColor(\'fg\',this.value)" title="Colore testo"></label>'
+    +'<label class="tb-color-lbl" title="Evidenzia" onmousedown="event.stopPropagation()">'
+    +'<span style="font-weight:700;font-size:11px;background:#FFFF00;padding:0 2px;">H</span>'
+    +'<input type="color" class="tb-color" value="#FFFF00"'
+    +' onmousedown="event.stopPropagation()"'
+    +' onchange="edApplyColor(\'bg\',this.value)" title="Evidenzia"></label>'
+    +'<span class="tb-sep"></span>'
+    +'<button class="tb-btn" onmousedown="event.preventDefault();edExecStyled(\'insertUnorderedList\')" title="Elenco">&#8226;</button>'
+    +'<button class="tb-btn" onmousedown="event.preventDefault();edExecStyled(\'insertOrderedList\')"   title="Numerato">1.</button>'
+    +'<button class="tb-btn" onmousedown="event.preventDefault();edInsertCitazione(\''+p+'\','+ix+')" title="Citazione">&#10077;</button>'
+    +'<button class="tb-btn" onmousedown="event.preventDefault();edExecStyled(\'removeFormat\')" title="Rimuovi formato" style="color:var(--danger);font-size:10px;">&#10006;</button>'
+    +'</div>'
+    +'<div class="ed-content" id="'+p+'-ed-'+i+'" data-idx="'+i+'" contenteditable="true"'
+    +' data-placeholder="Scrivi qui il testo. Seleziona le parole e usa la toolbar."'
+    +' oninput="(function(el,px){edSyncDOM(px);})(this,\''+p+'\');"'
+    +' onfocus="if(\''+p+'\'===\'com\')comActiveBloccoIdx='+i+';else solActiveBloccoIdx='+i+';"'
+    +' onclick="document.querySelectorAll(\'.tb-dropdown.open\').forEach(function(d){d.classList.remove(\'open\');})"'
+    +'></div>';
 }
 
 function edSyncActiveEditor(){
