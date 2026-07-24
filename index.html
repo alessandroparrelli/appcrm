@@ -3191,7 +3191,7 @@ async function salvaAssegnazione(){
     }
     // email all'operatore assegnatario
     if (crmSelectedUserId) {
-      await sendAssignmentEmail(crmContactId, crmSelectedUserId, session.nome+' '+session.cognome, handoverNote||null);
+      await sendAssignmentEmail(crmContactData, crmSelectedUserId, session.nome+' '+session.cognome, handoverNote||null);
     }
     closeModal('modal-assegna-bg');
     if(G('assegna-note-handover')) G('assegna-note-handover').value='';
@@ -3435,6 +3435,7 @@ function wizSelectResult(i){
   wiz.companyRef    = d.codiceanagrafica;
   wiz.companyName   = d.ragionesociale||'—';
   wiz.companyPiva   = d.partitaiva||'';
+  wiz.companyTitolare = ((d.nometitolare||'')+ ' ' + (d.cognometitolare||'')).trim();
   wiz.newCompany    = null;
   wiz.step = 2; // salta step 1 (già selezionata), vai a tipo+note
   wizRender();
@@ -3758,7 +3759,19 @@ async function wizSalva(){
 
     // push + email all'assegnatario se diverso da me
     // Email SEMPRE — await prima di chiudere il wizard
-    await sendAssignmentEmail(contactId, wiz.assignedId || session.id, session.nome+' '+session.cognome, wiz.note||null);
+    // Costruisci contactData dai dati del wizard (come crmContactData per il sollecito)
+    var _nc = wiz.newCompany || {};
+    var wizContactData = {
+      id:              contactId,
+      company_name:    wiz.companyName    || _nc.ragione_sociale || '',
+      company_source:  wiz.companySource  || '',
+      contact_name:    wiz.companyTitolare || ((_nc.nome_titolare||'')+' '+(_nc.cognome_titolare||'')).trim() || '',
+      contact_phone:   _nc.cellulare      || '',
+      contact_email:   _nc.email          || '',
+      status:          wiz.assignedId && wiz.assignedId!==session.id ? 'assegnato' : 'da_contattare',
+      created_at:      new Date().toISOString(),
+    };
+    await sendAssignmentEmail(wizContactData, wiz.assignedId || session.id, session.nome+' '+session.cognome, wiz.note||null);
 
     // Push solo se assegnato ad un altro
     if (wiz.assignedId && wiz.assignedId !== session.id) {
@@ -4341,7 +4354,7 @@ async function inviaSollecito() {
 
 /* ── SEND ASSIGNMENT EMAIL ──────────────────────── */
 // Stessa logica di inviaSollecito: blocchi dal template COM, dest con tutti i campi
-async function sendAssignmentEmail(contactId, assignedToId, assignedByName, handoverNote) {
+async function sendAssignmentEmail(contactData, assignedToId, assignedByName, handoverNote) {
   try {
     // 1. Operatore destinatario
     var opR = await fetch(SB+'/rest/v1/cna_users?id=eq.'+assignedToId+'&select=nome,cognome,email', {headers:H()});
@@ -4352,50 +4365,40 @@ async function sendAssignmentEmail(contactId, assignedToId, assignedByName, hand
     var toEmail = op.email;
     var toNome  = (op.nome+' '+op.cognome).trim();
 
-    // 2. Dati contatto completi (stessa query di inviaSollecito)
-    var ctR = await fetch(SB+'/rest/v1/crm_contacts?id=eq.'+contactId
-      +'&select=company_name,company_source,status,contact_name,contact_phone,contact_email,created_at,creator_id,assigned_id',
-      {headers:H()});
-    var ct = ctR.ok ? ((await ctR.json())[0]||{}) : {};
-
-    // 3. "Creato da" = chi ha assegnato il contatto (assignedByName passato dal wizard)
-    //    Non chi ha creato l'anagrafica ma chi sta passando il contatto
+    // 2. "Creato da"
     var creatoDa = assignedByName || session.nome+' '+session.cognome || '';
 
-    // 4. Note del contatto
-    var noteText = '';
-    if (handoverNote) {
-      noteText = handoverNote;
-    }
+    // 3. Note
+    var noteText = handoverNote || '';
 
-    // 5. Blocchi: SEMPRE quelli dedicati all'assegnazione (come il sollecito usa i suoi)
-    //    Dal COM template leggiamo SOLO config header (logo, colore, altezza)
+    // 4. Header config dal template COM
     var comTpl = {};
     try { comTpl = JSON.parse(localStorage.getItem('crm_com_template')||'{}'); } catch(e){}
-
     var logoUrl     = comTpl.logo_url     || localStorage.getItem('crm_email_logo_url') || '';
     var headerColor = comTpl.header_color || '#005CA9';
     var logoH       = String(comTpl.logo_height || '44');
-    var blocchi     = _defaultAssignBlocchi(creatoDa);
-    var oggetto     = 'Nuovo contatto assegnato: {{nome_azienda}}';
 
-    // 6. dest — identico a inviaSollecito
+    // 5. Blocchi dedicati assegnazione
+    var blocchi = _defaultAssignBlocchi(creatoDa);
+    var oggetto = 'Nuovo contatto assegnato: {{nome_azienda}}';
+
+    // 6. dest — costruito dai dati passati, come fa inviaSollecito con crmContactData
     var dest = [{
-      contact_id:      String(contactId),
-      company_name:    ct.company_name    || '',
-      contact_name:    ct.contact_name    || '',
-      contact_phone:   ct.contact_phone   || '',
-      contact_email:   ct.contact_email   || '',
-      status:          ct.status          || '',
-      source:          ct.company_source  || '',
-      created_at:      ct.created_at      || '',
+      contact_id:      String(contactData.id || ''),
+      company_name:    contactData.company_name    || '',
+      contact_name:    contactData.contact_name    || '',
+      contact_phone:   contactData.contact_phone   || '',
+      contact_email:   contactData.contact_email   || '',
+      status:          contactData.status          || '',
+      source:          contactData.company_source  || '',
+      created_at:      contactData.created_at      || new Date().toISOString(),
       operatore_nome:  toNome,
       operatore_email: toEmail,
       creato_da:       creatoDa,
       note:            noteText,
     }];
 
-    console.log('sendAssignmentEmail ->', toEmail, ct.company_name);
+    console.log('sendAssignmentEmail ->', toEmail, contactData.company_name);
     var r = await fetch(SB+'/functions/v1/crm-bulk-email', {
       method: 'POST',
       headers: H({'Content-Type':'application/json'}),
