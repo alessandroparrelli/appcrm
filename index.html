@@ -4694,11 +4694,15 @@ function solRipristinaDefault() {
 }
 
 function loadComunicazione() {
-  // ripristina logo dal localStorage
-  var logoInp = G('com-logo-url');
-  if (logoInp && _emailLogoUrl) { logoInp.value = _emailLogoUrl; comPreviewLogo(); }
-  // carica template comunicazione massiva
+  // carica template comunicazione massiva (popola anche il campo logo)
   comCaricaTemplate();
+  // se il campo logo è rimasto vuoto, usa il logo di default
+  var logoInp = G('com-logo-url');
+  if (logoInp && !logoInp.value.trim()) {
+    var defaultLogo = _emailLogoUrl || 'https://raw.githubusercontent.com/alessandroparrelli/fileappoggio/main/NUOVO-LOGO-CNA-ROMA-SOLO-ROMA.png';
+    logoInp.value = defaultLogo;
+    comPreviewLogo();
+  }
   comAggiornaDest();
   // carica template sollecito
   solCaricaTemplate();
