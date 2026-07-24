@@ -640,9 +640,11 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 .com-header{margin-bottom:16px;}
 .com-header-title{font-size:18px;font-weight:800;color:var(--text);display:flex;align-items:center;gap:8px;}
 .com-header-sub{font-size:13px;color:var(--text-secondary);margin-top:3px;}
-.com-layout{display:grid;grid-template-columns:300px 1fr;gap:14px;align-items:start;}
+.com-layout{display:grid;grid-template-columns:280px 1fr 340px;gap:14px;align-items:start;}
 .com-sidebar{display:flex;flex-direction:column;gap:12px;}
 .com-editor-col{display:flex;flex-direction:column;gap:12px;}
+.com-preview-col{display:flex;flex-direction:column;gap:12px;}
+.com-preview-sticky{position:sticky;top:16px;}
 .com-card{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius-md);padding:14px 16px;}
 .com-card-title{font-size:11px;font-weight:800;color:var(--primary);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px;}
 .com-stati-grid{display:flex;flex-direction:column;gap:6px;}
@@ -666,6 +668,10 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 .com-blocco-body textarea,.com-blocco-body input[type=text],.com-blocco-body input[type=url]{width:100%;box-sizing:border-box;border:1.5px solid var(--border);border-radius:6px;padding:8px 10px;font-size:13px;font-family:var(--font);resize:vertical;background:var(--bg);color:var(--text);outline:none;}
 .com-blocco-body textarea:focus,.com-blocco-body input:focus{border-color:var(--primary);}
 .com-blocco.active-focus{border-color:var(--primary);}
+@media(max-width:1100px){
+  .com-layout{grid-template-columns:260px 1fr;}
+  .com-preview-col{display:none;}
+}
 @media(max-width:700px){
   .com-layout{grid-template-columns:1fr;}
 }
@@ -1104,13 +1110,18 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
             </div>
           </div>
 
-          <!-- Anteprima -->
-          <div class="com-card" style="margin-top:0;">
-            <div class="com-card-title" style="display:flex;justify-content:space-between;align-items:center;">
-              <span>Anteprima</span>
-              <button class="btn-crm btn-crm-outline btn-crm-sm" onclick="comRefreshPreview()">Aggiorna</button>
+        </div>
+
+        <!-- COLONNA ANTEPRIMA EMAIL MASSIVA -->
+        <div class="com-preview-col">
+          <div class="com-preview-sticky">
+            <div class="com-card">
+              <div class="com-card-title" style="display:flex;justify-content:space-between;align-items:center;">
+                <span>Anteprima email</span>
+                <button class="btn-crm btn-crm-outline btn-crm-sm" onclick="comRefreshPreview()">&#8635;</button>
+              </div>
+              <div id="com-preview-frame" style="border:1px solid var(--border);border-radius:8px;overflow:hidden;background:#F0F2F5;min-height:300px;"></div>
             </div>
-            <div id="com-preview-frame" style="border:1px solid var(--border);border-radius:8px;overflow:hidden;background:#F0F2F5;min-height:200px;"></div>
           </div>
         </div>
 
@@ -1185,12 +1196,18 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
                 Aggiungi blocchi per il template sollecito
               </div>
             </div>
-            <div class="com-card">
-              <div class="com-card-title" style="display:flex;justify-content:space-between;align-items:center;">
-                <span>Anteprima sollecito</span>
-                <button class="btn-crm btn-crm-outline btn-crm-sm" onclick="solRefreshPreview()">Aggiorna</button>
+          </div>
+
+          <!-- COLONNA ANTEPRIMA SOLLECITO -->
+          <div class="com-preview-col">
+            <div class="com-preview-sticky">
+              <div class="com-card">
+                <div class="com-card-title" style="display:flex;justify-content:space-between;align-items:center;">
+                  <span>Anteprima sollecito</span>
+                  <button class="btn-crm btn-crm-outline btn-crm-sm" onclick="solRefreshPreview()">&#8635;</button>
+                </div>
+                <div id="sol-preview-frame" style="border:1px solid var(--border);border-radius:8px;overflow:hidden;background:#F0F2F5;min-height:300px;"></div>
               </div>
-              <div id="sol-preview-frame" style="border:1px solid var(--border);border-radius:8px;overflow:hidden;background:#F0F2F5;min-height:200px;"></div>
             </div>
           </div>
         </div>
