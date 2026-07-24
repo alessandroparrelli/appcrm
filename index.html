@@ -4342,24 +4342,22 @@ async function inviaSollecito() {
 /* ── SEND ASSIGNMENT EMAIL ──────────────────────── */
 async function sendAssignmentEmail(contactId, assignedToId, assignedByName, handoverNote) {
   try {
-    // 1. Dati operatore
-    var opR  = await fetch(SB+'/rest/v1/cna_users?id=eq.'+assignedToId+'&select=nome,cognome,email', {headers:H()});
-    var opData = opR.ok ? await opR.json() : [];
-    var op = opData[0] || {};
-    var toEmail = op.email || '';
-    var toNome  = ((op.nome||'')+' '+(op.cognome||'')).trim() || 'Operatore';
-    if(!toEmail || !toEmail.includes('@')) {
+    // 1. Dati operatore destinatario
+    var opR = await fetch(SB+'/rest/v1/cna_users?id=eq.'+assignedToId+'&select=nome,cognome,email', {headers:H()});
+    var op  = opR.ok ? (await opR.json())[0] : null;
+    if(!op || !op.email || !op.email.includes('@')) {
       console.warn('sendAssignmentEmail: email non valida per', assignedToId); return;
     }
+    var toEmail = op.email;
+    var toNome  = (op.nome+' '+op.cognome).trim();
 
     // 2. Dati contatto
-    var ctR  = await fetch(SB+'/rest/v1/crm_contacts?id=eq.'+contactId
+    var ctR = await fetch(SB+'/rest/v1/crm_contacts?id=eq.'+contactId
       +'&select=company_name,company_source,status,contact_name,contact_phone,contact_email,created_at,creator_id', {headers:H()});
-    var ctData = ctR.ok ? await ctR.json() : [];
-    var ct = ctData[0] || {};
+    var ct = ctR.ok ? ((await ctR.json())[0]||{}) : {};
 
     // 3. Creato da
-    var creatoreNome = '';
+    var creatoreNome = assignedByName || '';
     if(ct.creator_id) {
       try {
         var crR = await fetch(SB+'/rest/v1/cna_users?id=eq.'+ct.creator_id+'&select=nome,cognome', {headers:H()});
@@ -4367,61 +4365,35 @@ async function sendAssignmentEmail(contactId, assignedToId, assignedByName, hand
       } catch(e){}
     }
 
-    // 4. Variabili reali
-    var stati = {'da_contattare':'Da contattare','assegnato':'Assegnato',
-      'chiamata_effettuata':'Chiamata effettuata','appuntamento_fissato':'Appuntamento fissato',
-      'appuntamento_completato':'Appuntamento completato','in_lavorazione':'In lavorazione',
-      'chiuso_positivo':'Chiuso positivo','chiuso_negativo':'Chiuso negativo'};
-    var vars = {
-      nome_azienda:   ct.company_name    || '',
-      referente:      ct.contact_name    || '',
-      telefono:       ct.contact_phone   || '',
-      email_contatto: ct.contact_email   || '',
-      stato:          stati[ct.status]   || ct.status || '',
-      assegnato_a:    toNome,
-      data_creazione: ct.created_at ? new Date(ct.created_at).toLocaleDateString('it-IT') : '',
-      fonte:          ct.company_source  || '',
-      creato_da:      creatoreNome,
-      note:           '',
-    };
-
-    // 5. Template: usa i blocchi COM se configurati, altrimenti costruisce default
-    var logoUrl = '';
+    // 4. Logo/header dal template COM
+    var logoUrl     = '';
     var headerColor = '#005CA9';
-    var logoH = 44;
-    var blocchi;
-    var oggetto = 'Nuovo contatto assegnato: ' + (ct.company_name||'Azienda');
+    var logoH       = 44;
     try {
-      var comTpl = JSON.parse(localStorage.getItem('crm_com_template')||'{}');
+      var comTpl  = JSON.parse(localStorage.getItem('crm_com_template')||'{}');
       logoUrl     = comTpl.logo_url     || localStorage.getItem('crm_email_logo_url') || '';
       headerColor = comTpl.header_color || '#005CA9';
       logoH       = parseInt(comTpl.logo_height||'44') || 44;
-      if(comTpl.blocchi && comTpl.blocchi.length) {
-        blocchi = comTpl.blocchi;
-        if(comTpl.oggetto) oggetto = comTpl.oggetto;
-      }
     } catch(e){}
 
-    if(!blocchi || !blocchi.length) {
-      // Blocchi default: intestazione + tabella + box note
-      blocchi = [
-        { tipo:'titolo', html:'<strong>Nuovo contatto assegnato</strong>' },
-        { tipo:'testo',  html:'<p>Ciao <strong>'+toNome+'</strong>, <strong>'+(assignedByName||'il sistema')+'</strong> ti ha assegnato un contatto da gestire nel CRM.</p>' },
-        { tipo:'tabella_contatto', righe:['azienda','referente','telefono','email_contatto','fonte','stato','creato_da','data_creazione'], titolo:'DETTAGLI CONTATTO' },
-      ];
-      if(handoverNote) {
-        blocchi.push({ tipo:'alert', titolo:'NOTE', testo:handoverNote, color:'#F59E0B', bg:'#FFF7ED', textColor:'#92400E' });
-      }
-      blocchi.push({ tipo:'bottone', testo:'Apri CRM CNA Roma →', url:'https://associaticna.vercel.app', color:'#005CA9', textColor:'#ffffff', align:'center', radius:8 });
+    // 5. Blocchi default con {{variabili}} — la EF le sostituirà lato server
+    var blocchi = [
+      { tipo:'titolo', html:'<strong>Nuovo contatto assegnato</strong>' },
+      { tipo:'testo',  html:'<p>Ciao <strong>{{assegnato_a}}</strong>, <strong>'+esc(creatoreNome)+'</strong> ti ha assegnato un contatto da gestire nel CRM.</p>' },
+      { tipo:'tabella_contatto',
+        righe:['azienda','referente','telefono','email_contatto','fonte','stato','creato_da','data_creazione'],
+        titolo:'DETTAGLI CONTATTO' },
+    ];
+    if(handoverNote) {
+      blocchi.push({ tipo:'alert', titolo:'NOTE DI PASSAGGIO', testo:esc(handoverNote),
+        color:'#F59E0B', bg:'#FFF7ED', textColor:'#92400E' });
     }
+    blocchi.push({ tipo:'bottone', testo:'Apri CRM CNA Roma →',
+      url:'https://associaticna.vercel.app', color:'#005CA9', textColor:'#ffffff', align:'center', radius:8 });
 
-    // 6. Costruisci HTML con variabili reali
-    var bodyHtml = edBlocchiToHtml(blocchi, vars);
-    var full     = solBuildFullHtml(bodyHtml, logoUrl, headerColor, logoH);
-
-    // 7. Invia via crm-bulk-email
+    // 6. Payload — la EF fa rendering + sostituzione variabili
     var payload = {
-      oggetto: oggetto.replace(/\{\{(\w+)\}\}/g, function(_,k){ return vars[k]||''; }),
+      oggetto: 'Nuovo contatto assegnato: {{nome_azienda}}',
       blocchi: blocchi,
       destinatari: [{
         contact_id:      String(contactId),
@@ -4442,14 +4414,14 @@ async function sendAssignmentEmail(contactId, assignedToId, assignedByName, hand
       logo_height:  String(logoH),
     };
 
-    console.log('sendAssignmentEmail -> crm-bulk-email a:', toEmail, 'azienda:', ct.company_name);
+    console.log('sendAssignmentEmail ->', toEmail, ct.company_name);
     var r = await fetch(SB+'/functions/v1/crm-bulk-email', {
       method:'POST', headers:H({'Content-Type':'application/json'}),
       body:JSON.stringify(payload)
     });
     var resp = await r.json().catch(function(){ return {}; });
-    if(!r.ok) { console.error('sendAssignmentEmail ERRORE', r.status, resp); }
-    else { console.log('sendAssignmentEmail OK a:', toEmail); toast('Email inviata a '+toEmail,'success'); }
+    if(!r.ok) console.error('sendAssignmentEmail ERRORE', r.status, resp);
+    else { console.log('sendAssignmentEmail OK ->', toEmail); toast('Email inviata a '+toEmail,'success'); }
   } catch(err) {
     console.error('sendAssignmentEmail eccezione:', err);
   }
