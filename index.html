@@ -1106,6 +1106,8 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
               <span class="com-var-chip" onclick="comInserisciVar('{{assegnato_a}}')">{{assegnato_a}}</span>
               <span class="com-var-chip" onclick="comInserisciVar('{{data_creazione}}')">{{data_creazione}}</span>
               <span class="com-var-chip" onclick="comInserisciVar('{{fonte}}')">{{fonte}}</span>
+              <span class="com-var-chip" onclick="comInserisciVar('{{creato_da}}')">{{creato_da}}</span>
+              <span class="com-var-chip" onclick="comInserisciVar('{{note}}')">{{note}}</span>
             </div>
             <p style="font-size:11px;color:var(--text-tertiary);margin:8px 0 0;">Clicca una variabile per inserirla nel blocco testo attivo</p>
           </div>
@@ -1202,6 +1204,8 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
                 <span class="com-var-chip" onclick="solInserisciVar('{{assegnato_a}}')">{{assegnato_a}}</span>
                 <span class="com-var-chip" onclick="solInserisciVar('{{data_creazione}}')">{{data_creazione}}</span>
                 <span class="com-var-chip" onclick="solInserisciVar('{{fonte}}')">{{fonte}}</span>
+                <span class="com-var-chip" onclick="solInserisciVar('{{creato_da}}')">{{creato_da}}</span>
+                <span class="com-var-chip" onclick="solInserisciVar('{{note}}')">{{note}}</span>
               </div>
               <p style="font-size:11px;color:var(--text-tertiary);margin:8px 0 0;">Clicca per inserire nel blocco attivo</p>
             </div>
@@ -3749,6 +3753,7 @@ async function wizSalva(){
     }
 
     // push + email all'assegnatario se diverso da me
+    // Push solo se assegnato ad un altro
     if (wiz.assignedId && wiz.assignedId !== session.id) {
       triggerPush(
         [wiz.assignedId],
@@ -3756,9 +3761,9 @@ async function wizSalva(){
         'Ti è stato assegnato: ' + (wiz.companyName || 'un contatto'),
         '/'
       );
-      // email di notifica assegnazione via crm-bulk-email
-      sendAssignmentEmail(contactId, wiz.assignedId, session.nome+' '+session.cognome, wiz.note||null);
     }
+    // Email sempre — anche a se stessi (conferma creazione)
+    sendAssignmentEmail(contactId, wiz.assignedId || session.id, session.nome+' '+session.cognome, wiz.note||null);
     closeWizard();
     toast('Contatto CRM salvato!','success');
     // apri direttamente la scheda contatto
@@ -4142,11 +4147,14 @@ function solInserisciVar(varStr) {
 function solRefreshPreview() {
   var frame = G('sol-preview-frame');
   if (!frame) return;
-  if (!solBlocchi.length) { frame.innerHTML='<div style="padding:24px;text-align:center;color:#9CA3AF;font-size:13px;">Nessun contenuto</div>'; return; }
+  edSyncDOM('sol');
+  if (!solBlocchi.length) { frame.innerHTML='<div style="padding:40px;text-align:center;color:#9CA3AF;">Aggiungi blocchi per vedere l\'anteprima</div>'; return; }
   var logoUrl = (G('sol-tpl-logo')||{}).value || _emailLogoUrl || '';
-  var bodyHtml = comBlocchiToHtml(solBlocchi, COM_PREV_VARS);
-  var full = comBuildFullHtml(bodyHtml, logoUrl);
-  frame.innerHTML = '<iframe srcdoc="'+full.replace(/"/g,'&quot;')+'" style="width:100%;height:380px;border:none;" title="Anteprima sollecito"></iframe>';
+  try { var _ct=JSON.parse(localStorage.getItem('crm_com_template')||'{}');
+    var _hc=_ct.header_color||'#005CA9'; var _lh=parseInt(_ct.logo_height||'44')||44;
+  } catch(e){ var _hc='#005CA9'; var _lh=44; }
+  var html = solBuildFullHtml(edBlocchiToHtml(solBlocchi, COM_PREV_VARS), logoUrl, _hc, _lh);
+  frame.innerHTML = '<iframe srcdoc="'+html.replace(/"/g,'&quot;')+'" style="width:100%;height:100%;min-height:calc(100vh - 300px);border:none;" title="Anteprima sollecito"></iframe>';
 }
 
 // ── Modale invio sollecito dalla scheda ──────────
@@ -4180,17 +4188,48 @@ async function openModalSollecito() {
     }
   }
 
+  // Carica creato_da
+  var creatoreNome = '';
+  if (crmContactData.creator_id) {
+    try {
+      var cr = await fetch(SB+'/rest/v1/cna_users?id=eq.'+crmContactData.creator_id+'&select=nome,cognome',{headers:H()});
+      if(cr.ok){ var crs=await cr.json(); if(crs[0]) creatoreNome=(crs[0].nome+' '+crs[0].cognome).trim(); }
+    } catch(e){}
+  }
+
+  // Carica note del contatto (escludi solleciti e handover)
+  var noteText = '';
+  try {
+    var nr = await fetch(SB+'/rest/v1/crm_activity_log?contact_id=eq.'+crmContactId
+      +'&activity_type=eq.nota&order=created_at.asc&select=note,created_at,user_id',{headers:H()});
+    if(nr.ok){
+      var notes = await nr.json();
+      notes = notes.filter(function(n){
+        return n.note && !n.note.startsWith('[SOLLECITO]') && !n.note.startsWith('[HANDOVER]');
+      });
+      noteText = notes.map(function(n){
+        var d = new Date(n.created_at).toLocaleDateString('it-IT');
+        return d+': '+n.note;
+      }).join('\n');
+    }
+  } catch(e){}
+
   // Oggetto
-  var vars = solGetVars(operatore);
+  var vars = solGetVars(operatore, creatoreNome, noteText);
   var oggetto = tpl.oggetto || 'Sollecito — {{nome_azienda}}';
   oggetto = solReplaceVars(oggetto, vars);
   var ogg = G('sol-oggetto'); if(ogg) ogg.value = oggetto;
 
-  // Anteprima corpo
-  var bodyHtml = comBlocchiToHtml(tpl.blocchi, vars);
-  var logoUrl = tpl.logo_url || _emailLogoUrl || '';
-  var full = comBuildFullHtml(bodyHtml, logoUrl);
-  var prev = G('sol-preview'); if(prev) prev.innerHTML='<iframe srcdoc="'+full.replace(/"/g,'&quot;')+'" style="width:100%;height:260px;border:none;"></iframe>';
+  // Anteprima corpo — usa i dati del template SOL e il colore header del template COM
+  var bodyHtml = edBlocchiToHtml(tpl.blocchi, vars);
+  var logoUrl  = tpl.logo_url || _emailLogoUrl || '';
+  // Leggi header_color dal template COM (salvato nel localStorage)
+  var comTplRaw = localStorage.getItem('crm_com_template');
+  var comTpl = comTplRaw ? JSON.parse(comTplRaw) : {};
+  var headerColor = comTpl.header_color || '#005CA9';
+  var logoH = parseInt(comTpl.logo_height || '44') || 44;
+  var full = solBuildFullHtml(bodyHtml, logoUrl, headerColor, logoH);
+  var prev = G('sol-preview'); if(prev) prev.innerHTML='<iframe srcdoc="'+full.replace(/"/g,'&quot;')+'" style="width:100%;height:300px;border:none;"></iframe>';
 
   // Disabilita invio se no email
   var btn = G('sol-btn-invia'); if(btn) btn.disabled = !operatore.email;
@@ -4198,7 +4237,7 @@ async function openModalSollecito() {
   openModal('modal-sollecito-bg');
 }
 
-function solGetVars(operatore) {
+function solGetVars(operatore, creatoDa, noteText) {
   var c = crmContactData || {};
   return {
     nome_azienda:   c.company_name   || '',
@@ -4209,6 +4248,8 @@ function solGetVars(operatore) {
     assegnato_a:    operatore ? (operatore.nome+' '+operatore.cognome).trim() : '',
     data_creazione: c.created_at ? new Date(c.created_at).toLocaleDateString('it-IT') : '',
     fonte:          c.company_source || '',
+    creato_da:      creatoDa || '',
+    note:           noteText || '',
   };
 }
 
@@ -4236,7 +4277,25 @@ async function inviaSollecito() {
   var btn = G('sol-btn-invia'); if(btn) btn.disabled=true;
   showLoad('Invio sollecito…');
   try {
-    var vars = solGetVars(operatore);
+    // creato_da e note
+    var creatoreNomeI = '';
+    if (crmContactData && crmContactData.creator_id) {
+      try {
+        var cri = await fetch(SB+'/rest/v1/cna_users?id=eq.'+crmContactData.creator_id+'&select=nome,cognome',{headers:H()});
+        if(cri.ok){ var cris=await cri.json(); if(cris[0]) creatoreNomeI=(cris[0].nome+' '+cris[0].cognome).trim(); }
+      } catch(e){}
+    }
+    var noteTextI = '';
+    try {
+      var nri = await fetch(SB+'/rest/v1/crm_activity_log?contact_id=eq.'+crmContactId
+        +'&activity_type=eq.nota&order=created_at.asc&select=note,created_at',{headers:H()});
+      if(nri.ok){
+        var notesI = await nri.json();
+        notesI = notesI.filter(function(n){ return n.note && !n.note.startsWith('[SOLLECITO]') && !n.note.startsWith('[HANDOVER]'); });
+        noteTextI = notesI.map(function(n){ return new Date(n.created_at).toLocaleDateString('it-IT')+': '+n.note; }).join('\n');
+      }
+    } catch(e){}
+    var vars = solGetVars(operatore, creatoreNomeI, noteTextI);
     var dest = [{
       contact_id: crmContactId,
       company_name: crmContactData.company_name||'',
@@ -5132,6 +5191,8 @@ var COM_PREV_VARS = {
   telefono:'+39 06 1234567', email_contatto:'mario@rossi.it',
   stato:'In lavorazione', assegnato_a:'Giordano Rapaccioni',
   data_creazione:new Date().toLocaleDateString('it-IT'), fonte:'Anagrafiche',
+  creato_da:'Alessandro Parrelli',
+  note:'01/01/2025: Prima nota di esempio.\n02/01/2025: Seconda nota.',
 };
 
 function comRefreshPreview(){
@@ -5141,6 +5202,32 @@ function comRefreshPreview(){
   if(!comBlocchi.length){frame.innerHTML='<div style="padding:40px;text-align:center;color:#9CA3AF;">Aggiungi blocchi per vedere l\'anteprima</div>';return;}
   var html=comBuildFullHtml(edBlocchiToHtml(comBlocchi,COM_PREV_VARS));
   frame.innerHTML='<iframe srcdoc="'+html.replace(/"/g,'&quot;')+'" style="width:100%;height:100%;min-height:calc(100vh - 300px);border:none;" title="Anteprima email"></iframe>';
+}
+
+function solBuildFullHtml(bodyHtml, logoUrl, headerColor, logoH) {
+  var BLU  = headerColor || '#005CA9';
+  var LOGO = logoUrl || 'https://raw.githubusercontent.com/alessandroparrelli/fileappoggio/main/NUOVO-LOGO-CNA-ROMA-SOLO-ROMA.png';
+  var H_PX = (parseInt(logoH)||44)+'px';
+  var css  = '<style>body,table,td{-webkit-text-size-adjust:100%;-ms-text-size-adjust:100%}'
+    +'p{margin:0 0 10px;font-family:Inter,Arial,sans-serif;}a{color:inherit;text-decoration:none;}</style>';
+  var hdr  = '<div style="background:'+BLU+';">'
+    +'<table width="100%" cellpadding="0" cellspacing="0" border="0"><tr>'
+    +'<td style="padding:16px 24px;">'
+    +'<img src="'+LOGO+'" alt="Logo" style="height:'+H_PX+';display:block;max-width:260px;"/>'
+    +'</td></tr></table></div>';
+  var ftr  = '<div style="background:#F9FAFB;border-top:1px solid #E5E7EB;padding:16px 24px;">'
+    +'<p style="margin:0;font-size:11px;color:#9CA3AF;font-family:Inter,Arial,sans-serif;">'
+    +'CRM CNA Roma &mdash; Confederazione Nazionale dell&rsquo;Artigianato</p></div>';
+  return '<!DOCTYPE html><html lang="it"><head><meta charset="UTF-8">'
+    +'<meta name="viewport" content="width=device-width,initial-scale=1.0">'+css+'</head>'
+    +'<body style="margin:0;padding:0;background:#F0F2F5;">'
+    +'<table width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#F0F2F5;"><tr>'
+    +'<td align="center" style="padding:24px 16px;">'
+    +'<table cellpadding="0" cellspacing="0" border="0" style="width:100%;max-width:600px;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 2px 20px rgba(0,0,0,.1);">'
+    +'<tr><td>'+hdr+'</td></tr>'
+    +'<tr><td style="padding:32px;">'+bodyHtml+'</td></tr>'
+    +'<tr><td>'+ftr+'</td></tr>'
+    +'</table></td></tr></table></body></html>';
 }
 
 function solRefreshPreview(){
