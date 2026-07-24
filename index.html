@@ -3756,7 +3756,7 @@ async function wizSalva(){
       });
     }
 
-    // push all'assegnatario se diverso da me
+    // push + email all'assegnatario se diverso da me
     if (wiz.assignedId && wiz.assignedId !== session.id) {
       triggerPush(
         [wiz.assignedId],
@@ -3764,6 +3764,39 @@ async function wizSalva(){
         'Ti è stato assegnato: ' + (wiz.companyName || 'un contatto'),
         '/'
       );
+      // email di notifica assegnazione
+      fetch(SB+'/functions/v1/crm-send-assignment-email', {
+        method: 'POST',
+        headers: H({'Content-Type':'application/json'}),
+        body: JSON.stringify({
+          contact_id:      contactId,
+          assigned_to_id:  wiz.assignedId,
+          assigned_by_id:  session.id,
+          handover_notes:  wiz.note || null
+        })
+      }).then(function(r){
+        r.text().then(function(t){
+          if(!r.ok) console.warn('Email wizard errore:', r.status, t);
+          else console.log('Email wizard inviata:', t);
+        });
+      }).catch(function(e){ console.warn('Email wizard fallita:',e); });
+    } else if (wiz.assignedId && wiz.assignedId === session.id) {
+      // Anche se assegnato a se stesso, invia la mail (potrebbe essere utile come conferma)
+      fetch(SB+'/functions/v1/crm-send-assignment-email', {
+        method: 'POST',
+        headers: H({'Content-Type':'application/json'}),
+        body: JSON.stringify({
+          contact_id:      contactId,
+          assigned_to_id:  session.id,
+          assigned_by_id:  session.id,
+          handover_notes:  wiz.note || null
+        })
+      }).then(function(r){
+        r.text().then(function(t){
+          if(!r.ok) console.warn('Email wizard self errore:', r.status, t);
+          else console.log('Email wizard self inviata:', t);
+        });
+      }).catch(function(e){ console.warn('Email wizard self fallita:',e); });
     }
     closeWizard();
     toast('Contatto CRM salvato!','success');
