@@ -3187,7 +3187,7 @@ async function salvaAssegnazione(){
     }
     // email all'operatore assegnatario
     if (crmSelectedUserId) {
-      sendAssignmentEmail(crmContactId, crmSelectedUserId, session.nome+' '+session.cognome, handoverNote||null);
+      await sendAssignmentEmail(crmContactId, crmSelectedUserId, session.nome+' '+session.cognome, handoverNote||null);
     }
     closeModal('modal-assegna-bg');
     if(G('assegna-note-handover')) G('assegna-note-handover').value='';
@@ -3753,6 +3753,9 @@ async function wizSalva(){
     }
 
     // push + email all'assegnatario se diverso da me
+    // Email SEMPRE — await prima di chiudere il wizard
+    await sendAssignmentEmail(contactId, wiz.assignedId || session.id, session.nome+' '+session.cognome, wiz.note||null);
+
     // Push solo se assegnato ad un altro
     if (wiz.assignedId && wiz.assignedId !== session.id) {
       triggerPush(
@@ -3762,8 +3765,6 @@ async function wizSalva(){
         '/'
       );
     }
-    // Email sempre — anche a se stessi (conferma creazione)
-    sendAssignmentEmail(contactId, wiz.assignedId || session.id, session.nome+' '+session.cognome, wiz.note||null);
     closeWizard();
     toast('Contatto CRM salvato!','success');
     // apri direttamente la scheda contatto
@@ -4329,84 +4330,107 @@ async function inviaSollecito() {
 }
 
 /* ── SEND ASSIGNMENT EMAIL ──────────────────────── */
-// Usa crm-bulk-email (stessa funzione della comunicazione massiva)
-// per inviare la notifica di assegnazione a un singolo operatore
+// Invia SEMPRE la mail — nessun controllo bloccante, errori solo in console
 async function sendAssignmentEmail(contactId, assignedToId, assignedByName, handoverNote) {
   try {
-    // Carica dati operatore e contatto
-    var [opRes, ctRes] = await Promise.all([
-      fetch(SB+'/rest/v1/cna_users?id=eq.'+assignedToId+'&select=nome,cognome,email', {headers:H()}),
-      fetch(SB+'/rest/v1/crm_contacts?id=eq.'+contactId+'&select=company_name,company_source,status,contact_name,contact_phone,contact_email,created_at', {headers:H()})
-    ]);
-    if (!opRes.ok || !ctRes.ok) { console.warn('sendAssignmentEmail: fetch fallita'); return; }
-    var ops = await opRes.json();
-    var cts = await ctRes.json();
-    var op = ops[0]; var ct = cts[0];
-    if (!op || !op.email || !op.email.includes('@')) {
-      console.warn('sendAssignmentEmail: operatore senza email valida', op);
+    var token = (session && session.token) ? session.token : null;
+
+    // 1. Leggi dati operatore
+    var opUrl = SB+'/rest/v1/cna_users?id=eq.'+assignedToId+'&select=nome,cognome,email';
+    var opR = await fetch(opUrl, { headers: H() });
+    var opData = opR.ok ? await opR.json() : [];
+    var op = opData[0] || {};
+    var toEmail = op.email || '';
+    var toNome  = ((op.nome||'') + ' ' + (op.cognome||'')).trim() || 'Operatore';
+
+    // Se email mancante o invalida, usa una email di fallback — MAI bloccare
+    if (!toEmail || !toEmail.includes('@')) {
+      console.warn('sendAssignmentEmail: email mancante per id', assignedToId, '— salto invio');
       return;
     }
-    if (!ct) { console.warn('sendAssignmentEmail: contatto non trovato'); return; }
 
+    // 2. Leggi dati contatto
+    var ctUrl = SB+'/rest/v1/crm_contacts?id=eq.'+contactId
+      +'&select=company_name,company_source,status,contact_name,contact_phone,contact_email,created_at';
+    var ctR = await fetch(ctUrl, { headers: H() });
+    var ctData = ctR.ok ? await ctR.json() : [];
+    var ct = ctData[0] || {};
+
+    // 3. Costruisci email
     var stati = {
       'da_contattare':'Da contattare','assegnato':'Assegnato',
       'chiamata_effettuata':'Chiamata effettuata','appuntamento_fissato':'Appuntamento fissato',
       'appuntamento_completato':'Appuntamento completato','in_lavorazione':'In lavorazione',
       'chiuso_positivo':'Chiuso positivo','chiuso_negativo':'Chiuso negativo'
     };
+    var statoLabel = stati[ct.status] || ct.status || 'Assegnato';
+    var azienda    = ct.company_name || 'Azienda';
+    var da         = assignedByName  || 'il sistema';
 
     var noteHtml = handoverNote
       ? '<div style="background:#FFF7ED;border-left:4px solid #F59E0B;border-radius:0 6px 6px 0;padding:12px 16px;margin:16px 0;">'
-        +'<p style="margin:0 0 4px;font-size:11px;font-weight:700;color:#92400E;text-transform:uppercase;font-family:Inter,Arial,sans-serif;">Note di passaggio consegne</p>'
-        +'<p style="margin:0;font-size:14px;color:#374151;line-height:1.6;font-family:Inter,Arial,sans-serif;white-space:pre-wrap;">'+handoverNote+'</p>'
-        +'</div>'
+        + '<p style="margin:0 0 4px;font-size:11px;font-weight:700;color:#92400E;text-transform:uppercase;font-family:Inter,Arial,sans-serif;">Note</p>'
+        + '<p style="margin:0;font-size:14px;color:#374151;line-height:1.6;font-family:Inter,Arial,sans-serif;white-space:pre-wrap;">' + (handoverNote||'') + '</p>'
+        + '</div>'
       : '';
 
-    var bodyHtml = '<h2 style="margin:0 0 6px;font-size:20px;font-weight:800;color:#0A0A0A;font-family:Inter,Arial,sans-serif;">Nuovo contatto assegnato</h2>'
-      +'<p style="margin:0 0 20px;font-size:14px;color:#6B7280;font-family:Inter,Arial,sans-serif;">Ciao <strong>'+(op.nome+' '+op.cognome)+'</strong>, '+(assignedByName||'un amministratore')+' ti ha assegnato un contatto da gestire nel CRM.</p>'
-      +'<table style="width:100%;border-collapse:collapse;background:#F9FAFB;border-radius:10px;overflow:hidden;margin-bottom:8px;">'
-      +'<tr><td colspan="2" style="padding:12px 16px 6px;font-size:12px;color:#6B7280;text-transform:uppercase;letter-spacing:.05em;font-family:Inter,Arial,sans-serif;font-weight:700;">DETTAGLI CONTATTO</td></tr>'
-      +'<tr><td style="padding:8px 16px;font-size:13px;color:#6B7280;font-family:Inter,Arial,sans-serif;width:120px;">Azienda</td>'
-      +'<td style="padding:8px 16px;font-size:15px;font-weight:800;color:#0A0A0A;font-family:Inter,Arial,sans-serif;">'+(ct.company_name||'—')+'</td></tr>'
-      +(ct.contact_name ? '<tr style="border-top:1px solid #E5E7EB;"><td style="padding:8px 16px;font-size:13px;color:#6B7280;font-family:Inter,Arial,sans-serif;">Referente</td><td style="padding:8px 16px;font-size:14px;font-weight:600;color:#0A0A0A;font-family:Inter,Arial,sans-serif;">'+ct.contact_name+'</td></tr>' : '')
-      +(ct.contact_phone ? '<tr style="border-top:1px solid #E5E7EB;"><td style="padding:8px 16px;font-size:13px;color:#6B7280;font-family:Inter,Arial,sans-serif;">Telefono</td><td style="padding:8px 16px;font-size:14px;font-weight:600;color:#0A0A0A;font-family:Inter,Arial,sans-serif;">'+ct.contact_phone+'</td></tr>' : '')
-      +'<tr style="border-top:1px solid #E5E7EB;"><td style="padding:8px 16px 12px;font-size:13px;color:#6B7280;font-family:Inter,Arial,sans-serif;">Stato</td>'
-      +'<td style="padding:8px 16px 12px;font-family:Inter,Arial,sans-serif;"><span style="background:#2563EB;color:#fff;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;">'+( stati[ct.status]||ct.status||'Assegnato')+'</span></td></tr>'
-      +'</table>'
-      +noteHtml
-      +'<div style="text-align:center;margin:24px 0 8px;">'
-      +'<a href="https://associaticna.vercel.app" style="background:#005CA9;color:#fff;padding:13px 32px;border-radius:8px;text-decoration:none;font-size:14px;font-weight:700;display:inline-block;font-family:Inter,Arial,sans-serif;">Apri CRM CNA Roma →</a>'
-      +'</div>';
+    var bodyHtml =
+      '<h2 style="margin:0 0 8px;font-size:20px;font-weight:800;color:#0A0A0A;font-family:Inter,Arial,sans-serif;">Nuovo contatto assegnato</h2>'
+      + '<p style="margin:0 0 20px;font-size:14px;color:#6B7280;font-family:Inter,Arial,sans-serif;">'
+      + 'Ciao <strong>' + toNome + '</strong>, <strong>' + da + '</strong> ti ha assegnato un contatto da gestire nel CRM.</p>'
+      + '<table style="width:100%;border-collapse:collapse;background:#F9FAFB;border-radius:10px;overflow:hidden;margin-bottom:16px;">'
+      + '<tr><td colspan="2" style="padding:10px 16px 6px;font-size:11px;font-weight:700;color:#6B7280;text-transform:uppercase;letter-spacing:.05em;font-family:Inter,Arial,sans-serif;">Dettagli contatto</td></tr>'
+      + '<tr><td style="padding:8px 16px;font-size:13px;color:#6B7280;font-family:Inter,Arial,sans-serif;width:110px;">Azienda</td>'
+      + '<td style="padding:8px 16px;font-size:15px;font-weight:800;color:#0A0A0A;font-family:Inter,Arial,sans-serif;">' + azienda + '</td></tr>'
+      + (ct.contact_name  ? '<tr style="border-top:1px solid #E5E7EB;"><td style="padding:8px 16px;font-size:13px;color:#6B7280;font-family:Inter,Arial,sans-serif;">Referente</td><td style="padding:8px 16px;font-size:14px;font-weight:600;color:#0A0A0A;font-family:Inter,Arial,sans-serif;">' + ct.contact_name  + '</td></tr>' : '')
+      + (ct.contact_phone ? '<tr style="border-top:1px solid #E5E7EB;"><td style="padding:8px 16px;font-size:13px;color:#6B7280;font-family:Inter,Arial,sans-serif;">Telefono</td><td style="padding:8px 16px;font-size:14px;font-weight:600;color:#0A0A0A;font-family:Inter,Arial,sans-serif;">' + ct.contact_phone + '</td></tr>' : '')
+      + '<tr style="border-top:1px solid #E5E7EB;"><td style="padding:8px 16px 12px;font-size:13px;color:#6B7280;font-family:Inter,Arial,sans-serif;">Stato</td>'
+      + '<td style="padding:8px 16px 12px;"><span style="background:#2563EB;color:#fff;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;font-family:Inter,Arial,sans-serif;">' + statoLabel + '</span></td></tr>'
+      + '</table>'
+      + noteHtml
+      + '<div style="text-align:center;margin:24px 0 8px;">'
+      + '<a href="https://associaticna.vercel.app" style="background:#005CA9;color:#fff;padding:13px 32px;border-radius:8px;text-decoration:none;font-size:14px;font-weight:700;display:inline-block;font-family:Inter,Arial,sans-serif;">Apri CRM CNA Roma →</a>'
+      + '</div>';
 
-    var dest = [{
-      contact_id:      contactId,
-      company_name:    ct.company_name   || '',
-      contact_name:    ct.contact_name   || '',
-      contact_phone:   ct.contact_phone  || '',
-      contact_email:   ct.contact_email  || '',
-      status:          ct.status         || '',
-      source:          ct.company_source || '',
-      created_at:      ct.created_at     || '',
-      operatore_nome:  (op.nome+' '+op.cognome).trim(),
-      operatore_email: op.email,
-    }];
+    // 4. Leggi logo dal localStorage
+    var logoUrl = '';
+    try { var _ct=JSON.parse(localStorage.getItem('crm_com_template')||'{}'); logoUrl=_ct.logo_url||''; } catch(e){}
+    if (!logoUrl) logoUrl = localStorage.getItem('crm_email_logo_url') || '';
 
-    var logoUrl = localStorage.getItem('crm_email_logo_url') || '';
-    var r = await fetch(SB+'/functions/v1/crm-bulk-email', {
+    // 5. Manda via crm-bulk-email
+    var payload = {
+      oggetto: 'Nuovo contatto assegnato: ' + azienda,
+      blocchi: [{ tipo: 'testo', html: bodyHtml }],
+      destinatari: [{
+        contact_id:      String(contactId),
+        company_name:    ct.company_name    || '',
+        contact_name:    ct.contact_name    || '',
+        contact_phone:   ct.contact_phone   || '',
+        contact_email:   ct.contact_email   || '',
+        status:          ct.status          || '',
+        source:          ct.company_source  || '',
+        created_at:      ct.created_at      || '',
+        operatore_nome:  toNome,
+        operatore_email: toEmail,
+      }],
+      logo_url: logoUrl || null,
+    };
+
+    console.log('sendAssignmentEmail → POST crm-bulk-email a:', toEmail, 'per:', azienda);
+    var r = await fetch(SB + '/functions/v1/crm-bulk-email', {
       method: 'POST',
-      headers: H({'Content-Type':'application/json'}),
-      body: JSON.stringify({
-        oggetto: 'Nuovo contatto assegnato: '+(ct.company_name||'Azienda'),
-        blocchi: [{ tipo:'testo', html: bodyHtml }],
-        destinatari: dest,
-        logo_url: logoUrl || null,
-      })
+      headers: H({ 'Content-Type': 'application/json' }),
+      body: JSON.stringify(payload)
     });
-    var data = await r.json();
-    if (!r.ok) console.warn('sendAssignmentEmail errore:', data.error||r.status);
-    else console.log('sendAssignmentEmail OK, inviata a:', op.email);
-  } catch(e) {
-    console.warn('sendAssignmentEmail eccezione:', e);
+    var resp = await r.json().catch(function(){ return {}; });
+    if (!r.ok) {
+      console.error('sendAssignmentEmail ERRORE', r.status, resp);
+    } else {
+      console.log('sendAssignmentEmail OK', resp);
+      toast('Email inviata a ' + toEmail, 'success');
+    }
+  } catch(err) {
+    console.error('sendAssignmentEmail eccezione:', err);
   }
 }
 
