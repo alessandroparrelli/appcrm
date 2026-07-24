@@ -4371,16 +4371,14 @@ async function sendAssignmentEmail(contactData, assignedToId, assignedByName, ha
     // 3. Note
     var noteText = handoverNote || '';
 
-    // 4. Header config dal template COM
+    // 4. Header config + blocchi dal template COM (se configurato dall'editor)
     var comTpl = {};
     try { comTpl = JSON.parse(localStorage.getItem('crm_com_template')||'{}'); } catch(e){}
     var logoUrl     = comTpl.logo_url     || localStorage.getItem('crm_email_logo_url') || '';
     var headerColor = comTpl.header_color || '#005CA9';
     var logoH       = String(comTpl.logo_height || '44');
-
-    // 5. Blocchi dedicati assegnazione
-    var blocchi = _defaultAssignBlocchi(creatoDa);
-    var oggetto = 'Nuovo contatto assegnato: {{nome_azienda}}';
+    var blocchi     = (comTpl.blocchi && comTpl.blocchi.length) ? comTpl.blocchi : _defaultAssignBlocchi(creatoDa);
+    var oggetto     = comTpl.oggetto || 'Nuovo contatto assegnato: {{nome_azienda}}';
 
     // 6. dest — costruito dai dati passati, come fa inviaSollecito con crmContactData
     var dest = [{
