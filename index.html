@@ -4469,14 +4469,39 @@ async function adminTestEmail() {
   if (btn) btn.disabled = true;
   if (res) res.textContent = 'Invio in corso…';
   try {
-    var r = await fetch(SB+'/functions/v1/crm-send-assignment-email', {
+    // Usa lo stesso percorso di sendAssignmentEmail: crm-bulk-email + blocchi editor
+    var comTpl = {};
+    try { comTpl = JSON.parse(localStorage.getItem('crm_com_template')||'{}'); } catch(e){}
+    var logoUrl     = comTpl.logo_url || _emailLogoUrl || '';
+    var headerColor = comTpl.header_color || '#005CA9';
+    var logoH       = String(comTpl.logo_height || '44');
+    var testNome    = ((session.nome||'')+ ' ' + (session.cognome||'')).trim();
+    var blocchi     = (comTpl.blocchi && comTpl.blocchi.length) ? comTpl.blocchi : _defaultAssignBlocchi('il sistema (test)');
+    var oggetto     = comTpl.oggetto || 'Nuovo contatto assegnato: {{nome_azienda}}';
+    var dest = [{
+      contact_id:      'test',
+      company_name:    'Azienda Demo Srl',
+      contact_name:    'Mario Rossi',
+      contact_phone:   '+39 06 1234567',
+      contact_email:   'contatto@esempio.it',
+      status:          'assegnato',
+      source:          'Anagrafiche',
+      created_at:      new Date().toISOString(),
+      operatore_nome:  testNome,
+      operatore_email: session.email,
+      creato_da:       'il sistema (test)',
+      note:            'Questa è una nota di esempio per il passaggio di consegne.',
+    }];
+    var r = await fetch(SB+'/functions/v1/crm-bulk-email', {
       method: 'POST',
       headers: H({'Content-Type':'application/json'}),
       body: JSON.stringify({
-        test: true,
-        test_email: session.email,
-        test_nome: (session.nome||'') + ' ' + (session.cognome||''),
-        logo_url: _emailLogoUrl || null
+        oggetto:      oggetto,
+        blocchi:      blocchi,
+        destinatari:  dest,
+        logo_url:     logoUrl || null,
+        header_color: headerColor || null,
+        logo_height:  logoH,
       })
     });
     var data = await r.json();
@@ -5233,19 +5258,24 @@ function edBlocchiToHtml(arr,vars){
     if(b.tipo==='tabella_contatto'){
       var RLABELS = {azienda:'Azienda',referente:'Referente',telefono:'Telefono',
         email_contatto:'Email',fonte:'Fonte',stato:'Stato',
-        data_creazione:'Data creazione',assegnato_a:'Assegnato a',creato_da:'Creato da'};
+        data_creazione:'Data creazione',assegnato_a:'Assegnato a',creato_da:'Creato da',note:'Note'};
       var RVARS   = {azienda:'nome_azienda',referente:'referente',telefono:'telefono',
         email_contatto:'email_contatto',fonte:'fonte',stato:'stato',
-        data_creazione:'data_creazione',assegnato_a:'assegnato_a',creato_da:'creato_da'};
+        data_creazione:'data_creazione',assegnato_a:'assegnato_a',creato_da:'creato_da',note:'note'};
       var righe = b.righe || ['azienda','referente','telefono','email_contatto','fonte','stato'];
       var titolo = b.titolo || 'DETTAGLI CONTATTO';
-      var rows = righe.map(function(r, idx){
+      var borderIdx = 0;
+      var rows = righe.map(function(r){
         var val = rv('{{' + (RVARS[r]||r) + '}}');
         if(!val) return '';
-        var border = idx > 0 ? 'border-top:1px solid #E5E7EB;' : '';
+        var border = borderIdx > 0 ? 'border-top:1px solid #E5E7EB;' : '';
+        borderIdx++;
+        var cellContent = r === 'stato'
+          ? '<span style="background:#2563EB;color:#fff;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;font-family:Inter,Arial,sans-serif;">'+val+'</span>'
+          : (r === 'note' ? '<span style="white-space:pre-wrap;">'+val+'</span>' : val);
         return '<tr style="'+border+'">'
-          +'<td style="padding:8px 16px;font-size:13px;color:#6B7280;font-family:Inter,Arial,sans-serif;width:130px;vertical-align:top;">'+RLABELS[r]+'</td>'
-          +'<td style="padding:8px 16px;font-size:14px;font-weight:600;color:#0A0A0A;font-family:Inter,Arial,sans-serif;">'+val+'</td>'
+          +'<td style="padding:8px 16px;font-size:13px;color:#6B7280;font-family:Inter,Arial,sans-serif;width:130px;vertical-align:top;">'+(RLABELS[r]||r)+'</td>'
+          +'<td style="padding:8px 16px;font-size:14px;font-weight:600;color:#0A0A0A;font-family:Inter,Arial,sans-serif;">'+cellContent+'</td>'
           +'</tr>';
       }).filter(Boolean).join('');
       return '<table style="width:100%;border-collapse:collapse;background:#F9FAFB;border-radius:10px;overflow:hidden;margin:0 0 16px;">'
