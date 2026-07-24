@@ -608,6 +608,31 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 .btn-select-mode.active{background:var(--primary);color:#fff;border-color:var(--primary);}
 
 /* ══════════════════════════════════════════════
+   STORICO NOTE
+══════════════════════════════════════════════ */
+.note-card{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius-md);margin-bottom:12px;overflow:hidden;}
+.note-item{padding:12px 14px;border-bottom:1px solid var(--border-light);}
+.note-item:last-child{border-bottom:none;}
+.note-item-hdr{display:flex;align-items:center;gap:6px;margin-bottom:5px;}
+.note-badge{font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;text-transform:uppercase;letter-spacing:.04em;flex-shrink:0;}
+.note-badge.nota{background:#F1F5F9;color:#64748B;border:1px solid #CBD5E1;}
+.note-badge.handover{background:#FFF7ED;color:#92400E;border:1px solid #FDE68A;}
+.note-badge.sollecito{background:#F5F3FF;color:#6D28D9;border:1px solid #DDD6FE;}
+.note-meta{font-size:11px;color:var(--text-tertiary);flex:1;min-width:0;}
+.note-actions{display:flex;gap:2px;opacity:0;transition:opacity .15s;flex-shrink:0;}
+.note-item:hover .note-actions{opacity:1;}
+.note-act-btn{background:none;border:none;cursor:pointer;padding:3px 6px;border-radius:4px;font-size:13px;color:var(--text-tertiary);line-height:1;}
+.note-act-btn:hover{background:var(--surface2);color:var(--text);}
+.note-act-btn.del:hover{background:#FEE2E2;color:#DC2626;}
+.note-body{font-size:13px;color:var(--text);line-height:1.6;white-space:pre-wrap;word-break:break-word;}
+.note-edit-area{width:100%;box-sizing:border-box;border:1.5px solid var(--primary);border-radius:6px;padding:8px 10px;font-size:13px;font-family:var(--font);resize:vertical;background:var(--bg);color:var(--text);outline:none;min-height:70px;margin-top:6px;}
+.note-edit-row{display:flex;gap:6px;margin-top:6px;justify-content:flex-end;}
+.note-add-box{padding:10px 14px;border-top:1.5px solid var(--border);background:var(--surface2);}
+.note-add-inp{width:100%;box-sizing:border-box;border:1.5px solid var(--border);border-radius:8px;padding:8px 12px;font-size:13px;font-family:var(--font);resize:none;background:var(--bg);color:var(--text);outline:none;transition:border-color .15s;}
+.note-add-inp:focus{border-color:var(--primary);}
+.note-add-row{display:flex;justify-content:flex-end;margin-top:6px;}
+
+/* ══════════════════════════════════════════════
    COMUNICAZIONE
 ══════════════════════════════════════════════ */
 #view-comunicazione{overflow-y:auto;background:var(--bg);}
@@ -2790,26 +2815,45 @@ async function openCrmContatto(contactId){
       html += '</div>';
     }
 
-    // ── Note interne ──
+    // -- Note interne (storico dedicato) --
     var noteInterne = logData.filter(function(l){ return l.activity_type === 'nota'; });
-    if(noteInterne.length){
-      html += '<div class="s-card"><div class="s-card-title" style="display:flex;align-items:center;justify-content:space-between;">'
-        +'<span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg> Note interne (' + noteInterne.length + ')</span>'
-        +'</div>';
+    html += '<div class="s-card note-card">';
+    html += '<div class="s-card-title" style="display:flex;align-items:center;justify-content:space-between;padding-bottom:10px;">'
+      +'<span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg> Note'
+      +(noteInterne.length ? ' <span style="font-size:11px;font-weight:600;color:var(--text-tertiary);">('+noteInterne.length+')</span>' : '')
+      +'</span></div>';
+    if(!noteInterne.length){
+      html += '<div style="padding:16px 14px;font-size:13px;color:var(--text-tertiary);text-align:center;">Nessuna nota ancora. Aggiungine una qui sotto.</div>';
+    } else {
       noteInterne.forEach(function(l){
         var u = um[l.user_id];
-        var isHandover = l.description && l.description.indexOf('[HANDOVER]') === 0;
-        var testoNota = isHandover ? l.description.replace('[HANDOVER] ', '') : l.description;
-        html += '<div class="tl-item" style="align-items:flex-start;padding:12px 0;border-bottom:1px solid var(--border-light)">'
-          +'<div class="tl-dot-wrap"><div class="tl-dot nota" style="margin-top:4px"></div></div>'
-          +'<div class="tl-body" style="flex:1">'
-          +(isHandover ? '<div style="font-size:10px;font-weight:700;color:#92400E;background:#FFF7ED;border:1px solid #FDE68A;border-radius:4px;padding:2px 7px;display:inline-block;margin-bottom:5px;text-transform:uppercase;letter-spacing:.04em">Handover</div><br>' : '')
-          +'<div style="font-size:13px;color:var(--text-primary);line-height:1.6;white-space:pre-wrap">'+esc(testoNota)+'</div>'
-          +'<div class="tl-date" style="margin-top:4px">'+esc(fmtDT(l.created_at))+(u?' · '+esc(u.nome+' '+u.cognome):'')+'</div>'
-          +'</div></div>';
+        var isMine = session && l.user_id === session.id;
+        var isAdmin = session && session.ruolo === 'admin';
+        var isSollecito = l.description && l.description.indexOf('[SOLLECITO]') === 0;
+        var isHandover  = l.description && l.description.indexOf('[HANDOVER]')  === 0;
+        var testoNota = isSollecito ? l.description.replace('[SOLLECITO] ','') : isHandover ? l.description.replace('[HANDOVER] ','') : l.description;
+        var badgeType  = isSollecito ? 'sollecito' : isHandover ? 'handover' : 'nota';
+        var badgeLabel = isSollecito ? 'Sollecito'  : isHandover ? 'Handover'  : 'Nota';
+        var canEdit   = isMine && !isSollecito && !isHandover;
+        var canDelete = isMine || isAdmin;
+        html += '<div class="note-item" id="note-item-'+l.id+'">'
+          +'<div class="note-item-hdr">'
+          +'<span class="note-badge '+badgeType+'">'+badgeLabel+'</span>'
+          +'<span class="note-meta">'+esc(fmtDT(l.created_at))+(u?' &middot; <strong>'+esc(u.nome+' '+u.cognome)+'</strong>':'')+'</span>'
+          +'<div class="note-actions">'
+          +(canEdit   ? '<button class="note-act-btn" onclick="noteStartEdit('+l.id+',this)" title="Modifica">&#9998;</button>' : '')
+          +(canDelete ? '<button class="note-act-btn del" onclick="noteDelete('+l.id+')" title="Elimina">&#128465;</button>' : '')
+          +'</div></div>'
+          +'<div class="note-body" id="note-body-'+l.id+'">'+esc(testoNota)+'</div>'
+          +'</div>';
       });
-      html += '</div>';
     }
+    html += '<div class="note-add-box">'
+      +'<textarea class="note-add-inp" id="note-quick-inp" rows="2" placeholder="Scrivi una nota e premi Salva&#8230;"></textarea>'
+      +'<div class="note-add-row">'
+      +'<button class="btn-crm btn-crm-outline btn-crm-sm" onclick="noteQuickSave()">Salva nota</button>'
+      +'</div></div>';
+    html += '</div>';
 
     // ── Timeline attività ──
     html += '<div class="s-card"><div class="s-card-title"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle"><rect x="9" y="2" width="6" height="3" rx="1"/><rect x="3" y="5" width="18" height="17" rx="2"/><line x1="9" y1="10" x2="15" y2="10"/><line x1="9" y1="14" x2="15" y2="14"/></svg> Timeline attività</div><div class="timeline">';
@@ -3852,6 +3896,75 @@ async function loadAdminUserReport(contacts, calls, apts, users){
 }
 
 /* ══════════════════════════════════════════════════
+/* ══════════════════════════════════════════════════
+   NOTE INTERNE — quicksave / edit / delete
+══════════════════════════════════════════════════ */
+async function noteQuickSave() {
+  var inp = G('note-quick-inp');
+  var testo = (inp||{}).value||'';
+  testo = testo.trim();
+  if (!testo) { toast('Scrivi qualcosa prima di salvare','error'); return; }
+  showLoad('Salvataggio…');
+  try {
+    await insertActivityLog(crmContactId, 'nota', testo);
+    if (inp) inp.value = '';
+    toast('Nota salvata!', 'success');
+    await openCrmContatto(crmContactId);
+  } catch(e) { toast('Errore: '+e.message,'error'); }
+  finally { hideLoad(); }
+}
+
+function noteStartEdit(noteId, btnEl) {
+  var bodyEl = G('note-body-'+noteId);
+  if (!bodyEl) return;
+  var currentText = bodyEl.textContent;
+  // Sostituisce il corpo con textarea
+  bodyEl.innerHTML = '<textarea class="note-edit-area" id="note-edit-'+noteId+'">' + esc(currentText) + '</textarea>'
+    + '<div class="note-edit-row">'
+    + '<button class="btn-crm btn-crm-outline btn-crm-sm" onclick="noteCancelEdit('+noteId+','+JSON.stringify(currentText)+')">Annulla</button>'
+    + '<button class="btn-crm btn-crm-primary btn-crm-sm" onclick="noteSaveEdit('+noteId+')">Salva</button>'
+    + '</div>';
+  var ta = G('note-edit-'+noteId); if(ta){ ta.focus(); ta.setSelectionRange(ta.value.length, ta.value.length); }
+}
+
+function noteCancelEdit(noteId, originalText) {
+  var bodyEl = G('note-body-'+noteId);
+  if (bodyEl) bodyEl.innerHTML = esc(originalText);
+}
+
+async function noteSaveEdit(noteId) {
+  var ta = G('note-edit-'+noteId);
+  var nuovoTesto = (ta||{}).value||'';
+  nuovoTesto = nuovoTesto.trim();
+  if (!nuovoTesto) { toast('La nota non può essere vuota','error'); return; }
+  showLoad('Salvataggio…');
+  try {
+    // Delete vecchio record e inserisci nuovo (tabella senza updated_at)
+    var delR = await fetch(SB+'/rest/v1/crm_activity_log?id=eq.'+noteId, {
+      method:'DELETE', headers:H({'Prefer':'return=minimal'})
+    });
+    if (!delR.ok) throw new Error('Errore eliminazione: '+await delR.text());
+    await insertActivityLog(crmContactId, 'nota', nuovoTesto);
+    toast('Nota aggiornata!', 'success');
+    await openCrmContatto(crmContactId);
+  } catch(e) { toast('Errore: '+e.message,'error'); }
+  finally { hideLoad(); }
+}
+
+async function noteDelete(noteId) {
+  if (!confirm('Eliminare questa nota?')) return;
+  showLoad('Eliminazione…');
+  try {
+    var r = await fetch(SB+'/rest/v1/crm_activity_log?id=eq.'+noteId, {
+      method:'DELETE', headers:H({'Prefer':'return=minimal'})
+    });
+    if (!r.ok) throw new Error(await r.text());
+    toast('Nota eliminata', 'success');
+    await openCrmContatto(crmContactId);
+  } catch(e) { toast('Errore: '+e.message,'error'); }
+  finally { hideLoad(); }
+}
+
    SOLLECITO — template editor + modale invio
 ══════════════════════════════════════════════════ */
 var solBlocchi = [];
