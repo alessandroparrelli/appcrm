@@ -2168,7 +2168,9 @@ function showView(name){
   } else if(name==='crm'){
     ['crm','archivio','admin'].forEach(function(t){ var e=G('tab-'+t); if(e) e.classList.toggle('active',t==='crm'); });
   } else if(name==='admin'){
-    ['crm','archivio','admin'].forEach(function(t){ var e=G('tab-'+t); if(e) e.classList.toggle('active',t==='admin'); });
+    ['crm','archivio','admin','comunicazione'].forEach(function(t){ var e=G('tab-'+t); if(e) e.classList.toggle('active',t==='admin'); });
+  } else if(name==='comunicazione'){
+    ['crm','archivio','admin','comunicazione'].forEach(function(t){ var e=G('tab-'+t); if(e) e.classList.toggle('active',t==='comunicazione'); });
   }
   var el=G('view-'+name);
   if(el) el.scrollTop=0;
@@ -2775,10 +2777,10 @@ async function openCrmContatto(contactId){
       +'Assegna</button>'
       +'<button class="btn-crm btn-crm-outline" onclick="openModalNota()">'
       +'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>'
-      +'Nota</button>'\
-      +'<button class="btn-crm btn-crm-outline" onclick="openModalSollecito()" style="border-color:#7C3AED;color:#7C3AED;">'\
-      +'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>'\
-      +'Sollecito</button>'\
+      +'Nota</button>'
+      +'<button class="btn-crm btn-crm-outline" onclick="openModalSollecito()" style="border-color:#7C3AED;color:#7C3AED;">'
+      +'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>'
+      +'Sollecito</button>'
       +'</div>';
 
     // ── Chiamate ──
@@ -3896,7 +3898,6 @@ async function loadAdminUserReport(contacts, calls, apts, users){
 }
 
 /* ══════════════════════════════════════════════════
-/* ══════════════════════════════════════════════════
    NOTE INTERNE — quicksave / edit / delete
 ══════════════════════════════════════════════════ */
 async function noteQuickSave() {
@@ -3965,6 +3966,7 @@ async function noteDelete(noteId) {
   finally { hideLoad(); }
 }
 
+/* ══════════════════════════════════════════════════
    SOLLECITO — template editor + modale invio
 ══════════════════════════════════════════════════ */
 var solBlocchi = [];
