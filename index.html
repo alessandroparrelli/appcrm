@@ -4013,6 +4013,8 @@ function solImpostaDefault() {
   var tpl = solGetDefaultTemplate();
   solBlocchi = tpl.blocchi;
   var ogg = G('sol-tpl-oggetto'); if(ogg) ogg.value = tpl.oggetto;
+  solRenderBlocchi();
+  solRefreshPreview();
 }
 
 function solSalvaTemplate() {
@@ -4330,6 +4332,8 @@ function comImpostaDefault() {
   var tpl = comGetDefaultTemplate();
   comBlocchi = tpl.blocchi;
   var ogg = G('com-oggetto'); if(ogg) ogg.value = tpl.oggetto;
+  comRenderBlocchi();
+  comRefreshPreview();
 }
 
 function comSalvaTemplate() {
