@@ -4334,77 +4334,89 @@ async function inviaSollecito() {
 }
 
 /* ── SEND ASSIGNMENT EMAIL ──────────────────────── */
-// Invia SEMPRE la mail — nessun controllo bloccante, errori solo in console
 async function sendAssignmentEmail(contactId, assignedToId, assignedByName, handoverNote) {
   try {
-    var token = (session && session.token) ? session.token : null;
-
-    // 1. Leggi dati operatore
-    var opUrl = SB+'/rest/v1/cna_users?id=eq.'+assignedToId+'&select=nome,cognome,email';
-    var opR = await fetch(opUrl, { headers: H() });
+    // 1. Dati operatore
+    var opR  = await fetch(SB+'/rest/v1/cna_users?id=eq.'+assignedToId+'&select=nome,cognome,email', {headers:H()});
     var opData = opR.ok ? await opR.json() : [];
     var op = opData[0] || {};
     var toEmail = op.email || '';
-    var toNome  = ((op.nome||'') + ' ' + (op.cognome||'')).trim() || 'Operatore';
-
-    // Se email mancante o invalida, usa una email di fallback — MAI bloccare
-    if (!toEmail || !toEmail.includes('@')) {
-      console.warn('sendAssignmentEmail: email mancante per id', assignedToId, '— salto invio');
-      return;
+    var toNome  = ((op.nome||'')+' '+(op.cognome||'')).trim() || 'Operatore';
+    if(!toEmail || !toEmail.includes('@')) {
+      console.warn('sendAssignmentEmail: email non valida per', assignedToId); return;
     }
 
-    // 2. Leggi dati contatto
-    var ctUrl = SB+'/rest/v1/crm_contacts?id=eq.'+contactId
-      +'&select=company_name,company_source,status,contact_name,contact_phone,contact_email,created_at';
-    var ctR = await fetch(ctUrl, { headers: H() });
+    // 2. Dati contatto
+    var ctR  = await fetch(SB+'/rest/v1/crm_contacts?id=eq.'+contactId
+      +'&select=company_name,company_source,status,contact_name,contact_phone,contact_email,created_at,creator_id', {headers:H()});
     var ctData = ctR.ok ? await ctR.json() : [];
     var ct = ctData[0] || {};
 
-    // 3. Costruisci email
-    var stati = {
-      'da_contattare':'Da contattare','assegnato':'Assegnato',
+    // 3. Creato da
+    var creatoreNome = '';
+    if(ct.creator_id) {
+      try {
+        var crR = await fetch(SB+'/rest/v1/cna_users?id=eq.'+ct.creator_id+'&select=nome,cognome', {headers:H()});
+        if(crR.ok){ var crD=await crR.json(); if(crD[0]) creatoreNome=(crD[0].nome+' '+crD[0].cognome).trim(); }
+      } catch(e){}
+    }
+
+    // 4. Variabili reali
+    var stati = {'da_contattare':'Da contattare','assegnato':'Assegnato',
       'chiamata_effettuata':'Chiamata effettuata','appuntamento_fissato':'Appuntamento fissato',
       'appuntamento_completato':'Appuntamento completato','in_lavorazione':'In lavorazione',
-      'chiuso_positivo':'Chiuso positivo','chiuso_negativo':'Chiuso negativo'
+      'chiuso_positivo':'Chiuso positivo','chiuso_negativo':'Chiuso negativo'};
+    var vars = {
+      nome_azienda:   ct.company_name    || '',
+      referente:      ct.contact_name    || '',
+      telefono:       ct.contact_phone   || '',
+      email_contatto: ct.contact_email   || '',
+      stato:          stati[ct.status]   || ct.status || '',
+      assegnato_a:    toNome,
+      data_creazione: ct.created_at ? new Date(ct.created_at).toLocaleDateString('it-IT') : '',
+      fonte:          ct.company_source  || '',
+      creato_da:      creatoreNome,
+      note:           '',
     };
-    var statoLabel = stati[ct.status] || ct.status || 'Assegnato';
-    var azienda    = ct.company_name || 'Azienda';
-    var da         = assignedByName  || 'il sistema';
 
-    var noteHtml = handoverNote
-      ? '<div style="background:#FFF7ED;border-left:4px solid #F59E0B;border-radius:0 6px 6px 0;padding:12px 16px;margin:16px 0;">'
-        + '<p style="margin:0 0 4px;font-size:11px;font-weight:700;color:#92400E;text-transform:uppercase;font-family:Inter,Arial,sans-serif;">Note</p>'
-        + '<p style="margin:0;font-size:14px;color:#374151;line-height:1.6;font-family:Inter,Arial,sans-serif;white-space:pre-wrap;">' + (handoverNote||'') + '</p>'
-        + '</div>'
-      : '';
-
-    var bodyHtml =
-      '<h2 style="margin:0 0 8px;font-size:20px;font-weight:800;color:#0A0A0A;font-family:Inter,Arial,sans-serif;">Nuovo contatto assegnato</h2>'
-      + '<p style="margin:0 0 20px;font-size:14px;color:#6B7280;font-family:Inter,Arial,sans-serif;">'
-      + 'Ciao <strong>' + toNome + '</strong>, <strong>' + da + '</strong> ti ha assegnato un contatto da gestire nel CRM.</p>'
-      + '<table style="width:100%;border-collapse:collapse;background:#F9FAFB;border-radius:10px;overflow:hidden;margin-bottom:16px;">'
-      + '<tr><td colspan="2" style="padding:10px 16px 6px;font-size:11px;font-weight:700;color:#6B7280;text-transform:uppercase;letter-spacing:.05em;font-family:Inter,Arial,sans-serif;">Dettagli contatto</td></tr>'
-      + '<tr><td style="padding:8px 16px;font-size:13px;color:#6B7280;font-family:Inter,Arial,sans-serif;width:110px;">Azienda</td>'
-      + '<td style="padding:8px 16px;font-size:15px;font-weight:800;color:#0A0A0A;font-family:Inter,Arial,sans-serif;">' + azienda + '</td></tr>'
-      + (ct.contact_name  ? '<tr style="border-top:1px solid #E5E7EB;"><td style="padding:8px 16px;font-size:13px;color:#6B7280;font-family:Inter,Arial,sans-serif;">Referente</td><td style="padding:8px 16px;font-size:14px;font-weight:600;color:#0A0A0A;font-family:Inter,Arial,sans-serif;">' + ct.contact_name  + '</td></tr>' : '')
-      + (ct.contact_phone ? '<tr style="border-top:1px solid #E5E7EB;"><td style="padding:8px 16px;font-size:13px;color:#6B7280;font-family:Inter,Arial,sans-serif;">Telefono</td><td style="padding:8px 16px;font-size:14px;font-weight:600;color:#0A0A0A;font-family:Inter,Arial,sans-serif;">' + ct.contact_phone + '</td></tr>' : '')
-      + '<tr style="border-top:1px solid #E5E7EB;"><td style="padding:8px 16px 12px;font-size:13px;color:#6B7280;font-family:Inter,Arial,sans-serif;">Stato</td>'
-      + '<td style="padding:8px 16px 12px;"><span style="background:#2563EB;color:#fff;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;font-family:Inter,Arial,sans-serif;">' + statoLabel + '</span></td></tr>'
-      + '</table>'
-      + noteHtml
-      + '<div style="text-align:center;margin:24px 0 8px;">'
-      + '<a href="https://associaticna.vercel.app" style="background:#005CA9;color:#fff;padding:13px 32px;border-radius:8px;text-decoration:none;font-size:14px;font-weight:700;display:inline-block;font-family:Inter,Arial,sans-serif;">Apri CRM CNA Roma →</a>'
-      + '</div>';
-
-    // 4. Leggi logo dal localStorage
+    // 5. Template: usa i blocchi COM se configurati, altrimenti costruisce default
     var logoUrl = '';
-    try { var _ct=JSON.parse(localStorage.getItem('crm_com_template')||'{}'); logoUrl=_ct.logo_url||''; } catch(e){}
-    if (!logoUrl) logoUrl = localStorage.getItem('crm_email_logo_url') || '';
+    var headerColor = '#005CA9';
+    var logoH = 44;
+    var blocchi;
+    var oggetto = 'Nuovo contatto assegnato: ' + (ct.company_name||'Azienda');
+    try {
+      var comTpl = JSON.parse(localStorage.getItem('crm_com_template')||'{}');
+      logoUrl     = comTpl.logo_url     || localStorage.getItem('crm_email_logo_url') || '';
+      headerColor = comTpl.header_color || '#005CA9';
+      logoH       = parseInt(comTpl.logo_height||'44') || 44;
+      if(comTpl.blocchi && comTpl.blocchi.length) {
+        blocchi = comTpl.blocchi;
+        if(comTpl.oggetto) oggetto = comTpl.oggetto;
+      }
+    } catch(e){}
 
-    // 5. Manda via crm-bulk-email
+    if(!blocchi || !blocchi.length) {
+      // Blocchi default: intestazione + tabella + box note
+      blocchi = [
+        { tipo:'titolo', html:'<strong>Nuovo contatto assegnato</strong>' },
+        { tipo:'testo',  html:'<p>Ciao <strong>'+toNome+'</strong>, <strong>'+(assignedByName||'il sistema')+'</strong> ti ha assegnato un contatto da gestire nel CRM.</p>' },
+        { tipo:'tabella_contatto', righe:['azienda','referente','telefono','email_contatto','fonte','stato','creato_da','data_creazione'], titolo:'DETTAGLI CONTATTO' },
+      ];
+      if(handoverNote) {
+        blocchi.push({ tipo:'alert', titolo:'NOTE', testo:handoverNote, color:'#F59E0B', bg:'#FFF7ED', textColor:'#92400E' });
+      }
+      blocchi.push({ tipo:'bottone', testo:'Apri CRM CNA Roma →', url:'https://associaticna.vercel.app', color:'#005CA9', textColor:'#ffffff', align:'center', radius:8 });
+    }
+
+    // 6. Costruisci HTML con variabili reali
+    var bodyHtml = edBlocchiToHtml(blocchi, vars);
+    var full     = solBuildFullHtml(bodyHtml, logoUrl, headerColor, logoH);
+
+    // 7. Invia via crm-bulk-email
     var payload = {
-      oggetto: 'Nuovo contatto assegnato: ' + azienda,
-      blocchi: [{ tipo: 'testo', html: bodyHtml }],
+      oggetto: oggetto.replace(/\{\{(\w+)\}\}/g, function(_,k){ return vars[k]||''; }),
+      blocchi: [{ tipo:'testo', html: bodyHtml }],
       destinatari: [{
         contact_id:      String(contactId),
         company_name:    ct.company_name    || '',
@@ -4420,19 +4432,14 @@ async function sendAssignmentEmail(contactId, assignedToId, assignedByName, hand
       logo_url: logoUrl || null,
     };
 
-    console.log('sendAssignmentEmail → POST crm-bulk-email a:', toEmail, 'per:', azienda);
-    var r = await fetch(SB + '/functions/v1/crm-bulk-email', {
-      method: 'POST',
-      headers: H({ 'Content-Type': 'application/json' }),
-      body: JSON.stringify(payload)
+    console.log('sendAssignmentEmail -> crm-bulk-email a:', toEmail, 'azienda:', ct.company_name);
+    var r = await fetch(SB+'/functions/v1/crm-bulk-email', {
+      method:'POST', headers:H({'Content-Type':'application/json'}),
+      body:JSON.stringify(payload)
     });
     var resp = await r.json().catch(function(){ return {}; });
-    if (!r.ok) {
-      console.error('sendAssignmentEmail ERRORE', r.status, resp);
-    } else {
-      console.log('sendAssignmentEmail OK', resp);
-      toast('Email inviata a ' + toEmail, 'success');
-    }
+    if(!r.ok) { console.error('sendAssignmentEmail ERRORE', r.status, resp); }
+    else { console.log('sendAssignmentEmail OK a:', toEmail); toast('Email inviata a '+toEmail,'success'); }
   } catch(err) {
     console.error('sendAssignmentEmail eccezione:', err);
   }
@@ -5080,26 +5087,36 @@ function edRender(prefix){
         +'<textarea style="width:100%;box-sizing:border-box;min-height:72px;border:none;resize:vertical;font-style:italic;font-size:14px;color:#1E40AF;background:#F0F7FF;border-left:4px solid #005CA9;padding:10px 14px;border-radius:0 6px 6px 0;font-family:Inter,Arial,sans-serif;outline:none;" oninput="'+upd_q+'(this.value)">'+esc(b.html||'Scrivi la citazione...')+'</textarea>'
         +'</div>';
 
-    }else if(b.tipo==='tabella_contatto'){
-      var RIGHE_OPTS = ['azienda','referente','telefono','email_contatto','fonte','stato','data_creazione','assegnato_a','creato_da'];
-      var RIGHE_LABEL = {azienda:'Azienda',referente:'Referente',telefono:'Telefono',email_contatto:'Email',fonte:'Fonte',stato:'Stato',data_creazione:'Data',assegnato_a:'Assegnato a',creato_da:'Creato da'};
-      var pft='\''+prefix+'\'';
-      var righeSelezionate = b.righe || ['azienda','referente','telefono','stato'];
-      body = '<div class="ed-props-grid" style="grid-template-columns:1fr;">'
-        +'<div class="ed-prop"><label>Titolo sezione</label>'
-        +'<input class="crm-input" value="'+esc(b.titolo||'DETTAGLI CONTATTO')+'" oninput="(function(v){var a='+pft+'===\'com\'?comBlocchi:solBlocchi;a['+i+'].titolo=v;setTimeout('+pft+'===\'com\'?comRefreshPreview:solRefreshPreview,300);})(this.value)"></div>'
-        +'<div class="ed-prop"><label>Righe da mostrare</label>'
-        +'<div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:4px;">'
-        + RIGHE_OPTS.map(function(r){
-            var checked = righeSelezionate.indexOf(r)>=0;
-            return '<label style="display:flex;align-items:center;gap:4px;font-size:12px;cursor:pointer;font-weight:400;">'
-              +'<input type="checkbox"'+(checked?' checked':'')
-              +' onchange="(function(v,c){var a='+pft+'===\'com\'?comBlocchi:solBlocchi;var b=a['+i+'];b.righe=b.righe||[];if(c){if(b.righe.indexOf(v)<0)b.righe.push(v);}else{b.righe=b.righe.filter(function(x){return x!==v;});}setTimeout('+pft+'===\'com\'?comRefreshPreview:solRefreshPreview,200);})(\''+r+'\',this.checked)">'
-              + RIGHE_LABEL[r] + '</label>';
-          }).join('')
-        +'</div></div>'
-        +'</div>';
-
+    if(b.tipo==='tabella_contatto'){
+      var RLABELS = {azienda:'Azienda',referente:'Referente',telefono:'Telefono',
+        email_contatto:'Email',fonte:'Fonte',stato:'Stato',
+        data_creazione:'Data creazione',assegnato_a:'Assegnato a',creato_da:'Creato da'};
+      var RVARS   = {azienda:'nome_azienda',referente:'referente',telefono:'telefono',
+        email_contatto:'email_contatto',fonte:'fonte',stato:'stato',
+        data_creazione:'data_creazione',assegnato_a:'assegnato_a',creato_da:'creato_da'};
+      var righe = b.righe || ['azienda','referente','telefono','email_contatto','fonte','stato'];
+      var titolo = rv(b.titolo || 'DETTAGLI CONTATTO');
+      var borderIdx = 0;
+      var rows = righe.map(function(r){
+        var varKey = RVARS[r] || r;
+        var val = (vars && vars[varKey] !== undefined) ? String(vars[varKey]) : '';
+        if(!val) return '';
+        var border = borderIdx > 0 ? 'border-top:1px solid #E5E7EB;' : '';
+        borderIdx++;
+        var cellContent = r === 'stato'
+          ? '<span style="background:#2563EB;color:#fff;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;font-family:Inter,Arial,sans-serif;">'+val+'</span>'
+          : val;
+        return '<tr style="'+border+'">'
+          +'<td style="padding:8px 16px;font-size:13px;color:#6B7280;font-family:Inter,Arial,sans-serif;width:130px;vertical-align:top;">'+RLABELS[r]+'</td>'
+          +'<td style="padding:8px 16px;font-size:14px;font-weight:600;color:#0A0A0A;font-family:Inter,Arial,sans-serif;">'+cellContent+'</td>'
+          +'</tr>';
+      }).filter(Boolean).join('');
+      if(!rows) return '';
+      return '<table style="width:100%;border-collapse:collapse;background:#F9FAFB;border-radius:10px;overflow:hidden;margin:0 0 16px;">'
+        +'<tr><td colspan="2" style="padding:10px 16px 6px;font-size:11px;font-weight:700;color:#6B7280;text-transform:uppercase;letter-spacing:.06em;font-family:Inter,Arial,sans-serif;">'+titolo+'</td></tr>'
+        + rows
+        +'</table>';
+    }
     }else if(b.tipo==='alert'){
       var pfa='\''+prefix+'\'';
       var upda='(function(f,v){var a='+pfa+'===\'com\'?comBlocchi:solBlocchi;a['+i+'][f]=v;setTimeout('+pfa+'===\'com\'?comRefreshPreview:solRefreshPreview,200);})(';
