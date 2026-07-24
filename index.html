@@ -2542,7 +2542,7 @@ async function openCrmContatto(contactId){
       timelineItems.forEach(function(l){
         var u = um[l.user_id];
         html += '<div class="tl-item">'
-          +'<div class="tl-dot-wrap"><div class="tl-dot '+esc(l.activity_type)+'></div></div>'
+          +'<div class="tl-dot-wrap"><div class="tl-dot '+esc(l.activity_type)+'"></div></div>'
           +'<div class="tl-body">'
           +'<div class="tl-desc">'+esc(l.description)+'</div>'
           +'<div class="tl-date">'+esc(fmtDT(l.created_at))+(u?' · '+esc(u.nome+' '+u.cognome):'')+'</div>'
