@@ -1040,7 +1040,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
           <!-- Oggetto -->
           <div class="com-card">
             <div class="com-card-title">Oggetto email</div>
-            <input type="text" class="crm-input" id="com-oggetto" placeholder="Es. Aggiornamento sulla tua pratica" style="font-size:13px;">
+            <input type="text" class="crm-input" id="com-oggetto" placeholder="Es. Aggiornamento sulla tua pratica" style="font-size:13px;" oninput="comAutosaveBlocchi()">
           </div>
 
           <!-- Destinatari per stato -->
@@ -1068,19 +1068,19 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
             <div class="crm-field" style="margin-bottom:8px;">
               <label style="font-size:11px;font-weight:700;color:var(--text-secondary);">URL Logo</label>
               <div style="display:flex;gap:6px;margin-top:4px;">
-                <input type="url" class="crm-input" id="com-logo-url" placeholder="https://…/logo.png" style="flex:1;font-size:12px;" oninput="comPreviewLogo()">
+                <input type="url" class="crm-input" id="com-logo-url" placeholder="https://…/logo.png" style="flex:1;font-size:12px;" oninput="comPreviewLogo();comAutosaveHeader()">
               </div>
             </div>
             <div class="crm-field" style="margin-bottom:8px;">
               <label style="font-size:11px;font-weight:700;color:var(--text-secondary);">Colore sfondo header</label>
               <div style="display:flex;gap:6px;margin-top:4px;align-items:center;">
-                <input type="color" id="com-header-color" value="#005CA9" oninput="comRefreshPreview()" style="width:40px;height:32px;border:1px solid var(--border);border-radius:6px;cursor:pointer;padding:2px;">
-                <input type="text" class="crm-input" id="com-header-color-txt" value="#005CA9" placeholder="#005CA9" style="font-size:12px;font-family:monospace;flex:1;" oninput="comSyncHeaderColor(this.value)">
+                <input type="color" id="com-header-color" value="#005CA9" oninput="comRefreshPreview();comAutosaveHeader()" style="width:40px;height:32px;border:1px solid var(--border);border-radius:6px;cursor:pointer;padding:2px;">
+                <input type="text" class="crm-input" id="com-header-color-txt" value="#005CA9" placeholder="#005CA9" style="font-size:12px;font-family:monospace;flex:1;" oninput="comSyncHeaderColor(this.value);comAutosaveHeader()">
               </div>
             </div>
             <div class="crm-field" style="margin-bottom:8px;">
               <label style="font-size:11px;font-weight:700;color:var(--text-secondary);">Altezza logo (px)</label>
-              <input type="number" class="crm-input" id="com-logo-height" value="44" min="20" max="120" oninput="comRefreshPreview()" style="font-size:12px;width:80px;margin-top:4px;">
+              <input type="number" class="crm-input" id="com-logo-height" value="44" min="20" max="120" oninput="comRefreshPreview();comAutosaveHeader()" style="font-size:12px;width:80px;margin-top:4px;">
             </div>
             <div id="com-logo-preview" style="margin-top:8px;display:none;">
               <p style="font-size:11px;color:var(--text-tertiary);margin:0 0 4px;">Anteprima logo:</p>
@@ -4381,7 +4381,10 @@ function comCaricaTemplate() {
     var tpl = JSON.parse(raw);
     comBlocchi = tpl.blocchi || [];
     var ogg = G('com-oggetto'); if(ogg) ogg.value = tpl.oggetto || '';
-    var logo = G('com-logo-url'); if(logo && tpl.logo_url) logo.value = tpl.logo_url;
+    var logo = G('com-logo-url'); if(logo) logo.value = tpl.logo_url || '';
+    var hc = G('com-header-color'), hct = G('com-header-color-txt');
+    if(tpl.header_color){ if(hc) hc.value=tpl.header_color; if(hct) hct.value=tpl.header_color; }
+    var lh = G('com-logo-height'); if(lh && tpl.logo_height) lh.value = tpl.logo_height;
   } catch(e) { comImpostaDefault(); }
   comRenderBlocchi();
   comRefreshPreview();
@@ -4396,12 +4399,67 @@ function comImpostaDefault() {
 }
 
 function comSalvaTemplate() {
-  var ogg  = (G('com-oggetto')||{}).value || '';
-  var logo = (G('com-logo-url')||{}).value || '';
-  localStorage.setItem(COM_TPL_KEY, JSON.stringify({ oggetto: ogg, blocchi: comBlocchi, logo_url: logo }));
+  var ogg         = (G('com-oggetto')||{}).value || '';
+  var logo        = (G('com-logo-url')||{}).value || '';
+  var header_color= (G('com-header-color')||{}).value || '#005CA9';
+  var logo_height = (G('com-logo-height')||{}).value || '44';
+  localStorage.setItem(COM_TPL_KEY, JSON.stringify({
+    oggetto: ogg, blocchi: comBlocchi,
+    logo_url: logo, header_color: header_color, logo_height: logo_height
+  }));
   var msg = G('com-save-msg');
   if(msg){ msg.style.display='block'; setTimeout(function(){ msg.style.display='none'; }, 2500); }
   toast('Template salvato!', 'success');
+}
+
+function comAutosaveHeader() {
+  // Salva silenziosamente header senza toast — chiamato da ogni modifica input
+  try {
+    var raw = localStorage.getItem(COM_TPL_KEY);
+    var tpl = raw ? JSON.parse(raw) : {};
+    tpl.logo_url     = (G('com-logo-url')||{}).value || '';
+    tpl.header_color = (G('com-header-color')||{}).value || '#005CA9';
+    tpl.logo_height  = (G('com-logo-height')||{}).value || '44';
+    if(!tpl.blocchi) tpl.blocchi = comBlocchi;
+    if(!tpl.oggetto) tpl.oggetto = (G('com-oggetto')||{}).value || '';
+    localStorage.setItem(COM_TPL_KEY, JSON.stringify(tpl));
+  } catch(e) {}
+}
+
+// Autosave blocchi + oggetto dopo ogni modifica (debounced 2s)
+var _comAutosaveTimer = null;
+function comAutosaveBlocchi() {
+  clearTimeout(_comAutosaveTimer);
+  _comAutosaveTimer = setTimeout(function(){
+    try {
+      edSyncDOM('com');
+      var raw = localStorage.getItem(COM_TPL_KEY);
+      var tpl = raw ? JSON.parse(raw) : {};
+      tpl.blocchi  = comBlocchi;
+      tpl.oggetto  = (G('com-oggetto')||{}).value || '';
+      if(!tpl.logo_url)     tpl.logo_url     = (G('com-logo-url')||{}).value || '';
+      if(!tpl.header_color) tpl.header_color = (G('com-header-color')||{}).value || '#005CA9';
+      if(!tpl.logo_height)  tpl.logo_height  = (G('com-logo-height')||{}).value || '44';
+      localStorage.setItem(COM_TPL_KEY, JSON.stringify(tpl));
+    } catch(e) {}
+  }, 2000);
+}
+
+// Autosave sollecito blocchi + oggetto
+var _solAutosaveTimer = null;
+function solAutosaveBlocchi() {
+  clearTimeout(_solAutosaveTimer);
+  _solAutosaveTimer = setTimeout(function(){
+    try {
+      edSyncDOM('sol');
+      var raw = localStorage.getItem(SOL_TPL_KEY);
+      var tpl = raw ? JSON.parse(raw) : {};
+      tpl.blocchi  = solBlocchi;
+      tpl.oggetto  = (G('sol-tpl-oggetto')||{}).value || '';
+      tpl.logo_url = (G('sol-tpl-logo')||{}).value || '';
+      localStorage.setItem(SOL_TPL_KEY, JSON.stringify(tpl));
+    } catch(e) {}
+  }, 2000);
 }
 
 function comRipristinaDefault() {
@@ -4581,6 +4639,9 @@ function edSyncDOM(prefix){
       if(ed) b.html=ed.innerHTML;
     }
   });
+  // Autosave silenzioso
+  if(prefix==='com') comAutosaveBlocchi();
+  else solAutosaveBlocchi();
 }
 
 /* ── Toolbar ─────────────────────────────────────── */
