@@ -4368,15 +4368,16 @@ async function sendAssignmentEmail(contactId, assignedToId, assignedByName, hand
       noteText = handoverNote;
     }
 
-    // 5. Template COM (blocchi + config header)
+    // 5. Blocchi: SEMPRE quelli dedicati all'assegnazione (come il sollecito usa i suoi)
+    //    Dal COM template leggiamo SOLO config header (logo, colore, altezza)
     var comTpl = {};
     try { comTpl = JSON.parse(localStorage.getItem('crm_com_template')||'{}'); } catch(e){}
 
     var logoUrl     = comTpl.logo_url     || localStorage.getItem('crm_email_logo_url') || '';
     var headerColor = comTpl.header_color || '#005CA9';
     var logoH       = String(comTpl.logo_height || '44');
-    var blocchi     = (comTpl.blocchi && comTpl.blocchi.length) ? comTpl.blocchi : _defaultAssignBlocchi(creatoDa);
-    var oggetto     = comTpl.oggetto || 'Nuovo contatto assegnato: {{nome_azienda}}';
+    var blocchi     = _defaultAssignBlocchi(creatoDa);
+    var oggetto     = 'Nuovo contatto assegnato: {{nome_azienda}}';
 
     // 6. dest — identico a inviaSollecito
     var dest = [{
@@ -4416,18 +4417,21 @@ async function sendAssignmentEmail(contactId, assignedToId, assignedByName, hand
 }
 
 function _defaultAssignBlocchi(creatoDaNome) {
-  // Blocchi default se il template COM non è configurato
-  // Usa {{variabili}} — la Edge Function le sostituisce con i dati del dest
-  return [
+  var blocchi = [
     { tipo:'titolo', html:'<strong>Nuovo contatto assegnato</strong>' },
-    { tipo:'testo',  html:'<p>Ciao <strong>{{assegnato_a}}</strong>,<br>'+esc(creatoDaNome||'il sistema')+' ti ha assegnato un contatto da gestire nel CRM.</p>' },
+    { tipo:'testo',  html:'<p>Ciao <strong>{{assegnato_a}}</strong>,<br>{{creato_da}} ti ha assegnato un contatto da gestire nel CRM.</p>' },
     { tipo:'tabella_contatto',
       righe: ['azienda','referente','telefono','email_contatto','fonte','stato','creato_da','data_creazione'],
       titolo: 'DETTAGLI CONTATTO' },
-    { tipo:'bottone', testo:'Apri CRM CNA Roma →',
+    { tipo:'alert',
+      titolo: 'NOTE DI PASSAGGIO CONSEGNE',
+      testo:  '{{note}}',
+      color:  '#F59E0B', bg: '#FFF7ED', textColor: '#92400E' },
+    { tipo:'bottone', testo:'Apri CRM CNA Roma',
       url:'https://associaticna.vercel.app',
       color:'#005CA9', textColor:'#ffffff', align:'center', radius:8 },
   ];
+  return blocchi;
 }
 
 /* ── EMAIL ADMIN ────────────────────────────────── */
@@ -5286,6 +5290,7 @@ function edBlocchiToHtml(arr,vars){
     if(b.tipo==='alert'){
       var ac = b.color||'#F59E0B'; var abg = b.bg||'#FFF7ED'; var atc = b.textColor||'#92400E';
       var at = rv(b.titolo||''); var atxt = rv(b.testo||'');
+      if(!atxt.trim()) return '';
       return '<div style="border-left:4px solid '+ac+';background:'+abg+';border-radius:0 8px 8px 0;padding:12px 18px;margin:16px 0;">'
         +(at?'<p style="margin:0 0 5px;font-size:11px;font-weight:700;color:'+atc+';text-transform:uppercase;letter-spacing:.06em;font-family:Inter,Arial,sans-serif;">'+at+'</p>':'')
         +'<p style="margin:0;font-size:14px;color:'+atc+';line-height:1.6;font-family:Inter,Arial,sans-serif;white-space:pre-wrap;">'+atxt+'</p>'
