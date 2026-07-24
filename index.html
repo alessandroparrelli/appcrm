@@ -956,6 +956,9 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
           <option value="">Tutti gli utenti</option>
         </select>
         <span style="flex:1"></span>
+        <button class="btn-crm btn-crm-outline btn-crm-sm" onclick="logPage=0;loadLogs()" style="padding:6px 12px;" title="Aggiorna">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="vertical-align:middle"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+        </button>
         <button class="btn-crm btn-crm-outline btn-crm-sm" onclick="clearAllLogs()" style="color:var(--danger);border-color:var(--danger);">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="vertical-align:middle"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
           Pulisci log
