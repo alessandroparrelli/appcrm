@@ -3396,7 +3396,7 @@ async function wizSearch(){
   status.textContent = 'Ricerca in corso…';
   list.innerHTML = '';
   try {
-    var params = 'select=ragionesociale,partitaiva,codiceanagrafica,comune,nometitolare,cognometitolare&limit=30&order=ragionesociale.asc';
+    var params = 'select=ragionesociale,partitaiva,codiceanagrafica,comune,nometitolare,cognometitolare,telefono,cellulare,email&limit=30&order=ragionesociale.asc';
     // tenta P.IVA esatta prima, poi ilike su ragione sociale
     var isNum = /^\d+$/.test(q);
     if(isNum){
@@ -3436,6 +3436,8 @@ function wizSelectResult(i){
   wiz.companyName   = d.ragionesociale||'—';
   wiz.companyPiva   = d.partitaiva||'';
   wiz.companyTitolare = ((d.nometitolare||'')+ ' ' + (d.cognometitolare||'')).trim();
+  wiz.companyPhone    = d.cellulare || d.telefono || '';
+  wiz.companyEmail    = d.email || '';
   wiz.newCompany    = null;
   wiz.step = 2; // salta step 1 (già selezionata), vai a tipo+note
   wizRender();
@@ -3691,6 +3693,10 @@ async function wizSalva(){
       }
     } else {
       // C: crea nuovo contatto CRM
+      var _nc = wiz.newCompany || {};
+      var _ctName  = wiz.companyTitolare || ((_nc.nome_titolare||'')+' '+(_nc.cognome_titolare||'')).trim() || '';
+      var _ctPhone = wiz.companyPhone || _nc.cellulare || '';
+      var _ctEmail = wiz.companyEmail || _nc.email || '';
       var rC = await fetch(SB+'/rest/v1/crm_contacts',{
         method:'POST',
         headers:H({'Prefer':'return=representation','Content-Type':'application/json'}),
@@ -3698,6 +3704,9 @@ async function wizSalva(){
           company_source: wiz.companySource,
           company_ref:    wiz.companyRef,
           company_name:   wiz.companyName,
+          contact_name:   _ctName  || null,
+          contact_phone:  _ctPhone || null,
+          contact_email:  _ctEmail || null,
           creator_id:     session.id,
           assigned_id:    wiz.assignedId||session.id,
           status:         wiz.assignedId && wiz.assignedId!==session.id ? 'assegnato' : 'da_contattare'
@@ -3766,8 +3775,8 @@ async function wizSalva(){
       company_name:    wiz.companyName    || _nc.ragione_sociale || '',
       company_source:  wiz.companySource  || '',
       contact_name:    wiz.companyTitolare || ((_nc.nome_titolare||'')+' '+(_nc.cognome_titolare||'')).trim() || '',
-      contact_phone:   _nc.cellulare      || '',
-      contact_email:   _nc.email          || '',
+      contact_phone:   wiz.companyPhone   || _nc.cellulare      || '',
+      contact_email:   wiz.companyEmail   || _nc.email          || '',
       status:          wiz.assignedId && wiz.assignedId!==session.id ? 'assegnato' : 'da_contattare',
       created_at:      new Date().toISOString(),
     };
