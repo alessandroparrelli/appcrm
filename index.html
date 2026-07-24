@@ -3213,7 +3213,7 @@ function selectUser(uid){
 
 async function salvaAssegnazione(){
   if(!crmSelectedUserId){ closeModal('modal-assegna-bg'); return; }
-  if(crmSelectedUserId===crmContactData.assigned_id){ closeModal('modal-assegna-bg'); return; }
+  if(crmSelectedUserId===crmContactData.assigned_id){ toast('Stesso assegnatario','info'); closeModal('modal-assegna-bg'); return; }
   var handoverNote = (G('assegna-note-handover')||{}).value||'';
   handoverNote = handoverNote.trim();
   showLoad('Assegnazione in corso…');
@@ -3222,31 +3222,40 @@ async function salvaAssegnazione(){
     if(handoverNote) patchBody.handover_notes = handoverNote;
     var r = await fetch(SB+'/rest/v1/crm_contacts?id=eq.'+crmContactId,{
       method:'PATCH',
-      headers:H({'Prefer':'return=minimal','Content-Type':'application/json'}),
+      headers:H({'Prefer':'return=representation','Content-Type':'application/json'}),
       body:JSON.stringify(patchBody)
     });
     if(!r.ok) throw new Error(await r.text());
+    var updatedRows = await r.json();
+    if(!updatedRows.length) throw new Error('Contatto non aggiornato \u2014 verifica i permessi');
+    // Aggiorna crmContactData con i dati freschi
+    crmContactData = updatedRows[0];
+
     var u = crmAllUsers.find(function(u){ return u.id===crmSelectedUserId; });
-    var logMsg = 'Contatto assegnato a '+(u?u.nome+' '+u.cognome:'utente');
+    var logMsg = 'Contatto riassegnato a '+(u?u.nome+' '+u.cognome:'utente');
     await insertActivityLog(crmContactId,'assegnazione',logMsg);
     if(handoverNote) await insertActivityLog(crmContactId,'nota','[HANDOVER] '+handoverNote);
-    // notifica push all'assegnatario
+
+    // Email al NUOVO assegnatario (dati aggiornati)
+    await sendAssignmentEmail(crmContactData, crmSelectedUserId, session.nome+' '+session.cognome, handoverNote||null);
+
+    // Push al nuovo assegnatario
     if (crmSelectedUserId && crmSelectedUserId !== session.id) {
-      var pushBody = 'Ti è stato assegnato: ' + (crmContactData ? crmContactData.company_name : 'un contatto');
+      var pushBody = 'Ti \u00e8 stato assegnato: ' + (crmContactData.company_name || 'un contatto');
       if(handoverNote) pushBody += '\n\nNote: '+handoverNote;
       triggerPush([crmSelectedUserId],
         'Nuovo contatto assegnato',
         pushBody,
         '/');
     }
-    // email all'operatore assegnatario
-    if (crmSelectedUserId) {
-      await sendAssignmentEmail(crmContactData, crmSelectedUserId, session.nome+' '+session.cognome, handoverNote||null);
-    }
+
     closeModal('modal-assegna-bg');
     if(G('assegna-note-handover')) G('assegna-note-handover').value='';
-    toast('Contatto assegnato!','success');
-    await openCrmContatto(crmContactId);
+    toast('Contatto assegnato a '+(u?u.nome+' '+u.cognome:'')+'!','success');
+
+    // Ricarica scheda; se non ho piu accesso torna alla lista
+    try { await openCrmContatto(crmContactId); }
+    catch(e2) { showView('crm'); await loadMieAttivita(); }
   } catch(e){ toast('Errore: '+e.message,'error'); }
   finally{ hideLoad(); }
 }
