@@ -2,6 +2,8 @@
 <html lang="it">
 <head>
 <meta charset="UTF-8">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&display=swap" rel="stylesheet">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
@@ -627,6 +629,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 .ed-color-row{display:flex;gap:6px;align-items:center;}
 .ed-color-row input[type=color]{width:34px;height:30px;border:1px solid var(--border);border-radius:4px;cursor:pointer;padding:1px;flex-shrink:0;}
 .tb-color-lbl{display:flex;align-items:center;gap:3px;cursor:pointer;font-size:11px;font-weight:700;color:var(--text-secondary);}
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&display=swap');
 
 /* ══════════════════════════════════════════════
    STORICO NOTE
@@ -1136,6 +1139,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
                 <button class="btn-crm btn-crm-outline btn-crm-sm" onclick="comAddBlocco('testo')">+ Testo</button>
                 <button class="btn-crm btn-crm-outline btn-crm-sm" onclick="comAddBlocco('bottone')">+ Bottone</button>
                 <button class="btn-crm btn-crm-outline btn-crm-sm" onclick="comAddBlocco('immagine')">+ Immagine</button>
+                <button class="btn-crm btn-crm-outline btn-crm-sm" onclick="comAddBlocco('citazione')">+ Citazione</button>
                 <button class="btn-crm btn-crm-outline btn-crm-sm" onclick="comAddBlocco('separatore')">+ Sep.</button>
               </div>
             </div>
@@ -1224,6 +1228,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
                   <button class="btn-crm btn-crm-outline btn-crm-sm" onclick="solAddBlocco('testo')">+ Testo</button>
                   <button class="btn-crm btn-crm-outline btn-crm-sm" onclick="solAddBlocco('bottone')">+ Bottone</button>
                   <button class="btn-crm btn-crm-outline btn-crm-sm" onclick="solAddBlocco('immagine')">+ Immagine</button>
+                  <button class="btn-crm btn-crm-outline btn-crm-sm" onclick="solAddBlocco('citazione')">+ Citazione</button>
                   <button class="btn-crm btn-crm-outline btn-crm-sm" onclick="solAddBlocco('separatore')">+ Sep.</button>
                 </div>
               </div>
@@ -4543,6 +4548,7 @@ var BLOCCO_DEFAULTS = {
   bottone:    { tipo:'bottone',   testo:'Clicca qui', url:'',        color:'#005CA9', textColor:'#ffffff', align:'center', radius:8 },
   immagine:   { tipo:'immagine',  src:'', alt:'', align:'center',   width:'100%' },
   separatore: { tipo:'separatore', color:'#E5E7EB', spessore:1 },
+  citazione:  { tipo:'citazione', html:'Scrivi qui la citazione...' },
 };
 
 function edDeepCopy(obj){ return JSON.parse(JSON.stringify(obj)); }
@@ -4578,17 +4584,80 @@ function edSyncDOM(prefix){
 }
 
 /* ── Toolbar ─────────────────────────────────────── */
-function edApplyStyle(style){
-  var sel=window.getSelection();
-  if(!sel||sel.rangeCount===0) return;
-  var r=sel.getRangeAt(0);
-  if(r.collapsed) return;
-  var sp=document.createElement('span');
-  sp.setAttribute('style',style);
-  try{r.surroundContents(sp);}
-  catch(e){var f=r.extractContents();sp.appendChild(f);r.insertNode(sp);}
+// Salva/ripristina selezione (persa quando si clicca toolbar)
+var _edSavedRange = null;
+var _edSavedPrefix = null;
+
+function edSaveSelection() {
+  var sel = window.getSelection();
+  if(sel && sel.rangeCount > 0) {
+    _edSavedRange = sel.getRangeAt(0).cloneRange();
+    // salva anche quale editor era attivo
+    var ae = document.activeElement;
+    var ed = ae && ae.closest ? ae.closest('.ed-content') : null;
+    if(ed) _edSavedPrefix = ed.id.indexOf('sol-ed')===0 ? 'sol' : 'com';
+  }
+}
+
+function edRestoreSelection() {
+  if(!_edSavedRange) return false;
+  var sel = window.getSelection();
+  sel.removeAllRanges();
+  sel.addRange(_edSavedRange);
+  return true;
+}
+
+function edApplyStyle(style) {
+  // Ripristina selezione salvata (persa al click sulla toolbar)
+  if(!edRestoreSelection()) return;
+  var sel = window.getSelection();
+  if(!sel || sel.rangeCount === 0) return;
+  var r = sel.getRangeAt(0);
+  if(r.collapsed) {
+    // Nessuna selezione: toast di aiuto
+    toast('Seleziona prima il testo da formattare', 'error');
+    return;
+  }
+  var sp = document.createElement('span');
+  sp.setAttribute('style', style);
+  try {
+    r.surroundContents(sp);
+  } catch(e) {
+    var f = r.extractContents();
+    sp.appendChild(f);
+    r.insertNode(sp);
+  }
+  // Deseleziona
+  sel.removeAllRanges();
+  _edSavedRange = null;
   edSyncActiveEditor();
-  setTimeout(edRefreshActive,150);
+  setTimeout(edRefreshActive, 150);
+}
+
+function edInsertCitazione(prefix, i) {
+  // Inserisce un blocco citazione nel contenteditable attivo
+  var ed = document.getElementById(prefix+'-ed-'+i);
+  if(!ed) return;
+  ed.focus();
+  var q = document.createElement('blockquote');
+  q.setAttribute('style', 'border-left:4px solid #005CA9;margin:12px 0;padding:10px 16px;background:#F0F7FF;color:#1E40AF;font-style:italic;border-radius:0 6px 6px 0;');
+  q.innerHTML = 'Scrivi qui la citazione...';
+  var sel = window.getSelection();
+  if(sel && sel.rangeCount > 0) {
+    var r = sel.getRangeAt(0);
+    r.collapse(false);
+    r.insertNode(q);
+    // Posiziona cursore dentro la citazione
+    r.selectNodeContents(q);
+    r.collapse(false);
+    sel.removeAllRanges();
+    sel.addRange(r);
+  } else {
+    ed.appendChild(q);
+  }
+  var arr = prefix==='com' ? comBlocchi : solBlocchi;
+  if(arr[i]) arr[i].html = ed.innerHTML;
+  setTimeout(prefix==='com' ? comRefreshPreview : solRefreshPreview, 200);
 }
 
 function edSyncActiveEditor(){
@@ -4616,15 +4685,23 @@ function edExec(cmd,val){
 }
 
 function edToolbarHtml(prefix,i){
-  return '<div class="com-blocco-toolbar" onmousedown="event.preventDefault()">'
-    +'<select class="tb-select" title="Font" onchange="edApplyStyle(\'font-family:\'+this.value+\';\');this.selectedIndex=0;">'
+  var pq = "edInsertCitazione('"+prefix+"',"+i+")";
+  return '<div class="com-blocco-toolbar">'
+    // Font: salva selezione PRIMA del click (onmousedown)
+    +'<select class="tb-select" title="Font"'
+    +' onmousedown="edSaveSelection()"'
+    +' onchange="edApplyStyle(\'font-family:\'+this.value+\';\');this.selectedIndex=0;">'
     +'<option value="">Font</option>'
+    +'<option value="Outfit,Inter,sans-serif">Outfit</option>'
     +'<option value="Inter,Arial,sans-serif">Inter</option>'
     +'<option value="Arial,sans-serif">Arial</option>'
     +'<option value="Georgia,serif">Georgia</option>'
-    +'<option value=\'&apos;Courier New&apos;,monospace\'>Mono</option>'
+    +'<option value="\'Courier New\',monospace">Mono</option>'
     +'</select>'
-    +'<select class="tb-select" title="Dimensione (px)" onchange="edApplyStyle(\'font-size:\'+this.value+\'px;\');this.selectedIndex=0;">'
+    // Dimensione: salva selezione PRIMA del click
+    +'<select class="tb-select" title="Dimensione (px)"'
+    +' onmousedown="edSaveSelection()"'
+    +' onchange="edApplyStyle(\'font-size:\'+this.value+\'px;\');this.selectedIndex=0;">'
     +'<option value="">px</option>'
     +'<option value="11">11</option><option value="12">12</option><option value="13">13</option>'
     +'<option value="14">14</option><option value="15">15</option><option value="16">16</option>'
@@ -4632,27 +4709,29 @@ function edToolbarHtml(prefix,i){
     +'<option value="28">28</option><option value="32">32</option><option value="36">36</option>'
     +'</select>'
     +'<span class="tb-sep"></span>'
-    +'<button class="tb-btn" onclick="edExec(\'bold\')" title="Grassetto"><b>B</b></button>'
-    +'<button class="tb-btn" onclick="edExec(\'italic\')" title="Corsivo"><i>I</i></button>'
-    +'<button class="tb-btn" onclick="edExec(\'underline\')" title="Sottolineato"><u>U</u></button>'
+    +'<button class="tb-btn" onmousedown="event.preventDefault();edExec(\'bold\')" title="Grassetto"><b>B</b></button>'
+    +'<button class="tb-btn" onmousedown="event.preventDefault();edExec(\'italic\')" title="Corsivo"><i>I</i></button>'
+    +'<button class="tb-btn" onmousedown="event.preventDefault();edExec(\'underline\')" title="Sottolineato"><u>U</u></button>'
     +'<span class="tb-sep"></span>'
-    +'<button class="tb-btn" onclick="edExec(\'justifyLeft\')"   title="Sinistra">&#8676;</button>'
-    +'<button class="tb-btn" onclick="edExec(\'justifyCenter\')" title="Centro">&#9644;</button>'
-    +'<button class="tb-btn" onclick="edExec(\'justifyRight\')"  title="Destra">&#8677;</button>'
-    +'<button class="tb-btn" onclick="edExec(\'justifyFull\')"   title="Giustifica">=</button>'
+    +'<button class="tb-btn" onmousedown="event.preventDefault();edExec(\'justifyLeft\')"   title="Sinistra">&#8676;</button>'
+    +'<button class="tb-btn" onmousedown="event.preventDefault();edExec(\'justifyCenter\')" title="Centro">&#9644;</button>'
+    +'<button class="tb-btn" onmousedown="event.preventDefault();edExec(\'justifyRight\')"  title="Destra">&#8677;</button>'
+    +'<button class="tb-btn" onmousedown="event.preventDefault();edExec(\'justifyFull\')"   title="Giustifica">=</button>'
     +'<span class="tb-sep"></span>'
-    +'<label class="tb-color-lbl" title="Colore testo">A'
-    +'<input type="color" class="tb-color" value="#374151" oninput="edApplyStyle(\'color:\'+this.value+\';\')" title="Colore testo"></label>'
-    +'<label class="tb-color-lbl" title="Sfondo testo">H'
-    +'<input type="color" class="tb-color" value="#FFFF00" oninput="edApplyStyle(\'background-color:\'+this.value+\';\')" title="Sfondo testo"></label>'
+    +'<label class="tb-color-lbl" title="Colore testo" onmousedown="edSaveSelection()">A'
+    +'<input type="color" class="tb-color" value="#374151" onchange="edApplyStyle(\'color:\'+this.value+\';\')" title="Colore testo"></label>'
+    +'<label class="tb-color-lbl" title="Sfondo testo" onmousedown="edSaveSelection()">H'
+    +'<input type="color" class="tb-color" value="#FFFF00" onchange="edApplyStyle(\'background-color:\'+this.value+\';\')" title="Sfondo"></label>'
     +'<span class="tb-sep"></span>'
-    +'<button class="tb-btn" onclick="edExec(\'insertUnorderedList\')" title="Elenco">&#8226;</button>'
-    +'<button class="tb-btn" onclick="edExec(\'insertOrderedList\')"   title="Numerato">1.</button>'
-    +'<button class="tb-btn" onclick="edExec(\'removeFormat\')" title="Rimuovi formato" style="color:var(--danger);font-size:10px;">&#10006;</button>'
+    +'<button class="tb-btn" onmousedown="event.preventDefault();edExec(\'insertUnorderedList\')" title="Elenco">&#8226;</button>'
+    +'<button class="tb-btn" onmousedown="event.preventDefault();edExec(\'insertOrderedList\')"   title="Numerato">1.</button>'
+    +'<button class="tb-btn" onmousedown="event.preventDefault();"+pq+" title=\"Citazione\">&#10077;</button>'
+    +'<button class="tb-btn" onmousedown="event.preventDefault();edExec(\'removeFormat\')" title="Rimuovi formato" style="color:var(--danger);font-size:10px;">&#10006;</button>'
     +'</div>'
     +'<div class="ed-content" id="'+prefix+'-ed-'+i+'" data-idx="'+i+'" contenteditable="true" '
-    +'data-placeholder="Scrivi qui… usa {{nome_azienda}} per le variabili" '
-    +'oninput="(function(el,px){edSyncDOM(px);})(this,\''+prefix+'\');" '
+    +'data-placeholder="Seleziona il testo poi usa la toolbar per formattarlo" '
+    +'onmouseup="edSaveSelection()" onkeyup="edSaveSelection()"'
+    +' oninput="(function(el,px){edSyncDOM(px);})(this,\''+prefix+'\');" '
     +'onfocus="if(\''+prefix+'\'===\'com\')comActiveBloccoIdx='+i+';else solActiveBloccoIdx='+i+';"'
     +'></div>';
 }
@@ -4670,7 +4749,7 @@ function edRender(prefix){
 
   var html=arr.map(function(b,i){
     var isActive=(aIdx===i);
-    var lbl={titolo:'Titolo',testo:'Testo',bottone:'Bottone',immagine:'Immagine',separatore:'Separatore'}[b.tipo]||b.tipo;
+    var lbl={titolo:'Titolo',testo:'Testo',bottone:'Bottone',immagine:'Immagine',separatore:'Separatore',citazione:'Citazione'}[b.tipo]||b.tipo;
     var body='';
 
     if(b.tipo==='titolo'||b.tipo==='testo'){
@@ -4706,6 +4785,14 @@ function edRender(prefix){
         +'<option value="left"'+(b.align==='left'?' selected':'')+'>Sinistra</option>'
         +'<option value="right"'+(b.align==='right'?' selected':'')+'>Destra</option></select></div>'
         +(b.src?'<div style="grid-column:1/-1"><img src="'+esc(b.src)+'" style="max-height:80px;max-width:100%;border-radius:6px;border:1px solid var(--border);"></div>':'')
+        +'</div>';
+
+
+    }else if(b.tipo==='citazione'){
+      var pf_q="'"+prefix+"'";
+      var upd_q='(function(v){var a='+pf_q+'===\'com\'?comBlocchi:solBlocchi;a['+i+'].html=v;setTimeout('+pf_q+'===\'com\'?comRefreshPreview:solRefreshPreview,300);})';
+      body='<div style="padding:8px;">'
+        +'<textarea style="width:100%;box-sizing:border-box;min-height:72px;border:none;resize:vertical;font-style:italic;font-size:14px;color:#1E40AF;background:#F0F7FF;border-left:4px solid #005CA9;padding:10px 14px;border-radius:0 6px 6px 0;font-family:Inter,Arial,sans-serif;outline:none;" oninput="'+upd_q+'(this.value)">'+esc(b.html||'Scrivi la citazione...')+'</textarea>'
         +'</div>';
 
     }else if(b.tipo==='separatore'){
@@ -4811,6 +4898,7 @@ function edBlocchiToHtml(arr,vars){
     if(b.tipo==='testo')      return '<div style="font-family:Inter,Arial,sans-serif;font-size:15px;line-height:1.7;color:#374151;margin:0 0 16px;">'+clean(b.html)+'</div>';
     if(b.tipo==='bottone')    return '<div style="text-align:'+(b.align||'center')+';margin:20px 0;"><a href="'+rv(b.url||'#')+'" style="background:'+(b.color||'#005CA9')+';color:'+(b.textColor||'#fff')+';padding:12px 30px;border-radius:'+(b.radius||8)+'px;text-decoration:none;font-size:15px;font-weight:700;display:inline-block;font-family:Inter,Arial,sans-serif;">'+rv(b.testo||'Clicca qui')+'</a></div>';
     if(b.tipo==='immagine')   return b.src?'<div style="text-align:'+(b.align||'center')+';margin:0 0 16px;"><img src="'+b.src+'" alt="'+(b.alt||'')+'" style="max-width:'+(b.width||'100%')+';height:auto;display:inline-block;border-radius:4px;"/></div>':'';
+    if(b.tipo==='citazione')   return '<blockquote style="border-left:4px solid #005CA9;margin:16px 0;padding:12px 18px;background:#F0F7FF;color:#1E40AF;font-style:italic;border-radius:0 8px 8px 0;font-family:Inter,Arial,sans-serif;font-size:15px;line-height:1.7;">'+rv(b.html||'')+'</blockquote>';
     if(b.tipo==='separatore') return '<hr style="border:none;border-top:1px solid '+(b.color||'#E5E7EB')+';margin:20px 0;"/>';
     return '';
   }).join('\n');
