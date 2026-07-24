@@ -606,6 +606,44 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 .btn-select-mode{display:none;align-items:center;gap:5px;padding:7px 14px;border-radius:var(--radius-pill);font-size:12px;font-weight:700;cursor:pointer;border:1.5px solid var(--border-strong);background:var(--surface);color:var(--text-secondary);font-family:var(--font);transition:var(--tr);flex-shrink:0;white-space:nowrap;}
 .btn-select-mode:hover{border-color:var(--primary);color:var(--primary);}
 .btn-select-mode.active{background:var(--primary);color:#fff;border-color:var(--primary);}
+
+/* ══════════════════════════════════════════════
+   COMUNICAZIONE
+══════════════════════════════════════════════ */
+#view-comunicazione{overflow-y:auto;background:var(--bg);}
+.com-wrap{padding:16px;max-width:1200px;margin:0 auto;padding-bottom:40px;}
+.com-header{margin-bottom:16px;}
+.com-header-title{font-size:18px;font-weight:800;color:var(--text);display:flex;align-items:center;gap:8px;}
+.com-header-sub{font-size:13px;color:var(--text-secondary);margin-top:3px;}
+.com-layout{display:grid;grid-template-columns:300px 1fr;gap:14px;align-items:start;}
+.com-sidebar{display:flex;flex-direction:column;gap:12px;}
+.com-editor-col{display:flex;flex-direction:column;gap:12px;}
+.com-card{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius-md);padding:14px 16px;}
+.com-card-title{font-size:11px;font-weight:800;color:var(--primary);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px;}
+.com-stati-grid{display:flex;flex-direction:column;gap:6px;}
+.com-stato-chk{display:flex;align-items:center;gap:8px;cursor:pointer;font-size:12px;font-weight:600;color:var(--text);}
+.com-stato-chk input{accent-color:var(--primary);width:14px;height:14px;cursor:pointer;flex-shrink:0;}
+.com-stato-pill{padding:2px 9px;border-radius:20px;font-size:11px;font-weight:700;}
+.com-stato-pill.lavorazione{background:#FEF3C7;color:#92400E;}
+.com-stato-pill.positivo{background:#DCFCE7;color:#166534;}
+.com-stato-pill.negativo{background:#FEE2E2;color:#991B1B;}
+.com-dest-count{margin-top:10px;padding:8px 10px;background:var(--surface2);border-radius:6px;font-size:12px;font-weight:600;color:var(--text-secondary);display:flex;align-items:center;gap:6px;}
+.com-vars{display:flex;flex-wrap:wrap;gap:5px;}
+.com-var-chip{display:inline-block;background:#EFF6FF;color:#1D4ED8;border:1px solid #BFDBFE;border-radius:4px;padding:3px 7px;font-size:11px;font-family:monospace;cursor:pointer;transition:var(--tr);}
+.com-var-chip:hover{background:#DBEAFE;}
+/* blocchi editor */
+.com-blocco{border:1.5px solid var(--border);border-radius:8px;margin-bottom:8px;overflow:hidden;background:var(--surface);}
+.com-blocco-hdr{display:flex;align-items:center;gap:8px;padding:7px 10px;background:var(--surface2);border-bottom:1px solid var(--border);font-size:11px;font-weight:700;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.3px;}
+.com-blocco-hdr .com-b-actions{margin-left:auto;display:flex;gap:4px;}
+.com-blocco-hdr .com-b-btn{background:none;border:none;cursor:pointer;padding:2px 5px;border-radius:4px;color:var(--text-tertiary);font-size:13px;line-height:1;}
+.com-blocco-hdr .com-b-btn:hover{background:var(--border);color:var(--text);}
+.com-blocco-body{padding:10px;}
+.com-blocco-body textarea,.com-blocco-body input[type=text],.com-blocco-body input[type=url]{width:100%;box-sizing:border-box;border:1.5px solid var(--border);border-radius:6px;padding:8px 10px;font-size:13px;font-family:var(--font);resize:vertical;background:var(--bg);color:var(--text);outline:none;}
+.com-blocco-body textarea:focus,.com-blocco-body input:focus{border-color:var(--primary);}
+.com-blocco.active-focus{border-color:var(--primary);}
+@media(max-width:700px){
+  .com-layout{grid-template-columns:1fr;}
+}
 </style>
   <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
 </head>
@@ -699,6 +737,10 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
       <button class="crm-tab" id="tab-admin" onclick="crmTab('admin')" style="display:none;">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="flex-shrink:0"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
         Admin
+      </button>
+      <button class="crm-tab" id="tab-comunicazione" onclick="crmTab('comunicazione')" style="display:none;">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="flex-shrink:0"><rect x="2" y="4" width="20" height="16" rx="2"/><polyline points="2,4 12,13 22,4"/></svg>
+        Comunicazione
       </button>
     </nav>
   </div>
@@ -920,6 +962,121 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
   </div>
 
   <!-- ── VIEW: ADMIN ── -->
+  <!-- VIEW: COMUNICAZIONE (solo admin) -->
+  <div class="view" id="view-comunicazione">
+    <div class="com-wrap">
+
+      <!-- Intestazione -->
+      <div class="com-header">
+        <div>
+          <div class="com-header-title">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="2" y="4" width="20" height="16" rx="2"/><polyline points="2,4 12,13 22,4"/></svg>
+            Comunicazione
+          </div>
+          <div class="com-header-sub">Crea e invia email personalizzate ai contatti CRM per stato</div>
+        </div>
+      </div>
+
+      <div class="com-layout">
+
+        <!-- COLONNA SINISTRA: configurazione -->
+        <div class="com-sidebar">
+
+          <!-- Oggetto -->
+          <div class="com-card">
+            <div class="com-card-title">Oggetto email</div>
+            <input type="text" class="crm-input" id="com-oggetto" placeholder="Es. Aggiornamento sulla tua pratica" style="font-size:13px;">
+          </div>
+
+          <!-- Destinatari per stato -->
+          <div class="com-card">
+            <div class="com-card-title">Destinatari — filtra per stato</div>
+            <div class="com-stati-grid" id="com-stati-grid">
+              <label class="com-stato-chk"><input type="checkbox" value="da_contattare" onchange="comAggiornaDest()"><span class="com-stato-pill lavorazione">Da contattare</span></label>
+              <label class="com-stato-chk"><input type="checkbox" value="assegnato" onchange="comAggiornaDest()"><span class="com-stato-pill lavorazione">Assegnato</span></label>
+              <label class="com-stato-chk"><input type="checkbox" value="chiamata_effettuata" onchange="comAggiornaDest()"><span class="com-stato-pill lavorazione">Chiamata effettuata</span></label>
+              <label class="com-stato-chk"><input type="checkbox" value="appuntamento_fissato" onchange="comAggiornaDest()"><span class="com-stato-pill lavorazione">Appuntamento fissato</span></label>
+              <label class="com-stato-chk"><input type="checkbox" value="appuntamento_completato" onchange="comAggiornaDest()"><span class="com-stato-pill lavorazione">App. completato</span></label>
+              <label class="com-stato-chk"><input type="checkbox" value="in_lavorazione" onchange="comAggiornaDest()"><span class="com-stato-pill lavorazione">In lavorazione</span></label>
+              <label class="com-stato-chk"><input type="checkbox" value="chiuso_positivo" onchange="comAggiornaDest()"><span class="com-stato-pill positivo">Chiuso positivo</span></label>
+              <label class="com-stato-chk"><input type="checkbox" value="chiuso_negativo" onchange="comAggiornaDest()"><span class="com-stato-pill negativo">Chiuso negativo</span></label>
+            </div>
+            <div class="com-dest-count" id="com-dest-count">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+              Seleziona almeno uno stato
+            </div>
+          </div>
+
+          <!-- Logo -->
+          <div class="com-card">
+            <div class="com-card-title">Logo email</div>
+            <div style="display:flex;gap:8px;align-items:center;">
+              <input type="url" class="crm-input" id="com-logo-url" placeholder="URL logo (opzionale)" style="flex:1;font-size:12px;">
+              <button class="btn-crm btn-crm-outline btn-crm-sm" onclick="comPreviewLogo()">Anteprima</button>
+            </div>
+            <div id="com-logo-preview" style="margin-top:8px;display:none;">
+              <img id="com-logo-img" src="" style="height:36px;max-width:160px;object-fit:contain;border:1px solid var(--border);border-radius:6px;padding:4px;background:#fff;">
+            </div>
+          </div>
+
+          <!-- Variabili -->
+          <div class="com-card">
+            <div class="com-card-title">Variabili disponibili</div>
+            <div class="com-vars">
+              <span class="com-var-chip" onclick="comInserisciVar('{{nome_azienda}}')">{{nome_azienda}}</span>
+              <span class="com-var-chip" onclick="comInserisciVar('{{referente}}')">{{referente}}</span>
+              <span class="com-var-chip" onclick="comInserisciVar('{{telefono}}')">{{telefono}}</span>
+              <span class="com-var-chip" onclick="comInserisciVar('{{email_contatto}}')">{{email_contatto}}</span>
+              <span class="com-var-chip" onclick="comInserisciVar('{{stato}}')">{{stato}}</span>
+              <span class="com-var-chip" onclick="comInserisciVar('{{assegnato_a}}')">{{assegnato_a}}</span>
+              <span class="com-var-chip" onclick="comInserisciVar('{{data_creazione}}')">{{data_creazione}}</span>
+              <span class="com-var-chip" onclick="comInserisciVar('{{fonte}}')">{{fonte}}</span>
+            </div>
+            <p style="font-size:11px;color:var(--text-tertiary);margin:8px 0 0;">Clicca una variabile per inserirla nel blocco testo attivo</p>
+          </div>
+
+          <!-- Invia -->
+          <button class="btn-crm btn-crm-primary" id="com-btn-invia" onclick="comInvia()" style="width:100%;justify-content:center;padding:13px;font-size:14px;" disabled>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+            Invia a <span id="com-btn-count">0</span> operatori
+          </button>
+          <div id="com-send-result" style="margin-top:8px;font-size:12px;text-align:center;display:none;"></div>
+
+        </div>
+
+        <!-- COLONNA DESTRA: editor blocchi -->
+        <div class="com-editor-col">
+          <div class="com-card" style="flex:1;">
+            <div class="com-card-title" style="display:flex;justify-content:space-between;align-items:center;">
+              <span>Corpo email</span>
+              <div style="display:flex;gap:6px;">
+                <button class="btn-crm btn-crm-outline btn-crm-sm" onclick="comAddBlocco('titolo')">+ Titolo</button>
+                <button class="btn-crm btn-crm-outline btn-crm-sm" onclick="comAddBlocco('testo')">+ Testo</button>
+                <button class="btn-crm btn-crm-outline btn-crm-sm" onclick="comAddBlocco('bottone')">+ Bottone</button>
+                <button class="btn-crm btn-crm-outline btn-crm-sm" onclick="comAddBlocco('separatore')">+ Sep.</button>
+              </div>
+            </div>
+            <div id="com-blocchi" style="min-height:200px;"></div>
+            <div id="com-empty-hint" style="padding:32px;text-align:center;color:var(--text-tertiary);font-size:13px;">
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="display:block;margin:0 auto 10px;opacity:.3"><rect x="2" y="4" width="20" height="16" rx="2"/><polyline points="2,4 12,13 22,4"/></svg>
+              Aggiungi un blocco per comporre l'email
+            </div>
+          </div>
+
+          <!-- Anteprima -->
+          <div class="com-card" style="margin-top:0;">
+            <div class="com-card-title" style="display:flex;justify-content:space-between;align-items:center;">
+              <span>Anteprima</span>
+              <button class="btn-crm btn-crm-outline btn-crm-sm" onclick="comRefreshPreview()">Aggiorna</button>
+            </div>
+            <div id="com-preview-frame" style="border:1px solid var(--border);border-radius:8px;overflow:hidden;background:#F0F2F5;min-height:200px;"></div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
   <div class="view" id="view-admin">
     <div class="admin-wrap">
 
@@ -1511,6 +1668,8 @@ function startApp(){
   if(_isAdmin){
     var tabAdmin = G('tab-admin');
     if(tabAdmin) tabAdmin.style.display='flex';
+    var tabComun = G('tab-comunicazione');
+    if(tabComun) tabComun.style.display='flex';
   }
   // bottone Seleziona: visibile solo admin
   var _btnSel = G('btn-select-mode');
@@ -2181,7 +2340,7 @@ async function insertActivityLog(contactId, activityType, description, metadata)
    CRM — NAV TABS
 ══════════════════════════════════════════════════ */
 function crmTab(tab){
-  ['crm','archivio','admin'].forEach(function(t){
+  ['crm','archivio','admin','comunicazione'].forEach(function(t){
     var el = G('tab-'+t);
     if(el) el.classList.toggle('active', t===tab);
   });
@@ -2190,6 +2349,9 @@ function crmTab(tab){
   } else if(tab==='admin'){
     showView('admin');
     loadAdminDashboard();
+  } else if(tab==='comunicazione'){
+    showView('comunicazione');
+    loadComunicazione();
   } else {
     crmPrevView = 'crm';
     showView('crm');
@@ -3634,6 +3796,274 @@ async function adminTestEmail() {
   } finally {
     if (btn) btn.disabled = false;
     setTimeout(function(){ if(res) { res.textContent=''; res.style.color=''; } }, 6000);
+  }
+}
+
+/* ══════════════════════════════════════════════════
+   COMUNICAZIONE — editor blocchi + invio massivo
+══════════════════════════════════════════════════ */
+var comBlocchi = [];
+var comActiveBloccoIdx = null;
+var comDestinatari = [];
+
+var COM_STATI_LABEL = {
+  'da_contattare':           'Da contattare',
+  'assegnato':               'Assegnato',
+  'chiamata_effettuata':     'Chiamata effettuata',
+  'appuntamento_fissato':    'Appuntamento fissato',
+  'appuntamento_completato': 'Appuntamento completato',
+  'in_lavorazione':          'In lavorazione',
+  'chiuso_positivo':         'Chiuso positivo',
+  'chiuso_negativo':         'Chiuso negativo',
+};
+
+function loadComunicazione() {
+  // ripristina logo dal localStorage
+  var logoInp = G('com-logo-url');
+  if (logoInp && _emailLogoUrl) { logoInp.value = _emailLogoUrl; comPreviewLogo(); }
+  comRenderBlocchi();
+  comAggiornaDest();
+}
+
+/* ── Destinatari ─────────────────────────────── */
+async function comAggiornaDest() {
+  var checked = [];
+  document.querySelectorAll('#com-stati-grid input[type=checkbox]:checked').forEach(function(cb){ checked.push(cb.value); });
+  var countEl = G('com-dest-count');
+  var btnInvia = G('com-btn-invia');
+  var btnCount = G('com-btn-count');
+
+  if (!checked.length) {
+    comDestinatari = [];
+    if (countEl) countEl.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg> Seleziona almeno uno stato';
+    if (btnInvia) btnInvia.disabled = true;
+    if (btnCount) btnCount.textContent = '0';
+    return;
+  }
+
+  if (countEl) countEl.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> Caricamento…';
+
+  try {
+    // Carica contatti con gli stati selezionati
+    var statiQS = checked.map(function(s){ return 'status.eq.'+s; }).join(',');
+    var r = await fetch(SB+'/rest/v1/crm_contacts?or=('+statiQS+')&select=id,company_name,company_source,status,assigned_id,creator_id,contact_name,contact_phone,contact_email,created_at', {headers:H()});
+    if (!r.ok) throw new Error('HTTP '+r.status);
+    var contacts = await r.json();
+
+    // Carica utenti per nome
+    var allUids = [...new Set(contacts.map(function(c){ return c.assigned_id||c.creator_id; }).filter(Boolean))];
+    var usersMap = {};
+    if (allUids.length) {
+      var ur = await fetch(SB+'/rest/v1/cna_users?id=in.('+allUids.map(encodeURIComponent).join(',')+')'+'&select=id,nome,cognome,email', {headers:H()});
+      if (ur.ok) { var us = await ur.json(); us.forEach(function(u){ usersMap[u.id]=u; }); }
+    }
+
+    // Costruisce lista destinatari (un record per ogni contatto con email operatore)
+    comDestinatari = contacts.map(function(c) {
+      var uid = c.assigned_id || c.creator_id;
+      var u = usersMap[uid] || {};
+      return {
+        contact_id: c.id,
+        company_name: c.company_name || '',
+        contact_name: c.contact_name || '',
+        contact_phone: c.contact_phone || '',
+        contact_email: c.contact_email || '',
+        status: c.status || '',
+        source: c.company_source || '',
+        created_at: c.created_at || '',
+        operatore_nome: u.nome && u.cognome ? u.nome+' '+u.cognome : '',
+        operatore_email: u.email || '',
+      };
+    }).filter(function(d){ return d.operatore_email; });
+
+    var n = comDestinatari.length;
+    if (countEl) countEl.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg> '
+      + n + ' operatori trovati (' + contacts.length + ' contatti)';
+    if (btnInvia) btnInvia.disabled = n === 0;
+    if (btnCount) btnCount.textContent = n;
+  } catch(e) {
+    if (countEl) countEl.innerHTML = 'Errore: '+e.message;
+    comDestinatari = [];
+  }
+}
+
+/* ── Logo ────────────────────────────────────── */
+function comPreviewLogo() {
+  var url = (G('com-logo-url')||{}).value||'';
+  var prev = G('com-logo-preview'); var img = G('com-logo-img');
+  if (!prev||!img) return;
+  if (url) { img.src=url; prev.style.display='block'; } else { prev.style.display='none'; }
+}
+
+/* ── Editor blocchi ──────────────────────────── */
+function comAddBlocco(tipo) {
+  var defaults = {
+    titolo:     { tipo:'titolo', testo:'Titolo', livello:'h2' },
+    testo:      { tipo:'testo',  html:'' },
+    bottone:    { tipo:'bottone', testo:'Clicca qui', url:'' },
+    separatore: { tipo:'separatore' },
+  };
+  comBlocchi.push(Object.assign({}, defaults[tipo]||{tipo:tipo}));
+  comActiveBloccoIdx = comBlocchi.length - 1;
+  comRenderBlocchi();
+  comRefreshPreview();
+}
+
+function comRenderBlocchi() {
+  var wrap = G('com-blocchi');
+  var hint = G('com-empty-hint');
+  if (!wrap) return;
+  if (!comBlocchi.length) { wrap.innerHTML=''; if(hint) hint.style.display='block'; return; }
+  if (hint) hint.style.display='none';
+
+  wrap.innerHTML = comBlocchi.map(function(b, i) {
+    var isActive = (comActiveBloccoIdx === i);
+    var tipoLabel = {titolo:'Titolo',testo:'Testo',bottone:'Bottone',separatore:'Separatore'}[b.tipo]||b.tipo;
+    var bodyHtml = '';
+    if (b.tipo === 'titolo') {
+      bodyHtml = '<input type="text" value="'+esc(b.testo||'')+'" placeholder="Testo del titolo" oninput="comUpdateBlocco('+i+',\'testo\',this.value)" onfocus="comActiveBloccoIdx='+i+'">';
+    } else if (b.tipo === 'testo') {
+      bodyHtml = '<textarea rows="4" placeholder="Testo del paragrafo. Puoi usare le variabili es: Ciao, ti scriviamo riguardo {{nome_azienda}}" oninput="comUpdateBlocco('+i+',\'html\',this.value)" onfocus="comActiveBloccoIdx='+i+'">'+esc(b.html||'')+'</textarea>';
+    } else if (b.tipo === 'bottone') {
+      bodyHtml = '<input type="text" value="'+esc(b.testo||'')+'" placeholder="Testo bottone" oninput="comUpdateBlocco('+i+',\'testo\',this.value)" style="margin-bottom:6px;" onfocus="comActiveBloccoIdx='+i+'">'
+               + '<input type="url" value="'+esc(b.url||'')+'" placeholder="URL destinazione (es. https://...)" oninput="comUpdateBlocco('+i+',\'url\',this.value)">';
+    } else if (b.tipo === 'separatore') {
+      bodyHtml = '<div style="height:1px;background:var(--border);margin:4px 0;"></div>';
+    }
+    return '<div class="com-blocco'+(isActive?' active-focus':'')+'" onclick="comActiveBloccoIdx='+i+';comRenderBlocchi();">'
+      +'<div class="com-blocco-hdr">'+tipoLabel
+      +'<div class="com-b-actions">'
+      +(i>0?'<button class="com-b-btn" onclick="event.stopPropagation();comMoveBlocco('+i+',-1)" title="Su">↑</button>':'')
+      +(i<comBlocchi.length-1?'<button class="com-b-btn" onclick="event.stopPropagation();comMoveBlocco('+i+',1)" title="Giù">↓</button>':'')
+      +'<button class="com-b-btn" onclick="event.stopPropagation();comDeleteBlocco('+i+')" title="Elimina" style="color:var(--danger)">✕</button>'
+      +'</div></div>'
+      +'<div class="com-blocco-body">'+bodyHtml+'</div>'
+      +'</div>';
+  }).join('');
+}
+
+function comUpdateBlocco(i, field, val) {
+  if (comBlocchi[i]) comBlocchi[i][field] = val;
+  setTimeout(comRefreshPreview, 300);
+}
+
+function comDeleteBlocco(i) {
+  comBlocchi.splice(i, 1);
+  comActiveBloccoIdx = null;
+  comRenderBlocchi();
+  comRefreshPreview();
+}
+
+function comMoveBlocco(i, dir) {
+  var j = i + dir;
+  if (j < 0 || j >= comBlocchi.length) return;
+  var tmp = comBlocchi[i]; comBlocchi[i] = comBlocchi[j]; comBlocchi[j] = tmp;
+  comActiveBloccoIdx = j;
+  comRenderBlocchi();
+  comRefreshPreview();
+}
+
+/* ── Variabili ───────────────────────────────── */
+function comInserisciVar(varStr) {
+  // Cerca il textarea/input attivo nel blocco selezionato
+  if (comActiveBloccoIdx === null) { toast('Seleziona prima un blocco testo', 'error'); return; }
+  var b = comBlocchi[comActiveBloccoIdx];
+  if (!b) return;
+  if (b.tipo === 'testo') {
+    b.html = (b.html||'') + varStr;
+  } else if (b.tipo === 'titolo') {
+    b.testo = (b.testo||'') + varStr;
+  } else if (b.tipo === 'bottone') {
+    b.testo = (b.testo||'') + varStr;
+  } else {
+    toast('Seleziona un blocco Testo, Titolo o Bottone', 'error'); return;
+  }
+  comRenderBlocchi();
+  comRefreshPreview();
+}
+
+/* ── Preview ─────────────────────────────────── */
+function comBlocchiToHtml(blocchi, vars) {
+  vars = vars || {};
+  var BLU = '#005CA9';
+  function replVar(s) {
+    return (s||'').replace(/\{\{(\w+)\}\}/g, function(_, k) { return vars[k] !== undefined ? vars[k] : '{{'+k+'}}'; });
+  }
+  return blocchi.map(function(b) {
+    if (b.tipo === 'titolo') return '<'+( b.livello||'h2')+' style="font-family:Inter,Arial,sans-serif;font-weight:800;color:#0A0A0A;margin:0 0 12px;font-size:22px;">'+replVar(b.testo)+'</'+( b.livello||'h2')+'>';
+    if (b.tipo === 'testo')  return '<div style="font-family:Inter,Arial,sans-serif;font-size:15px;line-height:1.7;color:#374151;margin:0 0 16px;white-space:pre-wrap;">'+replVar(b.html)+'</div>';
+    if (b.tipo === 'bottone') return '<div style="text-align:center;margin:20px 0"><a href="'+esc(b.url||'#')+'" style="background:'+BLU+';color:#fff;padding:13px 32px;border-radius:8px;text-decoration:none;font-size:14px;font-weight:700;display:inline-block;font-family:Inter,Arial,sans-serif;">'+replVar(b.testo||'Clicca qui')+'</a></div>';
+    if (b.tipo === 'separatore') return '<hr style="border:none;border-top:1px solid #E5E7EB;margin:20px 0"/>';
+    return '';
+  }).join('\n');
+}
+
+var COM_PREV_VARS = {
+  nome_azienda: 'Rossi & C. Srl',
+  referente: 'Mario Rossi',
+  telefono: '+39 06 1234567',
+  email_contatto: 'mario@rossi.it',
+  stato: 'In lavorazione',
+  assegnato_a: 'Giordano Rapaccioni',
+  data_creazione: new Date().toLocaleDateString('it-IT'),
+  fonte: 'Anagrafiche',
+};
+
+function comBuildFullHtml(bodyHtml, logoUrl) {
+  var BLU = '#005CA9';
+  var LOGO = logoUrl || (G('com-logo-url')||{}).value || _emailLogoUrl ||
+    'https://raw.githubusercontent.com/alessandroparrelli/fileappoggio/main/NUOVO-LOGO-CNA-ROMA-SOLO-ROMA.png';
+  var css = '<style>body,table,td{-webkit-text-size-adjust:100%}</style>';
+  var header = '<div style="background:linear-gradient(135deg,'+BLU+' 0%,#003d73 100%)"><table width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td style="padding:18px 28px"><img src="'+LOGO+'" alt="CNA Roma" style="height:44px;display:block;max-width:200px"/></td></tr></table></div>';
+  var footer = '<div style="background:#F9FAFB;border-top:1px solid #E5E7EB;padding:16px 24px"><p style="margin:0;font-size:11px;color:#9CA3AF;font-family:Inter,Arial,sans-serif">CRM CNA Roma &mdash; Confederazione Nazionale dell&rsquo;Artigianato</p></div>';
+  return '<!DOCTYPE html><html lang="it"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">'+css+'</head><body style="margin:0;padding:0;background:#F0F2F5"><table width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#F0F2F5"><tr><td align="center" style="padding:24px 16px"><table cellpadding="0" cellspacing="0" border="0" style="width:100%;max-width:600px;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 2px 20px rgba(0,0,0,.1)"><tr><td>'+header+'</td></tr><tr><td style="padding:32px">'+bodyHtml+'</td></tr><tr><td>'+footer+'</td></tr></table></td></tr></table></body></html>';
+}
+
+function comRefreshPreview() {
+  var frame = G('com-preview-frame');
+  if (!frame) return;
+  if (!comBlocchi.length) { frame.innerHTML='<div style="padding:24px;text-align:center;color:#9CA3AF;font-size:13px;">Nessun contenuto</div>'; return; }
+  var bodyHtml = comBlocchiToHtml(comBlocchi, COM_PREV_VARS);
+  var full = comBuildFullHtml(bodyHtml);
+  frame.innerHTML = '<iframe srcdoc="'+full.replace(/"/g,'&quot;')+'" style="width:100%;height:420px;border:none;" title="Anteprima email"></iframe>';
+}
+
+/* ── Invio ───────────────────────────────────── */
+async function comInvia() {
+  var oggetto = (G('com-oggetto')||{}).value||'';
+  if (!oggetto.trim()) { toast('Inserisci l\'oggetto dell\'email','error'); return; }
+  if (!comBlocchi.length) { toast('Aggiungi almeno un blocco','error'); return; }
+  if (!comDestinatari.length) { toast('Nessun destinatario selezionato','error'); return; }
+
+  if (!confirm('Stai per inviare '+comDestinatari.length+' email. Continuare?')) return;
+
+  var btnInvia = G('com-btn-invia');
+  var resEl = G('com-send-result');
+  if (btnInvia) btnInvia.disabled = true;
+  if (resEl) { resEl.style.display='block'; resEl.style.color='var(--text-secondary)'; resEl.textContent='Invio in corso…'; }
+
+  var logoUrl = (G('com-logo-url')||{}).value || _emailLogoUrl || '';
+
+  try {
+    var r = await fetch(SB+'/functions/v1/crm-bulk-email', {
+      method: 'POST',
+      headers: H({'Content-Type':'application/json'}),
+      body: JSON.stringify({
+        oggetto: oggetto.trim(),
+        blocchi: comBlocchi,
+        destinatari: comDestinatari,
+        logo_url: logoUrl || null,
+      })
+    });
+    var data = await r.json();
+    if (!r.ok) throw new Error(data.error||r.status);
+    if (resEl) { resEl.style.color='var(--success)'; resEl.textContent='Inviate '+data.sent+' email su '+comDestinatari.length+'.'; }
+    toast('Email inviate: '+data.sent, 'success');
+  } catch(e) {
+    if (resEl) { resEl.style.color='var(--danger)'; resEl.textContent='Errore: '+e.message; }
+    toast('Errore invio: '+e.message, 'error');
+  } finally {
+    if (btnInvia) btnInvia.disabled = false;
   }
 }
 
