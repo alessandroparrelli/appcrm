@@ -1060,6 +1060,22 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
             <p style="font-size:11px;color:var(--text-tertiary);margin:8px 0 0;">Clicca una variabile per inserirla nel blocco testo attivo</p>
           </div>
 
+          <!-- Salva template comunicazione -->
+          <div class="com-card">
+            <div class="com-card-title">Template email massiva</div>
+            <div style="display:flex;gap:6px;">
+              <button class="btn-crm btn-crm-outline btn-crm-sm" onclick="comSalvaTemplate()" style="flex:1;justify-content:center;">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13"/><polyline points="7 3 7 8 15 8"/></svg>
+                Salva
+              </button>
+              <button class="btn-crm btn-crm-outline btn-crm-sm" onclick="comRipristinaDefault()" style="color:var(--text-tertiary);" title="Ripristina template di default">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+                Ripristina default
+              </button>
+            </div>
+            <div id="com-save-msg" style="font-size:11px;text-align:center;color:var(--success);margin-top:6px;display:none;">Template salvato</div>
+          </div>
+
           <!-- Invia -->
           <button class="btn-crm btn-crm-primary" id="com-btn-invia" onclick="comInvia()" style="width:100%;justify-content:center;padding:13px;font-size:14px;" disabled>
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
@@ -1138,11 +1154,17 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
               <input type="url" class="crm-input" id="sol-tpl-logo" placeholder="URL logo (usa quello generale se vuoto)" style="font-size:12px;">
             </div>
 
-            <button class="btn-crm btn-crm-outline btn-crm-sm" onclick="solSalvaTemplate()" style="border-color:#7C3AED;color:#7C3AED;width:100%;justify-content:center;padding:10px;">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13"/><polyline points="7 3 7 8 15 8"/></svg>
-              Salva template sollecito
-            </button>
-            <div id="sol-save-msg" style="font-size:11px;text-align:center;color:var(--success);display:none;">Template salvato nel browser</div>
+            <div style="display:flex;gap:6px;">
+              <button class="btn-crm btn-crm-outline btn-crm-sm" onclick="solSalvaTemplate()" style="border-color:#7C3AED;color:#7C3AED;flex:1;justify-content:center;padding:10px;">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13"/><polyline points="7 3 7 8 15 8"/></svg>
+                Salva
+              </button>
+              <button class="btn-crm btn-crm-outline btn-crm-sm" onclick="solRipristinaDefault()" style="color:var(--text-tertiary);padding:10px;" title="Ripristina template di default">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+                Ripristina default
+              </button>
+            </div>
+            <div id="sol-save-msg" style="font-size:11px;text-align:center;color:var(--success);margin-top:4px;display:none;">Template salvato nel browser</div>
           </div>
 
           <!-- Editor blocchi sollecito -->
@@ -3988,14 +4010,9 @@ function solCaricaTemplate() {
 }
 
 function solImpostaDefault() {
-  solBlocchi = [
-    { tipo:'titolo', testo:'Gentile operatore,', livello:'h2' },
-    { tipo:'testo',  html:'Ti scriviamo riguardo al contatto {{nome_azienda}} (stato attuale: {{stato}}).\n\nTi chiediamo di aggiornare la pratica al più presto.' },
-    { tipo:'separatore' },
-    { tipo:'testo',  html:'Per qualsiasi chiarimento, contattaci rispondendo a questa email.\n\nGrazie,\nCNA Roma' },
-  ];
-  var ogg = G('sol-tpl-oggetto');
-  if(ogg) ogg.value = 'Sollecito pratica — {{nome_azienda}}';
+  var tpl = solGetDefaultTemplate();
+  solBlocchi = tpl.blocchi;
+  var ogg = G('sol-tpl-oggetto'); if(ogg) ogg.value = tpl.oggetto;
 }
 
 function solSalvaTemplate() {
@@ -4277,11 +4294,96 @@ var COM_STATI_LABEL = {
   'chiuso_negativo':         'Chiuso negativo',
 };
 
+var COM_TPL_KEY = 'crm_com_template';
+
+/* ── Template default EMAIL MASSIVA ──────────────────── */
+function comGetDefaultTemplate() {
+  return {
+    oggetto: 'Aggiornamento CRM — {{nome_azienda}}',
+    blocchi: [
+      { tipo: 'titolo', testo: 'Gentile operatore,', livello: 'h2' },
+      { tipo: 'testo', html: 'Ti scriviamo per aggiornarti sullo stato della pratica relativa a {{nome_azienda}}.' },
+      { tipo: 'separatore' },
+      { tipo: 'titolo', testo: 'Dettagli contatto', livello: 'h3' },
+      { tipo: 'testo', html: 'Azienda: {{nome_azienda}}\nReferente: {{referente}}\nTelefono: {{telefono}}\nStato attuale: {{stato}}\nAssegnato a: {{assegnato_a}}\nIn gestione dal: {{data_creazione}}' },
+      { tipo: 'separatore' },
+      { tipo: 'testo', html: 'Ti chiediamo di aggiornare la pratica nel sistema CRM al pi\u00f9 presto e di registrare eventuali contatti o aggiornamenti significativi.\n\nPer qualsiasi chiarimento, rispondi a questa email.\n\nGrazie per la collaborazione,\nCNA Roma' },
+      { tipo: 'bottone', testo: 'Apri CRM CNA Roma', url: 'https://associaticna.vercel.app' },
+    ]
+  };
+}
+
+function comCaricaTemplate() {
+  try {
+    var raw = localStorage.getItem(COM_TPL_KEY);
+    if (!raw) { comImpostaDefault(); return; }
+    var tpl = JSON.parse(raw);
+    comBlocchi = tpl.blocchi || [];
+    var ogg = G('com-oggetto'); if(ogg) ogg.value = tpl.oggetto || '';
+    var logo = G('com-logo-url'); if(logo && tpl.logo_url) logo.value = tpl.logo_url;
+  } catch(e) { comImpostaDefault(); }
+  comRenderBlocchi();
+  comRefreshPreview();
+}
+
+function comImpostaDefault() {
+  var tpl = comGetDefaultTemplate();
+  comBlocchi = tpl.blocchi;
+  var ogg = G('com-oggetto'); if(ogg) ogg.value = tpl.oggetto;
+}
+
+function comSalvaTemplate() {
+  var ogg  = (G('com-oggetto')||{}).value || '';
+  var logo = (G('com-logo-url')||{}).value || '';
+  localStorage.setItem(COM_TPL_KEY, JSON.stringify({ oggetto: ogg, blocchi: comBlocchi, logo_url: logo }));
+  var msg = G('com-save-msg');
+  if(msg){ msg.style.display='block'; setTimeout(function(){ msg.style.display='none'; }, 2500); }
+  toast('Template salvato!', 'success');
+}
+
+function comRipristinaDefault() {
+  if (!confirm('Ripristinare il template di default? Il template attuale andr\u00e0 perso.')) return;
+  localStorage.removeItem(COM_TPL_KEY);
+  comImpostaDefault();
+  comRenderBlocchi();
+  comRefreshPreview();
+  var ogg = G('com-oggetto'); if(ogg) ogg.value = comGetDefaultTemplate().oggetto;
+  toast('Template ripristinato!', 'success');
+}
+
+/* ── Template default SOLLECITO ──────────────────────── */
+function solGetDefaultTemplate() {
+  return {
+    oggetto: 'Sollecito pratica — {{nome_azienda}}',
+    blocchi: [
+      { tipo: 'titolo', testo: 'Sollecito aggiornamento pratica', livello: 'h2' },
+      { tipo: 'testo', html: 'Gentile {{assegnato_a}},\n\nti contattamo in merito alla pratica di {{nome_azienda}} (fonte: {{fonte}}), attualmente nello stato: {{stato}}.' },
+      { tipo: 'separatore' },
+      { tipo: 'titolo', testo: 'Azione richiesta', livello: 'h3' },
+      { tipo: 'testo', html: 'Ti chiediamo di:\n\n\u2022 Aggiornare lo stato della pratica nel CRM\n\u2022 Registrare eventuali contatti effettuati\n\u2022 Inserire note su eventuali difficolt\u00e0 riscontrate\n\nLa pratica \u00e8 in gestione dal {{data_creazione}}.' },
+      { tipo: 'separatore' },
+      { tipo: 'testo', html: 'Per qualsiasi necessit\u00e0 o chiarimento, rispondi a questa email.\n\nGrazie,\nAmministrazione CNA Roma' },
+      { tipo: 'bottone', testo: 'Aggiorna la pratica nel CRM', url: 'https://associaticna.vercel.app' },
+    ]
+  };
+}
+
+function solRipristinaDefault() {
+  if (!confirm('Ripristinare il template sollecito di default? Il template attuale andr\u00e0 perso.')) return;
+  localStorage.removeItem(SOL_TPL_KEY);
+  solImpostaDefault();
+  solRenderBlocchi();
+  solRefreshPreview();
+  var ogg = G('sol-tpl-oggetto'); if(ogg) ogg.value = solGetDefaultTemplate().oggetto;
+  toast('Template ripristinato!', 'success');
+}
+
 function loadComunicazione() {
   // ripristina logo dal localStorage
   var logoInp = G('com-logo-url');
   if (logoInp && _emailLogoUrl) { logoInp.value = _emailLogoUrl; comPreviewLogo(); }
-  comRenderBlocchi();
+  // carica template comunicazione massiva
+  comCaricaTemplate();
   comAggiornaDest();
   // carica template sollecito
   solCaricaTemplate();
