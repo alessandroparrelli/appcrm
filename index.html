@@ -3213,7 +3213,7 @@ function selectUser(uid){
 
 async function salvaAssegnazione(){
   if(!crmSelectedUserId){ closeModal('modal-assegna-bg'); return; }
-  if(crmSelectedUserId===crmContactData.assigned_id){ toast('Stesso assegnatario','info'); closeModal('modal-assegna-bg'); return; }
+  // riassegnazione a se stessi permessa (per reinviare mail di assegnazione)
   var handoverNote = (G('assegna-note-handover')||{}).value||'';
   handoverNote = handoverNote.trim();
   showLoad('Assegnazione in corso…');
@@ -3768,7 +3768,7 @@ async function wizSalva(){
           contact_email:  _ctEmail || null,
           creator_id:     session.id,
           assigned_id:    wiz.assignedId||session.id,
-          status:         wiz.assignedId && wiz.assignedId!==session.id ? 'assegnato' : 'da_contattare'
+          status:         'assegnato'
         })
       });
       if(!rC.ok) throw new Error(await rC.text());
@@ -3836,7 +3836,7 @@ async function wizSalva(){
       contact_name:    wiz.companyTitolare || ((_nc.nome_titolare||'')+' '+(_nc.cognome_titolare||'')).trim() || '',
       contact_phone:   wiz.companyPhone   || _nc.cellulare      || '',
       contact_email:   wiz.companyEmail   || _nc.email          || '',
-      status:          wiz.assignedId && wiz.assignedId!==session.id ? 'assegnato' : 'da_contattare',
+      status:          'assegnato',
       created_at:      new Date().toISOString(),
     };
     await sendAssignmentEmail(wizContactData, wiz.assignedId || session.id, session.nome+' '+session.cognome, wiz.note||null);
