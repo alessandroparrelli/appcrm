@@ -4383,6 +4383,8 @@ async function inviaSollecito() {
         noteTextI = notesI.map(function(n){ return new Date(n.created_at).toLocaleDateString('it-IT')+': '+n.note; }).join('\n');
       }
     } catch(e){}
+    // Arricchisci dati da anagrafica se contact_name è null
+    crmContactData = await enrichContactData(crmContactData);
     var vars = solGetVars(operatore, creatoreNomeI, noteTextI);
     var dest = [{
       contact_id: crmContactId,
@@ -4422,10 +4424,36 @@ async function inviaSollecito() {
   finally { hideLoad(); if(btn) btn.disabled=false; }
 }
 
+
+/* ── Arricchisci contactData con dati anagrafica se contact_name è null ── */
+async function enrichContactData(contactData) {
+  if (contactData.contact_name || contactData.company_source !== 'anagrafiche' || !contactData.company_ref) {
+    return contactData;
+  }
+  try {
+    var ar = await fetch(SB+'/rest/v1/anagrafiche?codiceanagrafica=eq.'+encodeURIComponent(contactData.company_ref)
+      +'&select=nometitolare,cognometitolare,telefono,cellulare,email&limit=1', {headers:H()});
+    if (ar.ok) {
+      var aa = await ar.json();
+      if (aa[0]) {
+        var a = aa[0];
+        return Object.assign({}, contactData, {
+          contact_name:  ((a.nometitolare||'')+' '+(a.cognometitolare||'')).trim() || contactData.contact_name,
+          contact_phone: a.cellulare || a.telefono || contactData.contact_phone || '',
+          contact_email: a.email || contactData.contact_email || '',
+        });
+      }
+    }
+  } catch(e) {}
+  return contactData;
+}
+
 /* ── SEND ASSIGNMENT EMAIL ──────────────────────── */
 // Stessa logica di inviaSollecito: blocchi dal template COM, dest con tutti i campi
 async function sendAssignmentEmail(contactData, assignedToId, assignedByName, handoverNote) {
   try {
+    // 0. Arricchisci dati contatto da anagrafica se necessario
+    contactData = await enrichContactData(contactData);
     // 1. Operatore destinatario
     var opR = await fetch(SB+'/rest/v1/cna_users?id=eq.'+assignedToId+'&select=nome,cognome,email', {headers:H()});
     var op  = opR.ok ? (await opR.json())[0] : null;
