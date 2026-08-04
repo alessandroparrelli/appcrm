@@ -4157,6 +4157,8 @@ function solImpostaDefault() {
   var tpl = solGetDefaultTemplate();
   solBlocchi = tpl.blocchi;
   var ogg = G('sol-tpl-oggetto'); if(ogg) ogg.value = tpl.oggetto;
+  // Salva il default in localStorage così openModalSollecito lo trova subito
+  try { localStorage.setItem(SOL_TPL_KEY, JSON.stringify(tpl)); } catch(e){}
   solRenderBlocchi();
   solRefreshPreview();
 }
@@ -4247,10 +4249,10 @@ function solRefreshPreview() {
 async function openModalSollecito() {
   if (!crmContactId || !crmContactData) { toast('Nessun contatto aperto','error'); return; }
 
-  // Carica template
+  // Carica template (usa default se non configurato)
   var tpl = {};
   try { var r=localStorage.getItem(SOL_TPL_KEY); if(r) tpl=JSON.parse(r); } catch(e){}
-  if (!tpl.blocchi || !tpl.blocchi.length) { toast('Configura prima il template sollecito nella tab Comunicazione','error'); return; }
+  if (!tpl.blocchi || !tpl.blocchi.length) { tpl = solGetDefaultTemplate(); }
 
   // Carica dati operatore assegnato
   var assignedId = crmContactData.assigned_id || crmContactData.creator_id;
