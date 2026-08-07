@@ -5296,7 +5296,7 @@ function edRender(prefix){
         +'<textarea style="width:100%;box-sizing:border-box;min-height:72px;border:none;resize:vertical;font-style:italic;font-size:14px;color:#4347D0;background:#EEEFFD;border-left:4px solid #5B5FEF;padding:10px 14px;border-radius:0 6px 6px 0;font-family:Inter,Arial,sans-serif;outline:none;" oninput="'+upd_q+'(this.value)">'+esc(b.html||'Scrivi la citazione...')+'</textarea>'
         +'</div>';
 
-    if(b.tipo==='tabella_contatto'){
+    }else if(b.tipo==='tabella_contatto'){
       var RLABELS = {azienda:'Azienda',referente:'Referente',telefono:'Telefono',
         email_contatto:'Email',fonte:'Fonte',stato:'Stato',
         data_creazione:'Data creazione',assegnato_a:'Assegnato a',creato_da:'Creato da'};
@@ -5325,7 +5325,6 @@ function edRender(prefix){
         +'<tr><td colspan="2" style="padding:10px 16px 6px;font-size:11px;font-weight:700;color:#6B7280;text-transform:uppercase;letter-spacing:.06em;font-family:Inter,Arial,sans-serif;">'+titolo+'</td></tr>'
         + rows
         +'</table>';
-    }
     }else if(b.tipo==='alert'){
       var pfa='\''+prefix+'\'';
       var upda='(function(f,v){var a='+pfa+'===\'com\'?comBlocchi:solBlocchi;a['+i+'][f]=v;setTimeout('+pfa+'===\'com\'?comRefreshPreview:solRefreshPreview,200);})(';
