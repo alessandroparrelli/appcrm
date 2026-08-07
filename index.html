@@ -2981,6 +2981,15 @@ async function openCrmContatto(contactId){
       +(c.closed_at?'<tr><td class="dt-label">Chiuso il</td><td class="dt-value">'+esc(fmtDate(c.closed_at))+'</td></tr>':'')
       +'</table></div>';
 
+    // ── Dati referente ──
+    if(c.contact_name||c.contact_phone||c.contact_email){
+      html += '<div class="s-card"><div class="s-card-title"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg> Dati referente</div><table class="data-table">';
+      if(c.contact_name)  html += '<tr><td class="dt-label">Nominativo</td><td class="dt-value">'+esc(c.contact_name)+'</td></tr>';
+      if(c.contact_phone) html += '<tr><td class="dt-label">Telefono</td>'+'<td class="dt-value"><a href="tel:'+esc(c.contact_phone)+'" style="color:var(--primary);text-decoration:none;">'+esc(c.contact_phone)+'</a></td></tr>';
+      if(c.contact_email) html += '<tr><td class="dt-label">Email</td>'+'<td class="dt-value"><a href="mailto:'+esc(c.contact_email)+'" style="color:var(--primary);text-decoration:none;">'+esc(c.contact_email)+'</a></td></tr>';
+      html += '</table></div>';
+    }
+
     // ── Azioni ──
     html += '<div class="crm-action-row">'
       +'<button class="btn-crm btn-crm-primary" onclick="openModalChiamata()">'
@@ -4720,10 +4729,10 @@ function comGetDefaultTemplate() {
   return {
     oggetto: 'Aggiornamento CRM — {{nome_azienda}}',
     blocchi: [
-      { tipo: 'titolo', testo: 'Gentile operatore,', livello: 'h2' },
+      { tipo: 'titolo', testo: 'Gentile operatore,', livello: 'h2', html: 'Gentile operatore,' },
       { tipo: 'testo', html: 'Ti scriviamo per aggiornarti sullo stato della pratica relativa a {{nome_azienda}}.' },
       { tipo: 'separatore' },
-      { tipo: 'titolo', testo: 'Dettagli contatto', livello: 'h3' },
+      { tipo: 'titolo', testo: 'Dettagli contatto', livello: 'h3', html: 'Dettagli contatto' },
       { tipo: 'testo', html: 'Azienda: {{nome_azienda}}\nReferente: {{referente}}\nTelefono: {{telefono}}\nStato attuale: {{stato}}\nAssegnato a: {{assegnato_a}}\nIn gestione dal: {{data_creazione}}' },
       { tipo: 'separatore' },
       { tipo: 'testo', html: 'Ti chiediamo di aggiornare la pratica nel sistema CRM al pi\u00f9 presto e di registrare eventuali contatti o aggiornamenti significativi.\n\nPer qualsiasi chiarimento, rispondi a questa email.\n\nGrazie per la collaborazione,\nCNA Roma' },
@@ -4752,6 +4761,8 @@ function comImpostaDefault() {
   var tpl = comGetDefaultTemplate();
   comBlocchi = tpl.blocchi;
   var ogg = G('com-oggetto'); if(ogg) ogg.value = tpl.oggetto;
+  // Salva default in localStorage (stesso pattern di solImpostaDefault)
+  try { localStorage.setItem(COM_TPL_KEY, JSON.stringify(tpl)); } catch(e){}
   comRenderBlocchi();
   comRefreshPreview();
 }
@@ -4835,10 +4846,10 @@ function solGetDefaultTemplate() {
   return {
     oggetto: 'Sollecito pratica — {{nome_azienda}}',
     blocchi: [
-      { tipo: 'titolo', testo: 'Sollecito aggiornamento pratica', livello: 'h2' },
+      { tipo: 'titolo', testo: 'Sollecito aggiornamento pratica', livello: 'h2', html: 'Sollecito aggiornamento pratica' },
       { tipo: 'testo', html: 'Gentile {{assegnato_a}},\n\nti contattamo in merito alla pratica di {{nome_azienda}} (fonte: {{fonte}}), attualmente nello stato: {{stato}}.' },
       { tipo: 'separatore' },
-      { tipo: 'titolo', testo: 'Azione richiesta', livello: 'h3' },
+      { tipo: 'titolo', testo: 'Azione richiesta', livello: 'h3', html: 'Azione richiesta' },
       { tipo: 'testo', html: 'Ti chiediamo di:\n\n\u2022 Aggiornare lo stato della pratica nel CRM\n\u2022 Registrare eventuali contatti effettuati\n\u2022 Inserire note su eventuali difficolt\u00e0 riscontrate\n\nLa pratica \u00e8 in gestione dal {{data_creazione}}.' },
       { tipo: 'separatore' },
       { tipo: 'testo', html: 'Per qualsiasi necessit\u00e0 o chiarimento, rispondi a questa email.\n\nGrazie,\nAmministrazione CNA Roma' },
@@ -5003,7 +5014,18 @@ function edSyncDOM(prefix){
   arr.forEach(function(b,i){
     if(b.tipo==='titolo'||b.tipo==='testo'){
       var ed=document.getElementById(prefix+'-ed-'+i);
-      if(ed) b.html=ed.innerHTML;
+      if(ed){
+        var domHtml=ed.innerHTML;
+        // Non sovrascrivere b.html con stringa vuota se il contenteditable
+        // non è ancora stato renderizzato (es. primo render dopo caricamento)
+        var isEmpty=!domHtml||domHtml.trim()===''||domHtml==='<br>'||domHtml==='<br/>';
+        if(!isEmpty){
+          b.html=domHtml;
+        } else if(!b.html && b.testo){
+          // Normalizza vecchio formato {testo,livello} → {html}
+          b.html=b.testo;
+        }
+      }
     }
   });
   // Autosave silenzioso
@@ -5357,11 +5379,14 @@ function edRender(prefix){
 
   wrap.innerHTML=html;
 
-  // Ripopola i contenteditable con il loro HTML
+  // Ripopola i contenteditable (usa b.html; se vuoto, normalizza da b.testo per retro-compat)
   arr.forEach(function(b,i){
     if(b.tipo==='titolo'||b.tipo==='testo'){
       var ed=document.getElementById(prefix+'-ed-'+i);
-      if(ed&&b.html) ed.innerHTML=b.html;
+      if(ed){
+        if(!b.html && b.testo) b.html=b.testo; // normalizza vecchio formato
+        if(b.html) ed.innerHTML=b.html;
+      }
     }
   });
 }
