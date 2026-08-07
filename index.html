@@ -1936,14 +1936,14 @@ async function inviaRichiestaAccesso(){
   if(!tel.trim()){ showErr('Inserisci il numero di cellulare.'); return; }
   if(!email.trim()||!email.includes('@')){ showErr('Inserisci un indirizzo email valido.'); return; }
   if(err){ err.style.display='none'; }
-  var btn=document.getElementById('ra-btn'); if(btn){ btn.disabled=true; btn.textContent='Invio in corso…'; }
+  var btn=document.getElementById('ra-btn'); if(btn){ btn.disabled=true; btn.textContent='Invio in corso...'; }
   try {
     var SB_URL='https://ohahuqlfzqckaevaffbt.supabase.co';
     var SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9oYWh1cWxmenFja2FldmFmZmJ0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQxODI4NzQsImV4cCI6MjA4OTc1ODg3NH0.MG1N3UUIfISDAi_ArFjxN6ZlHJfk5D77vSeE7qZr020';
     // payload email costruito tramite blocchi standard (compatibile con crm-bulk-email v5)
     var blocchiRichiesta = [
       { tipo:'titolo', testo:'Nuova richiesta di accesso', livello:'h2', html:'Nuova richiesta di accesso' },
-      { tipo:'testo',  html:'Un utente ha richiesto l'accesso al <strong>CRM CNA Roma</strong>.' },
+      { tipo:'testo',  html:'Un utente ha richiesto l\'accesso al <strong>CRM CNA Roma</strong>.' },
       { tipo:'tabella_contatto',
         titolo: 'DATI RICHIEDENTE',
         righe: ['referente','telefono','email_contatto'],
@@ -1968,7 +1968,7 @@ async function inviaRichiestaAccesso(){
       method: 'POST',
       headers: { 'Content-Type':'application/json', 'apikey': SB_KEY, 'Authorization':'Bearer '+SB_KEY },
       body: JSON.stringify({
-        oggetto:      'Richiesta accesso CRM — '+nome+' '+cognome,
+        oggetto:      'Richiesta accesso CRM - '+nome+' '+cognome,
         destinatari:  destRichiesta,
         blocchi:      blocchiRichiesta,
         header_color: '#5B5FEF',
