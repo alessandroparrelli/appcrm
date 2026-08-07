@@ -4244,6 +4244,7 @@ function solImpostaDefault() {
 }
 
 function solSalvaTemplate() {
+  edSyncDOM('sol'); // flush contenteditable → solBlocchi prima di salvare
   var ogg  = (G('sol-tpl-oggetto')||{}).value || '';
   var logo = (G('sol-tpl-logo')||{}).value || '';
   localStorage.setItem(SOL_TPL_KEY, JSON.stringify({ oggetto: ogg, blocchi: solBlocchi, logo_url: logo }));
@@ -4429,7 +4430,8 @@ async function inviaSollecito() {
   var oggetto = (G('sol-oggetto')||{}).value||'';
   if (!oggetto.trim()) { toast('Oggetto mancante','error'); return; }
 
-  // Carica template — fallback robusto al default se mancante/corrotto
+  // Flush immediato: sincronizza DOM → solBlocchi → localStorage prima di leggere
+  flushSolTemplate();
   var tpl = {};
   try { var _tr=localStorage.getItem(SOL_TPL_KEY); if(_tr) tpl=JSON.parse(_tr); } catch(e){}
   if (!tpl.blocchi||!tpl.blocchi.length) tpl = solGetDefaultTemplate();
@@ -4557,7 +4559,9 @@ async function sendAssignmentEmail(contactData, assignedToId, assignedByName, ha
     // 3. Note
     var noteText = handoverNote || '';
 
-    // 4. Header config + blocchi dal template COM (se configurato dall'editor)
+    // 4. Header config + blocchi dal template COM
+    // Flush immediato: sincronizza DOM → comBlocchi → localStorage prima di leggere
+    flushComTemplate();
     var comTpl = {};
     try { comTpl = JSON.parse(localStorage.getItem('crm_com_template')||'{}'); } catch(e){}
     var logoUrl     = comTpl.logo_url     || localStorage.getItem('crm_email_logo_url') || '';
@@ -4774,6 +4778,7 @@ function comImpostaDefault() {
 }
 
 function comSalvaTemplate() {
+  edSyncDOM('com'); // flush contenteditable → comBlocchi prima di salvare
   var ogg         = (G('com-oggetto')||{}).value || '';
   var logo        = (G('com-logo-url')||{}).value || '';
   var header_color= (G('com-header-color')||{}).value || '#5B5FEF';
@@ -4802,6 +4807,32 @@ function comAutosaveHeader() {
 }
 
 // Autosave blocchi + oggetto dopo ogni modifica (debounced 2s)
+/* ── Flush immediato template → localStorage (usa prima di ogni invio) ── */
+function flushComTemplate() {
+  try {
+    edSyncDOM('com');
+    var raw = localStorage.getItem(COM_TPL_KEY);
+    var tpl = raw ? JSON.parse(raw) : {};
+    tpl.blocchi      = comBlocchi;
+    tpl.oggetto      = (G('com-oggetto')||{}).value || tpl.oggetto || '';
+    tpl.logo_url     = (G('com-logo-url')||{}).value || tpl.logo_url || '';
+    tpl.header_color = (G('com-header-color')||{}).value || tpl.header_color || '#5B5FEF';
+    tpl.logo_height  = (G('com-logo-height')||{}).value || tpl.logo_height || '44';
+    localStorage.setItem(COM_TPL_KEY, JSON.stringify(tpl));
+  } catch(e) { console.warn('flushComTemplate:', e); }
+}
+function flushSolTemplate() {
+  try {
+    edSyncDOM('sol');
+    var raw = localStorage.getItem(SOL_TPL_KEY);
+    var tpl = raw ? JSON.parse(raw) : {};
+    tpl.blocchi  = solBlocchi;
+    tpl.oggetto  = (G('sol-tpl-oggetto')||{}).value || tpl.oggetto || '';
+    tpl.logo_url = (G('sol-tpl-logo')||{}).value || tpl.logo_url || '';
+    localStorage.setItem(SOL_TPL_KEY, JSON.stringify(tpl));
+  } catch(e) { console.warn('flushSolTemplate:', e); }
+}
+
 var _comAutosaveTimer = null;
 function comAutosaveBlocchi() {
   clearTimeout(_comAutosaveTimer);
@@ -5296,7 +5327,7 @@ function edRender(prefix){
         +'<textarea style="width:100%;box-sizing:border-box;min-height:72px;border:none;resize:vertical;font-style:italic;font-size:14px;color:#4347D0;background:#EEEFFD;border-left:4px solid #5B5FEF;padding:10px 14px;border-radius:0 6px 6px 0;font-family:Inter,Arial,sans-serif;outline:none;" oninput="'+upd_q+'(this.value)">'+esc(b.html||'Scrivi la citazione...')+'</textarea>'
         +'</div>';
 
-    }else if(b.tipo==='tabella_contatto'){
+    if(b.tipo==='tabella_contatto'){
       var RLABELS = {azienda:'Azienda',referente:'Referente',telefono:'Telefono',
         email_contatto:'Email',fonte:'Fonte',stato:'Stato',
         data_creazione:'Data creazione',assegnato_a:'Assegnato a',creato_da:'Creato da'};
@@ -5325,6 +5356,7 @@ function edRender(prefix){
         +'<tr><td colspan="2" style="padding:10px 16px 6px;font-size:11px;font-weight:700;color:#6B7280;text-transform:uppercase;letter-spacing:.06em;font-family:Inter,Arial,sans-serif;">'+titolo+'</td></tr>'
         + rows
         +'</table>';
+    }
     }else if(b.tipo==='alert'){
       var pfa='\''+prefix+'\'';
       var upda='(function(f,v){var a='+pfa+'===\'com\'?comBlocchi:solBlocchi;a['+i+'][f]=v;setTimeout('+pfa+'===\'com\'?comRefreshPreview:solRefreshPreview,200);})(';
@@ -5583,6 +5615,7 @@ function solRefreshPreview(){
 async function comInvia() {
   var oggetto = (G('com-oggetto')||{}).value||'';
   if (!oggetto.trim()) { toast('Inserisci l\'oggetto dell\'email','error'); return; }
+  flushComTemplate(); // flush DOM → localStorage prima di inviare
   if (!comBlocchi.length) { toast('Aggiungi almeno un blocco','error'); return; }
   if (!comDestinatari.length) { toast('Nessun destinatario selezionato','error'); return; }
 
