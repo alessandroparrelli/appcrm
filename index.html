@@ -2004,6 +2004,50 @@ function tr(label, value, type){
   return '<tr><td class="dt-label">'+esc(label)+'</td><td class="dt-value">'+val+'</td></tr>';
 }
 
+function renderPandoraBlock(rows,label){
+  if(!rows||!rows.length){
+    return '<p style="color:#9CA3AF;font-size:13px;font-style:italic;padding:8px 0">Nessun documento per '+label+'</p>';
+  }
+  var totFat=rows.reduce(function(s,r){return s+(parseFloat(r.totale_fattura)||0);},0);
+  var totSal=rows.reduce(function(s,r){return s+(parseFloat(r.saldo)||0);},0);
+  var nPag=rows.filter(function(r){return r.pagato;}).length;
+  var fmtEur=function(n){return n.toLocaleString('it-IT',{minimumFractionDigits:2,maximumFractionDigits:2});};
+  var fmtD=function(d){return d?new Date(d).toLocaleDateString('it-IT'):'\u2013';};
+  var html='<div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px">'
+    +'<span style="font-size:12px;font-weight:600;padding:4px 12px;border-radius:6px;background:#EFF6FF;color:#2563EB;border:1px solid #BFDBFE">'+rows.length+' documenti</span>'
+    +'<span style="font-size:12px;font-weight:600;padding:4px 12px;border-radius:6px;background:#F0FDF4;color:#16A34A;border:1px solid #BBF7D0">\u2713 '+nPag+' pagati</span>';
+  if(totSal>0){
+    html+='<span style="font-size:12px;font-weight:600;padding:4px 12px;border-radius:6px;background:#FEF2F2;color:#DC2626;border:1px solid #FECACA">\u26a0 Insoluto \u20ac '+fmtEur(totSal)+'</span>';
+  } else {
+    html+='<span style="font-size:12px;font-weight:600;padding:4px 12px;border-radius:6px;background:#F0FDF4;color:#16A34A;border:1px solid #BBF7D0">Tutto saldato</span>';
+  }
+  html+='<span style="font-size:12px;font-weight:500;padding:4px 12px;border-radius:6px;background:#F3F4F6;color:#6B7280">Fatturato \u20ac '+totFat.toLocaleString('it-IT',{minimumFractionDigits:0})+'</span></div>';
+  html+='<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:13px">'
+    +'<thead><tr style="background:#F9FAFB">'
+    +'<th style="text-align:left;padding:8px 10px;font-size:11px;font-weight:700;text-transform:uppercase;color:#6B7280;border-bottom:1px solid #E5E7EB">Data</th>'
+    +'<th style="text-align:left;padding:8px 10px;font-size:11px;font-weight:700;text-transform:uppercase;color:#6B7280;border-bottom:1px solid #E5E7EB">Scadenza</th>'
+    +'<th style="text-align:left;padding:8px 10px;font-size:11px;font-weight:700;text-transform:uppercase;color:#6B7280;border-bottom:1px solid #E5E7EB">Riferimento</th>'
+    +'<th style="text-align:right;padding:8px 10px;font-size:11px;font-weight:700;text-transform:uppercase;color:#6B7280;border-bottom:1px solid #E5E7EB">Importo</th>'
+    +'<th style="text-align:right;padding:8px 10px;font-size:11px;font-weight:700;text-transform:uppercase;color:#6B7280;border-bottom:1px solid #E5E7EB">Saldo</th>'
+    +'<th style="text-align:center;padding:8px 10px;font-size:11px;font-weight:700;text-transform:uppercase;color:#6B7280;border-bottom:1px solid #E5E7EB">Stato</th>'
+    +'</tr></thead><tbody>';
+  rows.forEach(function(r){
+    var saldo=parseFloat(r.saldo)||0;
+    var rif=esc((r.riferimento||'').toLowerCase());
+    var stile=r.pagato?'background:#F0FDF4;color:#16A34A;border:1px solid #BBF7D0':'background:#FEF2F2;color:#DC2626;border:1px solid #FECACA';
+    html+='<tr style="border-bottom:1px solid #F3F4F6">'
+      +'<td style="padding:7px 10px;white-space:nowrap;font-size:12px;font-family:monospace;color:var(--text-primary)">'+fmtD(r.data_fattura)+'</td>'
+      +'<td style="padding:7px 10px;white-space:nowrap;font-size:12px;font-family:monospace;color:var(--text-secondary)">'+fmtD(r.data_scadenza)+'</td>'
+      +'<td style="padding:7px 10px;font-size:12px;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text-primary)" title="'+esc(r.riferimento||'')+'">'+rif+'</td>'
+      +'<td style="padding:7px 10px;text-align:right;font-size:12px;font-weight:600;color:var(--text-primary)">\u20ac '+fmtEur(parseFloat(r.totale_fattura)||0)+'</td>'
+      +'<td style="padding:7px 10px;text-align:right;font-size:12px;font-weight:700;color:'+(saldo>0?'#DC2626':'#16A34A')+'">\u20ac '+fmtEur(saldo)+'</td>'
+      +'<td style="padding:7px 10px;text-align:center"><span style="font-size:10px;font-weight:700;padding:2px 9px;border-radius:20px;'+stile+'">'+(r.pagato?'PAGATO':'APERTO')+'</span></td>'
+      +'</tr>';
+  });
+  html+='</tbody></table></div>';
+  return html;
+}
+
 async function openScheda(idx){
   var ana=lastResults[idx];
   if(!ana) return;
@@ -2011,7 +2055,7 @@ async function openScheda(idx){
   showLoad('Caricamento scheda…');
   try {
     var codAteco = String(ana.codiceateco||'').trim();
-    var [dirRes,cciaaRes,csRes,atecoRes,incassiRes]=await Promise.all([
+    var [dirRes,cciaaRes,csRes,atecoRes,incassiRes,pandoraCNARes,pandoraCAFRes]=await Promise.all([
       fetch(SB+'/rest/v1/diretti?codiceanagrafica=eq.'+encodeURIComponent(ana.codiceanagrafica),{headers:H()}),
       (async function fetchCciaa(){
         // 1° tentativo: match per partita_iva
@@ -2032,7 +2076,9 @@ async function openScheda(idx){
       })(),
       fetch(SB+'/rest/v1/contrattiservizio?codicecliente=eq.'+encodeURIComponent(ana.codiceanagrafica)+'&datadisdetta=is.null&order=datastipulacontratto.desc',{headers:H()}),
       codAteco ? fetch(SB+'/rest/v1/codiciateco?codiceateco=eq.'+encodeURIComponent(codAteco),{headers:H()}) : Promise.resolve(null),
-      fetch(SB+'/rest/v1/incassi?codice_cliente=eq.'+encodeURIComponent(ana.codiceanagrafica)+'&order=data_pagamento.desc',{headers:H()})
+      fetch(SB+'/rest/v1/incassi?codice_cliente=eq.'+encodeURIComponent(ana.codiceanagrafica)+'&order=data_pagamento.desc',{headers:H()}),
+      fetch(SB+'/rest/v1/incassipandora?codice_cliente=eq.'+encodeURIComponent(ana.codiceanagrafica)+'&codice_azienda=eq.G1000001&order=data_fattura.desc&limit=200',{headers:H()}),
+      fetch(SB+'/rest/v1/incassipandora?codice_cliente=eq.'+encodeURIComponent(ana.codiceanagrafica)+'&codice_azienda=eq.G1000003&order=data_fattura.desc&limit=200',{headers:H()})
     ]);
     var diretti=dirRes.ok?await dirRes.json():[];
     var cciaaArr=cciaaRes&&cciaaRes._data?cciaaRes._data:(cciaaRes&&cciaaRes.ok?await cciaaRes.json():[]);
@@ -2041,6 +2087,8 @@ async function openScheda(idx){
     var atecoArr=atecoRes&&atecoRes.ok?await atecoRes.json():[];
     var ateco=atecoArr[0]||null;
     var incassi=incassiRes&&incassiRes.ok?await incassiRes.json():[];
+    var pandoraCNA=pandoraCNARes&&pandoraCNARes.ok?await pandoraCNARes.json():[];
+    var pandoraCAF=pandoraCAFRes&&pandoraCAFRes.ok?await pandoraCAFRes.json():[];
     // Arricchisci ana con i dati da codiciateco (codiciateco ha precedenza su Anagrafiche)
     if(ateco){
       ana.unione         = ateco.unione   || ana.unione   || null;
@@ -2206,7 +2254,37 @@ async function openScheda(idx){
       html+='</div>';
     }
 
-    /* ── MAPPA ── */
+    /* \u2500\u2500 PAGAMENTI PANDORA \u2500\u2500 */
+    if(pandoraCNA.length||pandoraCAF.length){
+      var annoCorrente=new Date().getFullYear();
+      var isPagante=pandoraCNA.some(function(p){
+        if(!p.data_fattura||!p.pagato) return false;
+        var anno=parseInt(p.data_fattura.substring(0,4));
+        return anno>=annoCorrente-2&&anno<=annoCorrente;
+      });
+      html+='<div class="s-card">'
+        +'<div class="s-card-title"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg> Pagamenti Pandora'
+        +(isPagante?' <span style="font-size:11px;font-weight:700;padding:2px 10px;border-radius:20px;background:#D1FAE5;color:#065F46;border:1px solid #6EE7B7;margin-left:8px">\u2713 Pagante</span>':'')
+        +'</div>';
+      html+='<div style="display:flex;align-items:center;gap:8px;padding:10px 14px;background:#EFF6FF;border-radius:8px;margin:4px 0 10px">'
+        +'<span>\ud83c\udfd9</span>'
+        +'<span style="font-size:13px;font-weight:700;color:#2563EB">CNA Roma \u2014 Tesseramento</span>'
+        +'<span style="font-family:monospace;font-size:10px;color:#6B7280;margin-left:auto">G1000001</span>'
+        +'<span style="font-size:11px;font-weight:600;padding:2px 9px;border-radius:20px;background:#DBEAFE;color:#2563EB">'+pandoraCNA.length+' doc</span>'
+        +'</div>';
+      html+=renderPandoraBlock(pandoraCNA,'CNA Roma');
+      html+='<hr style="margin:16px 0;border:none;border-top:1px solid #E5E7EB">';
+      html+='<div style="display:flex;align-items:center;gap:8px;padding:10px 14px;background:#FFFBEB;border-radius:8px;margin:4px 0 10px">'
+        +'<span>\ud83d\udccb</span>'
+        +'<span style="font-size:13px;font-weight:700;color:#D97706">CNA CAF Lazio \u2014 Servizi fiscali</span>'
+        +'<span style="font-family:monospace;font-size:10px;color:#6B7280;margin-left:auto">G1000003</span>'
+        +'<span style="font-size:11px;font-weight:600;padding:2px 9px;border-radius:20px;background:#FDE68A;color:#92400E">'+pandoraCAF.length+' doc</span>'
+        +'</div>';
+      html+=renderPandoraBlock(pandoraCAF,'CNA CAF Lazio');
+      html+='</div>';
+    }
+
+    /* \u2500\u2500 MAPPA \u2500\u2500 */
     if(ana.indirizzo||ana.comune){
       var addr=[ana.indirizzo,ana.cap,ana.comune,ana.provincia?'('+ana.provincia+')':''].filter(Boolean).join(' ');
       var mapUrl='https://maps.google.com/maps?q='+encodeURIComponent(addr);
