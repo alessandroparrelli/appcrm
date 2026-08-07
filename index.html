@@ -75,12 +75,12 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 #toast.error{background:var(--danger);}
 
 /* LOGIN */
-#login-page{min-height:100vh;display:flex;align-items:center;justify-content:center;background:var(--bg);background-image:radial-gradient(ellipse at 20% 50%,rgba(91,95,239,.07) 0%,transparent 60%),radial-gradient(ellipse at 80% 20%,rgba(91,95,239,.05) 0%,transparent 60%);padding:20px;}
+#login-page{min-height:100vh;display:flex;align-items:center;justify-content:center;background:#ECEDF8;background-image:radial-gradient(ellipse at 15% 60%,rgba(91,95,239,.13) 0%,transparent 55%),radial-gradient(ellipse at 85% 15%,rgba(91,95,239,.09) 0%,transparent 55%);padding:20px;}
 .login-card{background:var(--surface);border-radius:var(--radius-lg);padding:38px 34px;width:100%;max-width:390px;box-shadow:var(--shadow-lg);position:relative;overflow:hidden;}
-.login-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--primary);border-radius:var(--radius-lg) var(--radius-lg) 0 0;}
+.login-card::before{display:none;}
 .login-logo{display:flex;justify-content:center;align-items:center;margin-bottom:10px;}
 .login-logo img{height:68px;width:auto;}
-.login-title{font-size:21px;font-weight:800;text-align:center;color:var(--text);margin-bottom:4px;letter-spacing:-.02em;}
+.login-title{font-size:26px;font-weight:900;text-align:center;color:#0A0A0A;margin-bottom:4px;letter-spacing:-.04em;font-family:'Inter',var(--font);}
 .login-sub{font-size:13px;color:var(--text-secondary);text-align:center;margin-bottom:26px;font-weight:500;}
 .form-group{margin-bottom:13px;}
 .form-group label{display:block;font-size:11px;font-weight:700;color:var(--text-secondary);margin-bottom:5px;text-transform:uppercase;letter-spacing:.4px;}
@@ -737,8 +737,47 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
     </div>
     <button class="btn-login" id="btn-login" onclick="doLogin()">Accedi</button>
     <div class="login-footer">
+      <div style="margin-bottom:8px">
+        <button onclick="openRichiestaAccesso()" style="background:none;border:none;color:var(--primary);font-size:12px;font-weight:600;cursor:pointer;font-family:var(--font);padding:0;text-decoration:underline;text-underline-offset:2px;">Richiedi accesso</button>
+      </div>
       <div style="margin-bottom:3px">CRM CNA Roma v2026.05</div>
       <div>© 2026 CNA Roma — Confederazione Nazionale dell'Artigianato</div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL RICHIESTA ACCESSO -->
+<div id="modal-richiesta-bg" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:9999;align-items:center;justify-content:center;padding:20px;">
+  <div style="background:#fff;border-radius:16px;padding:32px 28px;width:100%;max-width:420px;box-shadow:0 20px 60px rgba(0,0,0,.18);position:relative;">
+    <button onclick="closeRichiestaAccesso()" style="position:absolute;top:14px;right:14px;background:none;border:none;font-size:20px;cursor:pointer;color:#9CA3AF;line-height:1;">×</button>
+    <div style="font-size:18px;font-weight:900;color:#0A0A0A;letter-spacing:-.03em;margin-bottom:4px;font-family:'Inter',sans-serif;">Richiedi accesso</div>
+    <div style="font-size:13px;color:#6B7280;margin-bottom:22px;">Compila il form, ti contatteremo per attivare il tuo account.</div>
+    <div id="richiesta-error" style="display:none;color:#DC2626;font-size:13px;background:#FEF2F2;border:1px solid #FECACA;padding:9px 13px;border-radius:8px;margin-bottom:14px;"></div>
+    <div id="richiesta-success" style="display:none;text-align:center;padding:20px 0;">
+      <div style="font-size:32px;margin-bottom:10px;">✅</div>
+      <div style="font-size:15px;font-weight:700;color:#065F46;margin-bottom:6px;">Richiesta inviata!</div>
+      <div style="font-size:13px;color:#6B7280;">Riceverai una risposta a breve da parrelli@cnaroma.it</div>
+    </div>
+    <div id="richiesta-form">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
+        <div>
+          <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#6B7280;display:block;margin-bottom:5px;">Nome</label>
+          <input id="ra-nome" class="form-input" type="text" placeholder="Mario" style="width:100%;box-sizing:border-box;">
+        </div>
+        <div>
+          <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#6B7280;display:block;margin-bottom:5px;">Cognome</label>
+          <input id="ra-cognome" class="form-input" type="text" placeholder="Rossi" style="width:100%;box-sizing:border-box;">
+        </div>
+      </div>
+      <div style="margin-bottom:12px;">
+        <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#6B7280;display:block;margin-bottom:5px;">Cellulare</label>
+        <input id="ra-tel" class="form-input" type="tel" placeholder="+39 333 0000000" style="width:100%;box-sizing:border-box;">
+      </div>
+      <div style="margin-bottom:20px;">
+        <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#6B7280;display:block;margin-bottom:5px;">Email</label>
+        <input id="ra-email" class="form-input" type="email" placeholder="mario.rossi@esempio.it" style="width:100%;box-sizing:border-box;">
+      </div>
+      <button onclick="inviaRichiestaAccesso()" id="ra-btn" class="btn-login">Invia richiesta</button>
     </div>
   </div>
 </div>
@@ -1873,6 +1912,79 @@ function clearSession(){ session=null; sessionStorage.removeItem('cna_crm_s'); }
 /* ══════════════════════════════════════════════════
    LOGIN / LOGOUT
 ══════════════════════════════════════════════════ */
+/* ── RICHIESTA ACCESSO ─────────────────────────── */
+function openRichiestaAccesso(){
+  var m=document.getElementById('modal-richiesta-bg');
+  if(m){ m.style.display='flex'; }
+  // reset
+  ['ra-nome','ra-cognome','ra-tel','ra-email'].forEach(function(id){ var el=document.getElementById(id); if(el) el.value=''; });
+  var err=document.getElementById('richiesta-error'); if(err){ err.style.display='none'; err.textContent=''; }
+  var suc=document.getElementById('richiesta-success'); if(suc) suc.style.display='none';
+  var frm=document.getElementById('richiesta-form'); if(frm) frm.style.display='block';
+}
+function closeRichiestaAccesso(){
+  var m=document.getElementById('modal-richiesta-bg'); if(m) m.style.display='none';
+}
+async function inviaRichiestaAccesso(){
+  var nome    = (document.getElementById('ra-nome')||{}).value||'';
+  var cognome = (document.getElementById('ra-cognome')||{}).value||'';
+  var tel     = (document.getElementById('ra-tel')||{}).value||'';
+  var email   = (document.getElementById('ra-email')||{}).value||'';
+  var err=document.getElementById('richiesta-error');
+  var showErr=function(msg){ if(err){ err.textContent=msg; err.style.display='block'; } };
+  if(!nome.trim()||!cognome.trim()){ showErr('Inserisci nome e cognome.'); return; }
+  if(!tel.trim()){ showErr('Inserisci il numero di cellulare.'); return; }
+  if(!email.trim()||!email.includes('@')){ showErr('Inserisci un indirizzo email valido.'); return; }
+  if(err){ err.style.display='none'; }
+  var btn=document.getElementById('ra-btn'); if(btn){ btn.disabled=true; btn.textContent='Invio in corso…'; }
+  try {
+    var SB_URL='https://ohahuqlfzqckaevaffbt.supabase.co';
+    var SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9oYWh1cWxmenFja2FldmFmZmJ0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQxODI4NzQsImV4cCI6MjA4OTc1ODg3NH0.MG1N3UUIfISDAi_ArFjxN6ZlHJfk5D77vSeE7qZr020';
+    // payload email costruito tramite blocchi standard (compatibile con crm-bulk-email v5)
+    var blocchiRichiesta = [
+      { tipo:'titolo', testo:'Nuova richiesta di accesso', livello:'h2', html:'Nuova richiesta di accesso' },
+      { tipo:'testo',  html:'Un utente ha richiesto l'accesso al <strong>CRM CNA Roma</strong>.' },
+      { tipo:'tabella_contatto',
+        titolo: 'DATI RICHIEDENTE',
+        righe: ['referente','telefono','email_contatto'],
+      },
+      { tipo:'separatore' },
+      { tipo:'testo', html:'<span style="color:#6B7280;font-size:13px;">Richiesta inviata il '+new Date().toLocaleString('it-IT')+'</span>' },
+    ];
+    var destRichiesta = [{
+      operatore_email: 'parrelli@cnaroma.it',
+      operatore_nome:  'Alessandro Parrelli',
+      company_name:    '',
+      contact_name:    nome+' '+cognome,
+      contact_phone:   tel,
+      contact_email:   email,
+      status:          '',
+      source:          '',
+      created_at:      new Date().toISOString(),
+      creato_da:       '',
+      note:            '',
+    }];
+    var resp = await fetch(SB_URL+'/functions/v1/crm-bulk-email', {
+      method: 'POST',
+      headers: { 'Content-Type':'application/json', 'apikey': SB_KEY, 'Authorization':'Bearer '+SB_KEY },
+      body: JSON.stringify({
+        oggetto:      'Richiesta accesso CRM — '+nome+' '+cognome,
+        destinatari:  destRichiesta,
+        blocchi:      blocchiRichiesta,
+        header_color: '#5B5FEF',
+        logo_height:  '44',
+      })
+    });
+    if(!resp.ok){ var e=await resp.json().catch(function(){return{};}); throw new Error(e.error||('HTTP '+resp.status)); }
+    var frm=document.getElementById('richiesta-form'); if(frm) frm.style.display='none';
+    var suc=document.getElementById('richiesta-success'); if(suc) suc.style.display='block';
+  } catch(e){
+    showErr('Errore nell'invio: '+e.message+'. Contatta parrelli@cnaroma.it');
+  } finally {
+    if(btn){ btn.disabled=false; btn.textContent='Invia richiesta'; }
+  }
+}
+
 async function doLogin(){
   var email=G('inp-email').value.trim().toLowerCase();
   var pwd=G('inp-pwd').value;
