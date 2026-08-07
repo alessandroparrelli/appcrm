@@ -1979,7 +1979,7 @@ async function inviaRichiestaAccesso(){
     var frm=document.getElementById('richiesta-form'); if(frm) frm.style.display='none';
     var suc=document.getElementById('richiesta-success'); if(suc) suc.style.display='block';
   } catch(e){
-    showErr('Errore nell'invio: '+e.message+'. Contatta parrelli@cnaroma.it');
+    showErr('Errore nell\'invio: '+e.message+'. Contatta parrelli@cnaroma.it');
   } finally {
     if(btn){ btn.disabled=false; btn.textContent='Invia richiesta'; }
   }
