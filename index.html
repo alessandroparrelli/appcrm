@@ -173,11 +173,11 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 .scheda-wrap{padding:16px;max-width:860px;width:100%;margin:0 auto;padding-bottom:32px;}
 
 /* Card titolo impresa */
-.scheda-hero{background:var(--grad-primary);border-radius:var(--radius-lg);padding:18px 20px;margin-bottom:14px;display:flex;align-items:flex-start;justify-content:space-between;gap:12px;}
+.scheda-hero{background:#fff;border:1.5px solid var(--border);border-radius:var(--radius-lg);padding:18px 20px;margin-bottom:14px;display:flex;align-items:flex-start;justify-content:space-between;gap:12px;box-shadow:0 1px 4px rgba(0,0,0,.06);}
 .scheda-hero-left{flex:1;min-width:0;}
 .scheda-hero-logo{height:44px;width:auto;margin-bottom:10px;display:block;}
-.scheda-hero-name{font-size:18px;font-weight:800;color:#fff;line-height:1.2;margin-bottom:6px;letter-spacing:-.01em;}
-.scheda-hero-sub{font-size:12px;color:rgba(255,255,255,.7);font-weight:500;}
+.scheda-hero-name{font-size:18px;font-weight:900;color:#0A0A0A;line-height:1.2;margin-bottom:6px;letter-spacing:-.02em;font-family:'Inter',var(--font);}
+.scheda-hero-sub{font-size:12px;color:#6B7280;font-weight:500;}
 .scheda-badges{display:flex;gap:0;flex-shrink:0;align-self:flex-start;margin-top:4px;}
 .sbadge{padding:6px 11px;text-align:center;}
 .sbadge:first-child{border-radius:6px 0 0 6px;}
@@ -295,7 +295,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
   .data-table td.dt-label{width:42%;}
   .header-badge{display:none;}
   .user-name{display:none;}
-  .scheda-hero-name{font-size:16px;}
+  .scheda-hero-name{font-size:16px;color:#0A0A0A;}
 }
 
 /* ── FOOTER APP ───────────────────────────────── */
@@ -2104,6 +2104,14 @@ async function openScheda(idx){
 
     var html='';
 
+    /* ── CALCOLO isPagante per badge hero ── */
+    var _annoNow=new Date().getFullYear();
+    var _isPagante=pandoraCNA.some(function(p){
+      if(!p.data_fattura||!p.pagato) return false;
+      var _ay=parseInt(p.data_fattura.substring(0,4));
+      return _ay>=_annoNow-2&&_ay<=_annoNow;
+    });
+
     /* ── HERO ── */
     html+='<div class="scheda-hero">'
       +'<div class="scheda-hero-left">'
@@ -2125,6 +2133,9 @@ async function openScheda(idx){
     }
     if(!cciaa){
       html+='<div class="sbadge" style="background:#64748B"><div class="slbl" style="color:rgba(255,255,255,.8)">CCIAA</div><div class="sval" style="color:white">Non iscritta</div></div>';
+    }
+    if(_isPagante){
+      html+='<div class="sbadge" style="background:#D1FAE5;border:1.5px solid #6EE7B7;"><div class="slbl" style="color:#065F46">Tessera</div><div class="sval" style="color:#065F46">✓ Pagante</div></div>';
     }
     html+='</div></div>';
 
@@ -2218,8 +2229,8 @@ async function openScheda(idx){
     }
 
 
-    /* ── PAGAMENTI ── */
-    if(incassi&&incassi.length){
+    /* ── PAGAMENTI classici (nascosti, dati ora in Pandora) ── */
+    if(false&&incassi&&incassi.length){
       var byAnno={};
       incassi.forEach(function(p){
         var y=p.anno||new Date(p.data_pagamento).getFullYear()||'—';
@@ -2256,15 +2267,9 @@ async function openScheda(idx){
 
     /* \u2500\u2500 PAGAMENTI PANDORA \u2500\u2500 */
     if(pandoraCNA.length||pandoraCAF.length){
-      var annoCorrente=new Date().getFullYear();
-      var isPagante=pandoraCNA.some(function(p){
-        if(!p.data_fattura||!p.pagato) return false;
-        var anno=parseInt(p.data_fattura.substring(0,4));
-        return anno>=annoCorrente-2&&anno<=annoCorrente;
-      });
       html+='<div class="s-card">'
         +'<div class="s-card-title"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg> Pagamenti Pandora'
-        +(isPagante?' <span style="font-size:11px;font-weight:700;padding:2px 10px;border-radius:20px;background:#D1FAE5;color:#065F46;border:1px solid #6EE7B7;margin-left:8px">\u2713 Pagante</span>':'')
+        +(_isPagante?' <span style="font-size:11px;font-weight:700;padding:2px 10px;border-radius:20px;background:#D1FAE5;color:#065F46;border:1px solid #6EE7B7;margin-left:8px">\u2713 Pagante</span>':'')
         +'</div>';
       html+='<div style="display:flex;align-items:center;gap:8px;padding:10px 14px;background:#EFF6FF;border-radius:8px;margin:4px 0 10px">'
         +'<span>\ud83c\udfd9</span>'
@@ -2980,15 +2985,6 @@ async function openCrmContatto(contactId){
       +'<tr><td class="dt-label">Aggiornato</td><td class="dt-value">'+esc(fmtDate(c.updated_at))+'</td></tr>'
       +(c.closed_at?'<tr><td class="dt-label">Chiuso il</td><td class="dt-value">'+esc(fmtDate(c.closed_at))+'</td></tr>':'')
       +'</table></div>';
-
-    // ── Dati referente ──
-    if(c.contact_name||c.contact_phone||c.contact_email){
-      html += '<div class="s-card"><div class="s-card-title"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg> Dati referente</div><table class="data-table">';
-      if(c.contact_name)  html += '<tr><td class="dt-label">Nominativo</td><td class="dt-value">'+esc(c.contact_name)+'</td></tr>';
-      if(c.contact_phone) html += '<tr><td class="dt-label">Telefono</td>'+'<td class="dt-value"><a href="tel:'+esc(c.contact_phone)+'" style="color:var(--primary);text-decoration:none;">'+esc(c.contact_phone)+'</a></td></tr>';
-      if(c.contact_email) html += '<tr><td class="dt-label">Email</td>'+'<td class="dt-value"><a href="mailto:'+esc(c.contact_email)+'" style="color:var(--primary);text-decoration:none;">'+esc(c.contact_email)+'</a></td></tr>';
-      html += '</table></div>';
-    }
 
     // ── Azioni ──
     html += '<div class="crm-action-row">'
@@ -4433,8 +4429,10 @@ async function inviaSollecito() {
   var oggetto = (G('sol-oggetto')||{}).value||'';
   if (!oggetto.trim()) { toast('Oggetto mancante','error'); return; }
 
+  // Carica template — fallback robusto al default se mancante/corrotto
   var tpl = {};
-  try { var r=localStorage.getItem(SOL_TPL_KEY); if(r) tpl=JSON.parse(r); } catch(e){}
+  try { var _tr=localStorage.getItem(SOL_TPL_KEY); if(_tr) tpl=JSON.parse(_tr); } catch(e){}
+  if (!tpl.blocchi||!tpl.blocchi.length) tpl = solGetDefaultTemplate();
 
   var assignedId = crmContactData.assigned_id || crmContactData.creator_id;
   var operatore = { nome:'', cognome:'', email:'' };
@@ -4442,14 +4440,14 @@ async function inviaSollecito() {
     try {
       var ur = await fetch(SB+'/rest/v1/cna_users?id=eq.'+assignedId+'&select=nome,cognome,email',{headers:H()});
       if(ur.ok){ var us=await ur.json(); if(us[0]) operatore=us[0]; }
-    } catch(e){}
+    } catch(e){ console.warn('fetch operatore:',e); }
   }
-  if (!operatore.email) { toast('Operatore senza email','error'); return; }
+  if (!operatore.email) { toast('Operatore senza email — impossibile inviare','error'); return; }
 
   var btn = G('sol-btn-invia'); if(btn) btn.disabled=true;
   showLoad('Invio sollecito…');
   try {
-    // creato_da e note
+    // creato_da
     var creatoreNomeI = '';
     if (crmContactData && crmContactData.creator_id) {
       try {
@@ -4457,6 +4455,7 @@ async function inviaSollecito() {
         if(cri.ok){ var cris=await cri.json(); if(cris[0]) creatoreNomeI=(cris[0].nome+' '+cris[0].cognome).trim(); }
       } catch(e){}
     }
+    // note
     var noteTextI = '';
     try {
       var nri = await fetch(SB+'/rest/v1/crm_activity_log?contact_id=eq.'+crmContactId
@@ -4468,43 +4467,48 @@ async function inviaSollecito() {
       }
     } catch(e){}
     // Arricchisci dati da anagrafica se contact_name è null
-    crmContactData = await enrichContactData(crmContactData);
+    try { crmContactData = await enrichContactData(crmContactData); } catch(e){}
     var vars = solGetVars(operatore, creatoreNomeI, noteTextI);
     var dest = [{
-      contact_id: crmContactId,
-      company_name: crmContactData.company_name||'',
-      contact_name: crmContactData.contact_name||'',
-      contact_phone: crmContactData.contact_phone||'',
-      contact_email: crmContactData.contact_email||'',
-      status: crmContactData.status||'',
-      source: crmContactData.company_source||'',
-      created_at: crmContactData.created_at||'',
-      operatore_nome: (operatore.nome+' '+operatore.cognome).trim(),
+      contact_id: String(crmContactId||''),
+      company_name:    crmContactData.company_name||'',
+      contact_name:    crmContactData.contact_name||'',
+      contact_phone:   crmContactData.contact_phone||'',
+      contact_email:   crmContactData.contact_email||'',
+      status:          crmContactData.status||'',
+      source:          crmContactData.company_source||'',
+      created_at:      crmContactData.created_at||'',
+      operatore_nome:  (operatore.nome+' '+operatore.cognome).trim(),
       operatore_email: operatore.email,
-      creato_da: creatoreNomeI,
-      note: noteTextI,
+      creato_da:       creatoreNomeI,
+      note:            noteTextI,
     }];
-    // Leggi header config dal template COM
     var _solComTpl = {}; try { _solComTpl = JSON.parse(localStorage.getItem('crm_com_template')||'{}'); } catch(e){}
-    var r = await fetch(SB+'/functions/v1/crm-bulk-email', {
+    var payload = {
+      oggetto:      oggetto,
+      blocchi:      tpl.blocchi,
+      destinatari:  dest,
+      logo_url:     tpl.logo_url || _emailLogoUrl || null,
+      header_color: _solComTpl.header_color || '#5B5FEF',
+      logo_height:  String(_solComTpl.logo_height || '44'),
+    };
+    console.log('inviaSollecito payload blocchi:', tpl.blocchi&&tpl.blocchi.length, 'dest:', dest[0].operatore_email);
+    var resp = await fetch(SB+'/functions/v1/crm-bulk-email', {
       method: 'POST',
       headers: H({'Content-Type':'application/json'}),
-      body: JSON.stringify({
-        oggetto:      oggetto,
-        blocchi:      tpl.blocchi,
-        destinatari:  dest,
-        logo_url:     tpl.logo_url || _emailLogoUrl || null,
-        header_color: _solComTpl.header_color || null,
-        logo_height:  String(_solComTpl.logo_height || '44'),
-      })
+      body: JSON.stringify(payload)
     });
-    var data = await r.json();
-    if (!r.ok) throw new Error(data.error||r.status);
+    var data = {}; try { data = await resp.json(); } catch(e){ data = { error: 'Risposta non valida dal server' }; }
+    if (!resp.ok) throw new Error(data.error || ('HTTP '+resp.status));
+    // Considera successo anche se errors parziali (sent > 0)
     closeModal('modal-sollecito-bg');
     toast('Sollecito inviato a '+operatore.email, 'success');
     await insertActivityLog(crmContactId, 'nota', '[SOLLECITO] Email sollecito inviata a '+operatore.email);
     await openCrmContatto(crmContactId);
-  } catch(e) { toast('Errore: '+e.message,'error'); }
+  } catch(e) {
+    console.error('inviaSollecito error:', e);
+    toast('Errore invio sollecito: '+e.message, 'error');
+  }
   finally { hideLoad(); if(btn) btn.disabled=false; }
 }
 
@@ -4559,8 +4563,10 @@ async function sendAssignmentEmail(contactData, assignedToId, assignedByName, ha
     var logoUrl     = comTpl.logo_url     || localStorage.getItem('crm_email_logo_url') || '';
     var headerColor = comTpl.header_color || '#5B5FEF';
     var logoH       = String(comTpl.logo_height || '44');
-    var blocchi     = (comTpl.blocchi && comTpl.blocchi.length) ? comTpl.blocchi : _defaultAssignBlocchi(creatoDa);
-    var oggetto     = comTpl.oggetto || 'Nuovo contatto assegnato: {{nome_azienda}}';
+    // Fallback robusto: se blocchi corrotti/vuoti usa il default hardcoded
+    var _rawBlocchi = comTpl.blocchi;
+    var blocchi = (_rawBlocchi && Array.isArray(_rawBlocchi) && _rawBlocchi.length > 0) ? _rawBlocchi : _defaultAssignBlocchi(creatoDa);
+    var oggetto = (comTpl.oggetto && comTpl.oggetto.trim()) ? comTpl.oggetto : 'Nuovo contatto assegnato: {{nome_azienda}}';
 
     // 6. dest — costruito dai dati passati, come fa inviaSollecito con crmContactData
     var dest = [{
@@ -4579,6 +4585,7 @@ async function sendAssignmentEmail(contactData, assignedToId, assignedByName, ha
     }];
 
     console.log('sendAssignmentEmail ->', toEmail, contactData.company_name);
+    console.log('sendAssignmentEmail ->', toEmail, 'blocchi:', blocchi.length);
     var r = await fetch(SB+'/functions/v1/crm-bulk-email', {
       method: 'POST',
       headers: H({'Content-Type':'application/json'}),
@@ -4587,15 +4594,16 @@ async function sendAssignmentEmail(contactData, assignedToId, assignedByName, ha
         blocchi:      blocchi,
         destinatari:  dest,
         logo_url:     logoUrl     || null,
-        header_color: headerColor || null,
+        header_color: headerColor || '#5B5FEF',
         logo_height:  logoH,
       })
     });
-    var resp = await r.json().catch(function(){ return {}; });
-    if (!r.ok) console.error('sendAssignmentEmail ERRORE', r.status, resp);
-    else { console.log('sendAssignmentEmail OK ->', toEmail); toast('Email inviata a '+toEmail, 'success'); }
+    var resp = {}; try { resp = await r.json(); } catch(e){ resp = { error: 'Risposta non valida' }; }
+    if (!r.ok) { console.error('sendAssignmentEmail ERRORE', r.status, resp); toast('Errore invio email assegnazione: '+(resp.error||r.status), 'error'); }
+    else { console.log('sendAssignmentEmail OK ->', toEmail, resp); toast('Email inviata a '+toEmail, 'success'); }
   } catch(err) {
     console.error('sendAssignmentEmail eccezione:', err);
+    toast('Errore email assegnazione: '+err.message, 'error');
   }
 }
 
@@ -4729,10 +4737,10 @@ function comGetDefaultTemplate() {
   return {
     oggetto: 'Aggiornamento CRM — {{nome_azienda}}',
     blocchi: [
-      { tipo: 'titolo', testo: 'Gentile operatore,', livello: 'h2', html: 'Gentile operatore,' },
+      { tipo: 'titolo', testo: 'Gentile operatore,', livello: 'h2' },
       { tipo: 'testo', html: 'Ti scriviamo per aggiornarti sullo stato della pratica relativa a {{nome_azienda}}.' },
       { tipo: 'separatore' },
-      { tipo: 'titolo', testo: 'Dettagli contatto', livello: 'h3', html: 'Dettagli contatto' },
+      { tipo: 'titolo', testo: 'Dettagli contatto', livello: 'h3' },
       { tipo: 'testo', html: 'Azienda: {{nome_azienda}}\nReferente: {{referente}}\nTelefono: {{telefono}}\nStato attuale: {{stato}}\nAssegnato a: {{assegnato_a}}\nIn gestione dal: {{data_creazione}}' },
       { tipo: 'separatore' },
       { tipo: 'testo', html: 'Ti chiediamo di aggiornare la pratica nel sistema CRM al pi\u00f9 presto e di registrare eventuali contatti o aggiornamenti significativi.\n\nPer qualsiasi chiarimento, rispondi a questa email.\n\nGrazie per la collaborazione,\nCNA Roma' },
@@ -4761,8 +4769,6 @@ function comImpostaDefault() {
   var tpl = comGetDefaultTemplate();
   comBlocchi = tpl.blocchi;
   var ogg = G('com-oggetto'); if(ogg) ogg.value = tpl.oggetto;
-  // Salva default in localStorage (stesso pattern di solImpostaDefault)
-  try { localStorage.setItem(COM_TPL_KEY, JSON.stringify(tpl)); } catch(e){}
   comRenderBlocchi();
   comRefreshPreview();
 }
@@ -4846,10 +4852,10 @@ function solGetDefaultTemplate() {
   return {
     oggetto: 'Sollecito pratica — {{nome_azienda}}',
     blocchi: [
-      { tipo: 'titolo', testo: 'Sollecito aggiornamento pratica', livello: 'h2', html: 'Sollecito aggiornamento pratica' },
+      { tipo: 'titolo', testo: 'Sollecito aggiornamento pratica', livello: 'h2' },
       { tipo: 'testo', html: 'Gentile {{assegnato_a}},\n\nti contattamo in merito alla pratica di {{nome_azienda}} (fonte: {{fonte}}), attualmente nello stato: {{stato}}.' },
       { tipo: 'separatore' },
-      { tipo: 'titolo', testo: 'Azione richiesta', livello: 'h3', html: 'Azione richiesta' },
+      { tipo: 'titolo', testo: 'Azione richiesta', livello: 'h3' },
       { tipo: 'testo', html: 'Ti chiediamo di:\n\n\u2022 Aggiornare lo stato della pratica nel CRM\n\u2022 Registrare eventuali contatti effettuati\n\u2022 Inserire note su eventuali difficolt\u00e0 riscontrate\n\nLa pratica \u00e8 in gestione dal {{data_creazione}}.' },
       { tipo: 'separatore' },
       { tipo: 'testo', html: 'Per qualsiasi necessit\u00e0 o chiarimento, rispondi a questa email.\n\nGrazie,\nAmministrazione CNA Roma' },
@@ -5014,18 +5020,7 @@ function edSyncDOM(prefix){
   arr.forEach(function(b,i){
     if(b.tipo==='titolo'||b.tipo==='testo'){
       var ed=document.getElementById(prefix+'-ed-'+i);
-      if(ed){
-        var domHtml=ed.innerHTML;
-        // Non sovrascrivere b.html con stringa vuota se il contenteditable
-        // non è ancora stato renderizzato (es. primo render dopo caricamento)
-        var isEmpty=!domHtml||domHtml.trim()===''||domHtml==='<br>'||domHtml==='<br/>';
-        if(!isEmpty){
-          b.html=domHtml;
-        } else if(!b.html && b.testo){
-          // Normalizza vecchio formato {testo,livello} → {html}
-          b.html=b.testo;
-        }
-      }
+      if(ed) b.html=ed.innerHTML;
     }
   });
   // Autosave silenzioso
@@ -5379,14 +5374,11 @@ function edRender(prefix){
 
   wrap.innerHTML=html;
 
-  // Ripopola i contenteditable (usa b.html; se vuoto, normalizza da b.testo per retro-compat)
+  // Ripopola i contenteditable con il loro HTML
   arr.forEach(function(b,i){
     if(b.tipo==='titolo'||b.tipo==='testo'){
       var ed=document.getElementById(prefix+'-ed-'+i);
-      if(ed){
-        if(!b.html && b.testo) b.html=b.testo; // normalizza vecchio formato
-        if(b.html) ed.innerHTML=b.html;
-      }
+      if(ed&&b.html) ed.innerHTML=b.html;
     }
   });
 }
