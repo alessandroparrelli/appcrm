@@ -722,7 +722,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 <div id="login-page">
   <div class="login-card">
     <div class="login-logo">
-      <img src="https://cdn.jsdelivr.net/gh/alessandroparrelli/fileappoggio@main/NUOVO-LOGO-CNA-ROMA-SOLO-ROMA.png" alt="CNA Roma" onerror="this.style.display='none'">
+      <img src="/NUOVO-LOGO-CNA-ROMA-SOLO-ROMA.png" alt="CNA Roma" onerror="this.style.display='none'">
     </div>
     <div class="login-title">CRM CNA Roma</div>
     <div class="login-sub">Consulta le imprese associate</div>
@@ -804,7 +804,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
     <header class="app-header" id="hdr-main">
       <div class="header-left">
         <div class="logo-link" onclick="goHome()" title="Home" style="display:flex;align-items:center;gap:10px;cursor:pointer;">
-          <img class="logo-img" src="https://cdn.jsdelivr.net/gh/alessandroparrelli/fileappoggio@main/NUOVO-LOGO-CNA-ROMA-SOLO-ROMA.png" alt="CNA Roma" onerror="this.style.display='none';document.getElementById('logo-fb').style.display='flex';">
+          <img class="logo-img" src="/NUOVO-LOGO-CNA-ROMA-SOLO-ROMA.png" alt="CNA Roma" onerror="this.style.display='none';document.getElementById('logo-fb').style.display='flex';">
           <div id="logo-fb" class="logo-fallback" style="display:none">CNA Roma</div>
         </div>
         <span class="header-title">CRM</span>
@@ -1543,7 +1543,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
     <div class="app-footer-inner">
       <div class="app-footer-left">
         <img class="app-footer-logo"
-             src="https://cdn.jsdelivr.net/gh/alessandroparrelli/fileappoggio@main/NUOVO-LOGO-CNA-ROMA-SOLO-ROMA.png"
+             src="/NUOVO-LOGO-CNA-ROMA-SOLO-ROMA.png"
              alt="CNA Roma"
              onerror="this.style.display='none'">
         <div class="app-footer-divider"></div>
@@ -2227,7 +2227,7 @@ async function openScheda(idx){
     /* ── HERO ── */
     html+='<div class="scheda-hero">'
       +'<div class="scheda-hero-left">'
-      +'<img class="scheda-hero-logo" src="https://cdn.jsdelivr.net/gh/alessandroparrelli/fileappoggio@main/NUOVO-LOGO-CNA-ROMA-SOLO-ROMA.png" alt="CNA">'
+      +'<img class="scheda-hero-logo" src="/NUOVO-LOGO-CNA-ROMA-SOLO-ROMA.png" alt="CNA">'
       +'<div class="scheda-hero-name">'+esc(ana.ragionesociale||'—')+'</div>';
     var tit=[ana.nometitolare,ana.cognometitolare].filter(Boolean).join(' ');
     if(tit) html+='<div class="scheda-hero-sub">Titolare: '+esc(tit)+'</div>';
@@ -5023,7 +5023,7 @@ function loadComunicazione() {
   // se il campo logo è rimasto vuoto, usa il logo di default
   var logoInp = G('com-logo-url');
   if (logoInp && !logoInp.value.trim()) {
-    var defaultLogo = _emailLogoUrl || 'https://cdn.jsdelivr.net/gh/alessandroparrelli/fileappoggio@main/NUOVO-LOGO-CNA-ROMA-SOLO-ROMA.png';
+    var defaultLogo = _emailLogoUrl || '/NUOVO-LOGO-CNA-ROMA-SOLO-ROMA.png';
     logoInp.value = defaultLogo;
     comPreviewLogo();
   }
@@ -5643,7 +5643,7 @@ function comBlocchiToHtml(arr,vars){return edBlocchiToHtml(arr,vars);}
 function comBuildFullHtml(bodyHtml,logoUrl){
   var BLU  = comGetHeaderColor();
   var LOGO = logoUrl||(G('com-logo-url')||{}).value||_emailLogoUrl||
-    'https://cdn.jsdelivr.net/gh/alessandroparrelli/fileappoggio@main/NUOVO-LOGO-CNA-ROMA-SOLO-ROMA.png';
+    '/NUOVO-LOGO-CNA-ROMA-SOLO-ROMA.png';
   var logoH= parseInt((G('com-logo-height')||{}).value||'44')||44;
   var css  = '<style>body,table,td{-webkit-text-size-adjust:100%;-ms-text-size-adjust:100%}'
     +'p{margin:0 0 10px;font-family:Inter,Arial,sans-serif;}a{color:inherit;text-decoration:none;}'
@@ -5688,7 +5688,7 @@ function comRefreshPreview(){
 
 function solBuildFullHtml(bodyHtml, logoUrl, headerColor, logoH) {
   var BLU  = headerColor || '#ffffff';
-  var LOGO = logoUrl || 'https://cdn.jsdelivr.net/gh/alessandroparrelli/fileappoggio@main/NUOVO-LOGO-CNA-ROMA-SOLO-ROMA.png';
+  var LOGO = logoUrl || '/NUOVO-LOGO-CNA-ROMA-SOLO-ROMA.png';
   var H_PX = (parseInt(logoH)||44)+'px';
   var css  = '<style>body,table,td{-webkit-text-size-adjust:100%;-ms-text-size-adjust:100%}'
     +'p{margin:0 0 10px;font-family:Inter,Arial,sans-serif;}a{color:inherit;text-decoration:none;}'
