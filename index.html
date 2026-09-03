@@ -4429,19 +4429,6 @@ function solAddBlocco(tipo) {
   solRefreshPreview();
 }
 
-function solRefreshPreview() {
-  var frame = G('sol-preview-frame');
-  if (!frame) return;
-  edSyncDOM('sol');
-  if (!solBlocchi.length) { frame.innerHTML='<div style="padding:40px;text-align:center;color:#9CA3AF;">Aggiungi blocchi per vedere l\'anteprima</div>'; return; }
-  var logoUrl = (G('sol-tpl-logo')||{}).value || _emailLogoUrl || '';
-  try { var _ct=JSON.parse(localStorage.getItem('crm_com_template')||'{}');
-    var _hc=_ct.header_color||'#ffffff'; var _lh=parseInt(_ct.logo_height||'44')||44;
-  } catch(e){ var _hc='#ffffff'; var _lh=44; }
-  var html = solBuildFullHtml(edBlocchiToHtml(solBlocchi, COM_PREV_VARS), logoUrl, _hc, _lh);
-  frame.innerHTML = '<iframe srcdoc="'+html.replace(/"/g,'&quot;')+'" style="width:100%;height:100%;min-height:calc(100vh - 300px);border:none;" title="Anteprima sollecito"></iframe>';
-}
-
 // ── Modale invio sollecito dalla scheda ──────────
 async function openModalSollecito() {
   if (!crmContactId || !crmContactData) { toast('Nessun contatto aperto','error'); return; }
@@ -5257,55 +5244,81 @@ function edToolbarHtml(prefix, i, b) {
     +'</div>';
 }
 
-/* ── Esegui comando execCommand ──────────────────── */
+/* ── Salva/ripristina selezione (per color picker) ─ */
+var _edSavedRange = null;
+var _edSavedEl    = null;
+function edSaveRange() {
+  var sel = window.getSelection();
+  if(sel && sel.rangeCount > 0) {
+    _edSavedRange = sel.getRangeAt(0).cloneRange();
+    _edSavedEl = document.activeElement;
+  }
+}
+function edRestoreRange() {
+  if(!_edSavedRange) return false;
+  if(_edSavedEl) { try{ _edSavedEl.focus(); }catch(e){} }
+  var sel = window.getSelection();
+  try{ sel.removeAllRanges(); sel.addRange(_edSavedRange.cloneRange()); return true; }catch(e){ return false; }
+}
+
+/* ── Helper: wrap selezione in span con stile ──────── */
+function edWrapSel(el, styleKey, styleVal) {
+  if(!el) return false;
+  el.focus();
+  var sel = window.getSelection();
+  if(!sel || sel.rangeCount === 0 || sel.isCollapsed) return false;
+  var range = sel.getRangeAt(0);
+  try {
+    var sp = document.createElement('span');
+    sp.style[styleKey] = styleVal;
+    range.surroundContents(sp);
+    return true;
+  } catch(e) {
+    try {
+      var frag = range.extractContents();
+      var sp2 = document.createElement('span');
+      sp2.style[styleKey] = styleVal;
+      sp2.appendChild(frag);
+      range.insertNode(sp2);
+      sel.removeAllRanges();
+      var nr = document.createRange();
+      nr.selectNodeContents(sp2);
+      sel.addRange(nr);
+      return true;
+    } catch(e2) { return false; }
+  }
+}
+
+/* ── execCommand (bold/italic/underline/strikethrough) */
 function edExecCmd(cmd, val) {
   document.execCommand(cmd, false, val||null);
 }
 
-/* ── Set font family su blocco ───────────────────── */
+/* ── Font family ───────────────────────────────────── */
 function edSetFontFamily(prefix, i, family) {
   edCloseAll();
   var arr = prefix==='com' ? comBlocchi : solBlocchi;
+  var el = document.getElementById(prefix+'-ed-'+i);
   arr[i].fontFamily = family;
-  var el = document.getElementById(prefix+'-ed-'+i);
-  if(el) el.style.fontFamily = family;
-  edTriggerAutosave(prefix);
-}
-
-/* ── Set font size su selezione ──────────────────── */
-function edSetFontSize(prefix, i, px) {
-  edCloseAll();
-  var el = document.getElementById(prefix+'-ed-'+i);
-  if(!el) return;
-  el.focus();
-  var sel = window.getSelection();
-  if(sel && sel.rangeCount > 0 && !sel.isCollapsed) {
-    try {
-      var range = sel.getRangeAt(0);
-      var span = document.createElement('span');
-      span.style.fontSize = px + 'px';
-      range.surroundContents(span);
-      sel.removeAllRanges();
-      var nr = document.createRange();
-      nr.selectNodeContents(span);
-      sel.addRange(nr);
-    } catch(e) {
-      document.execCommand('fontSize', false, '7');
-      document.querySelectorAll('[size="7"]').forEach(function(n){
-        n.removeAttribute('size');
-        n.style.fontSize = px+'px';
-      });
-    }
-  } else {
-    // No selection: set default size for block
-    var arr = prefix==='com' ? comBlocchi : solBlocchi;
-    arr[i].size = px;
-    el.style.fontSize = px + 'px';
+  if(el) {
+    el.style.fontFamily = family;
+    edWrapSel(el, 'fontFamily', family);
   }
   edTriggerAutosave(prefix);
 }
 
-/* ── Set alignment ───────────────────────────────── */
+/* ── Font size ─────────────────────────────────────── */
+function edSetFontSize(prefix, i, px) {
+  edCloseAll();
+  var arr = prefix==='com' ? comBlocchi : solBlocchi;
+  var el = document.getElementById(prefix+'-ed-'+i);
+  if(!el) return;
+  var wrapped = edWrapSel(el, 'fontSize', px+'px');
+  if(!wrapped) { arr[i].size = px; el.style.fontSize = px+'px'; }
+  edTriggerAutosave(prefix);
+}
+
+/* ── Allineamento ──────────────────────────────────── */
 function edSetAlign(prefix, i, align) {
   var arr = prefix==='com' ? comBlocchi : solBlocchi;
   arr[i].align = align;
@@ -5314,21 +5327,22 @@ function edSetAlign(prefix, i, align) {
   edTriggerAutosave(prefix);
 }
 
-/* ── Set text color su selezione ─────────────────── */
+/* ── Colore testo ──────────────────────────────────── */
 function edSetColor(prefix, i, color) {
   var el = document.getElementById(prefix+'-ed-'+i);
   if(!el) return;
-  el.focus();
-  document.execCommand('foreColor', false, color);
+  edRestoreRange();
+  var wrapped = edWrapSel(el, 'color', color);
+  if(!wrapped) { el.style.color = color; var arr=prefix==='com'?comBlocchi:solBlocchi; arr[i].color=color; }
   edTriggerAutosave(prefix);
 }
 
-/* ── Set background color su selezione ──────────── */
+/* ── Colore sfondo ──────────────────────────────────── */
 function edSetBgColor(prefix, i, color) {
   var el = document.getElementById(prefix+'-ed-'+i);
   if(!el) return;
-  el.focus();
-  document.execCommand('hiliteColor', false, color);
+  edRestoreRange();
+  edWrapSel(el, 'backgroundColor', color);
   edTriggerAutosave(prefix);
 }
 
@@ -5738,7 +5752,7 @@ function solRefreshPreview(){
   frame.innerHTML='<iframe srcdoc="'+html.replace(/"/g,'&quot;')+'" style="width:100%;height:100%;min-height:calc(100vh - 300px);border:none;" title="Anteprima sollecito"></iframe>';
 }
 
-/* ── Invio /* ── Invio ───────────────────────────────────── */
+/* ── Invio email ─────────────────────────────────────────── */
 /* ── Invio email di test ──────────────────────────── */
 async function comInviaTest() {
   flushComTemplate();
@@ -5759,7 +5773,7 @@ async function comInviaTest() {
       body: JSON.stringify({
         oggetto: '[TEST] ' + oggetto,
         blocchi: comBlocchi,
-        destinatari: [{ email: email, operatore: 'Test Operatore', nome_azienda:'Rossi & C. Srl', referente:'Mario Rossi', telefono:'+39 06 1234567', email_contatto:'mario@rossi.it', stato:'In lavorazione', assegnato_a:'Giordano Rapaccioni', data_creazione:new Date().toLocaleDateString('it-IT'), fonte:'Anagrafiche', creato_da:'Alessandro Parrelli', note:'' }],
+        destinatari: [{ operatore_email: email, operatore_nome: 'Test', company_name: 'Rossi & C. Srl', contact_name: 'Mario Rossi', contact_phone: '+39 06 1234567', contact_email: 'mario@rossi.it', status: 'In lavorazione', source: 'Anagrafiche', created_at: new Date().toLocaleDateString('it-IT'), note: '' }],
         logo_url: logoUrl || null,
       })
     });
@@ -5794,7 +5808,7 @@ async function solInviaTest() {
       body: JSON.stringify({
         oggetto: '[TEST] ' + oggetto,
         blocchi: solBlocchi,
-        destinatari: [{ email: email, operatore: 'Test Operatore', nome_azienda:'Rossi & C. Srl', referente:'Mario Rossi', telefono:'+39 06 1234567', email_contatto:'mario@rossi.it', stato:'In lavorazione', assegnato_a:'Giordano Rapaccioni', data_creazione:new Date().toLocaleDateString('it-IT'), fonte:'Anagrafiche', creato_da:'Alessandro Parrelli', note:'' }],
+        destinatari: [{ operatore_email: email, operatore_nome: 'Test', company_name: 'Rossi & C. Srl', contact_name: 'Mario Rossi', contact_phone: '+39 06 1234567', contact_email: 'mario@rossi.it', status: 'In lavorazione', source: 'Anagrafiche', created_at: new Date().toLocaleDateString('it-IT'), note: '' }],
         logo_url: logoUrl || null,
         header_color: hc,
         logo_height: lh,
