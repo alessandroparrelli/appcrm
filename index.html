@@ -1207,6 +1207,20 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
               <div id="com-save-msg" style="font-size:11px;text-align:center;color:var(--success);margin-top:6px;display:none;">✓ Template salvato</div>
             </div>
 
+            <!-- Test email -->
+            <div class="com-card">
+              <div class="com-card-title">Email di test</div>
+              <div style="display:flex;gap:6px;">
+                <input type="email" id="com-test-email" class="crm-input" placeholder="tua@email.it" style="flex:1;font-size:13px;">
+                <button class="btn-crm btn-crm-outline btn-crm-sm" onclick="comInviaTest()" style="white-space:nowrap;" title="Invia email di test a te stesso">
+                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+                  Test
+                </button>
+              </div>
+              <p style="font-size:10px;color:var(--text-tertiary);margin:4px 0 0;">Invia una copia di test a te stesso con dati di esempio</p>
+              <div id="com-test-result" style="font-size:11px;margin-top:4px;display:none;"></div>
+            </div>
+
             <!-- Invia -->
             <button class="btn-crm btn-crm-primary" id="com-btn-invia" onclick="comInvia()" style="width:100%;justify-content:center;padding:13px;font-size:14px;" disabled>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
@@ -1303,6 +1317,20 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
               </button>
             </div>
             <div id="sol-save-msg" style="font-size:11px;text-align:center;color:var(--success);margin-top:4px;display:none;">✓ Template sollecito salvato</div>
+          </div>
+
+          <!-- Test email sollecito -->
+          <div class="com-card">
+            <div class="com-card-title">Email di test</div>
+            <div style="display:flex;gap:6px;">
+              <input type="email" id="sol-test-email" class="crm-input" placeholder="tua@email.it" style="flex:1;font-size:13px;">
+              <button class="btn-crm btn-crm-outline btn-crm-sm" onclick="solInviaTest()" style="white-space:nowrap;border-color:#7C3AED;color:#7C3AED;" title="Invia sollecito di test a te stesso">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+                Test
+              </button>
+            </div>
+            <p style="font-size:10px;color:var(--text-tertiary);margin:4px 0 0;">Invia una copia di test a te stesso con dati di esempio</p>
+            <div id="sol-test-result" style="font-size:11px;margin-top:4px;display:none;"></div>
           </div>
 
           <!-- Editor blocchi sollecito -->
@@ -5593,16 +5621,27 @@ function edBlocchiToHtml(arr, vars) {
         +'</div>';
     }
     if(b.tipo==='tabella_contatto') {
-      var righe = b.righe||['azienda','referente','telefono','email_contatto','fonte','stato'];
-      var labels = {azienda:'Azienda',referente:'Referente',telefono:'Telefono',email_contatto:'Email',fonte:'Fonte',stato:'Stato',assegnato_a:'Assegnato a',data_creazione:'Data'};
+      var righe = b.righe||['nome_azienda','referente','telefono','email_contatto','fonte','stato'];
+      var labels = {nome_azienda:'Azienda',azienda:'Azienda',referente:'Referente',telefono:'Telefono',email_contatto:'Email',fonte:'Fonte',stato:'Stato',assegnato_a:'Assegnato a',data_creazione:'Data',creato_da:'Creato da',note:'Note'};
       var rows = righe.map(function(k){
         var lbl = labels[k]||k;
-        var val = vars&&vars[k] ? vars[k] : '{{'+k+'}}';
-        return '<tr><td style="padding:6px 12px;font-weight:700;color:#374151;font-size:13px;border-bottom:1px solid #E5E7EB;width:35%;">'+lbl+'</td>'
-          +'<td style="padding:6px 12px;color:#1F2937;font-size:13px;border-bottom:1px solid #E5E7EB;">'+val+'</td></tr>';
+        var rawVal = vars&&(vars[k]!==undefined&&vars[k]!==null) ? vars[k] : '{{'+k+'}}';
+        // Stato: badge colorato
+        var valHtml;
+        if(k==='stato') {
+          var stateColors = {'da_contattare':'#6B7280','assegnato':'#3B82F6','chiamata_effettuata':'#F59E0B','appuntamento_fissato':'#8B5CF6','appuntamento_completato':'#10B981','in_lavorazione':'#F97316','chiuso_positivo':'#22C55E','chiuso_negativo':'#EF4444','In lavorazione':'#F97316','Chiuso positivo':'#22C55E','Chiuso negativo':'#EF4444','Assegnato':'#3B82F6'};
+          var stateCol = stateColors[rawVal] || '#6B7280';
+          valHtml = '<span style="display:inline-block;padding:2px 10px;background:'+stateCol+'22;color:'+stateCol+';border-radius:20px;font-size:12px;font-weight:700;border:1px solid '+stateCol+'44;">'+rawVal+'</span>';
+        } else {
+          valHtml = '<strong style="color:#111827;">'+rawVal+'</strong>';
+        }
+        return '<tr>'
+          +'<td style="padding:5px 10px;color:#6B7280;font-size:13px;border-bottom:1px solid #F3F4F6;width:38%;vertical-align:middle;">'+lbl+'</td>'
+          +'<td style="padding:5px 10px;font-size:13px;border-bottom:1px solid #F3F4F6;vertical-align:middle;">'+valHtml+'</td>'
+          +'</tr>';
       }).join('');
-      return '<table style="width:100%;border-collapse:collapse;margin:12px 0;border:1px solid #E5E7EB;border-radius:8px;overflow:hidden;">'
-        +'<thead><tr><th colspan="2" style="padding:10px 12px;background:#F9FAFB;text-align:left;font-size:11px;font-weight:800;color:#5B5FEF;letter-spacing:.08em;border-bottom:1px solid #E5E7EB;">'+(b.titolo||'DETTAGLI CONTATTO')+'</th></tr></thead>'
+      return '<table style="width:100%;border-collapse:collapse;margin:12px 0;background:#F8FAFF;border-radius:8px;overflow:hidden;border:1px solid #E0E7FF;">'
+        +'<thead><tr><th colspan="2" style="padding:8px 10px;background:#EEF2FF;text-align:left;font-size:11px;font-weight:800;color:#5B5FEF;letter-spacing:.1em;border-bottom:1px solid #C7D2FE;">'+(b.titolo||'DETTAGLI CONTATTO')+'</th></tr></thead>'
         +'<tbody>'+rows+'</tbody></table>';
     }
     if(b.tipo==='alert') {
@@ -5645,7 +5684,7 @@ function comBuildFullHtml(bodyHtml,logoUrl){
 }
 
 var COM_PREV_VARS = {
-  nome_azienda:'Rossi & C. Srl', referente:'Mario Rossi',
+  nome_azienda:'Rossi & C. Srl', azienda:'Rossi & C. Srl', referente:'Mario Rossi',
   telefono:'+39 06 1234567', email_contatto:'mario@rossi.it',
   stato:'In lavorazione', assegnato_a:'Giordano Rapaccioni',
   data_creazione:new Date().toLocaleDateString('it-IT'), fonte:'Anagrafiche',
@@ -5700,6 +5739,77 @@ function solRefreshPreview(){
 }
 
 /* ── Invio /* ── Invio ───────────────────────────────────── */
+/* ── Invio email di test ──────────────────────────── */
+async function comInviaTest() {
+  flushComTemplate();
+  var emailEl = G('com-test-email');
+  var resEl   = G('com-test-result');
+  var email   = emailEl ? emailEl.value.trim() : '';
+  if(!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    toast('Inserisci un indirizzo email valido', 'error'); return;
+  }
+  if(!comBlocchi.length) { toast('Aggiungi almeno un blocco prima di inviare', 'error'); return; }
+  var oggetto = (G('com-oggetto')||{}).value || 'Email massiva — test';
+  var logoUrl = (G('com-logo-url')||{}).value || _emailLogoUrl || '';
+  if(resEl){ resEl.style.display='block'; resEl.style.color='var(--text-secondary)'; resEl.textContent='Invio in corso…'; }
+  try {
+    var r = await fetch(SB+'/functions/v1/crm-bulk-email', {
+      method:'POST',
+      headers: H({'Content-Type':'application/json'}),
+      body: JSON.stringify({
+        oggetto: '[TEST] ' + oggetto,
+        blocchi: comBlocchi,
+        destinatari: [{ email: email, operatore: 'Test Operatore', nome_azienda:'Rossi & C. Srl', referente:'Mario Rossi', telefono:'+39 06 1234567', email_contatto:'mario@rossi.it', stato:'In lavorazione', assegnato_a:'Giordano Rapaccioni', data_creazione:new Date().toLocaleDateString('it-IT'), fonte:'Anagrafiche', creato_da:'Alessandro Parrelli', note:'' }],
+        logo_url: logoUrl || null,
+      })
+    });
+    var data = await r.json();
+    if(!r.ok) throw new Error(data.error||r.status);
+    if(resEl){ resEl.style.color='var(--success)'; resEl.textContent='✓ Email di test inviata a '+email; }
+    toast('Email di test inviata a '+email, 'success');
+  } catch(e) {
+    if(resEl){ resEl.style.color='var(--danger)'; resEl.textContent='Errore: '+e.message; }
+    toast('Errore: '+e.message, 'error');
+  }
+}
+
+async function solInviaTest() {
+  flushSolTemplate();
+  var emailEl = G('sol-test-email');
+  var resEl   = G('sol-test-result');
+  var email   = emailEl ? emailEl.value.trim() : '';
+  if(!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    toast('Inserisci un indirizzo email valido', 'error'); return;
+  }
+  if(!solBlocchi.length) { toast('Aggiungi almeno un blocco prima di inviare', 'error'); return; }
+  var oggetto = (G('sol-tpl-oggetto')||{}).value || 'Sollecito — test';
+  var logoUrl = (G('sol-tpl-logo')||{}).value || _emailLogoUrl || '';
+  var hc = (G('com-header-color')||{}).value || '#5B5FEF';
+  var lh = parseInt((G('com-logo-height')||{}).value||'44')||44;
+  if(resEl){ resEl.style.display='block'; resEl.style.color='var(--text-secondary)'; resEl.textContent='Invio in corso…'; }
+  try {
+    var r = await fetch(SB+'/functions/v1/crm-bulk-email', {
+      method:'POST',
+      headers: H({'Content-Type':'application/json'}),
+      body: JSON.stringify({
+        oggetto: '[TEST] ' + oggetto,
+        blocchi: solBlocchi,
+        destinatari: [{ email: email, operatore: 'Test Operatore', nome_azienda:'Rossi & C. Srl', referente:'Mario Rossi', telefono:'+39 06 1234567', email_contatto:'mario@rossi.it', stato:'In lavorazione', assegnato_a:'Giordano Rapaccioni', data_creazione:new Date().toLocaleDateString('it-IT'), fonte:'Anagrafiche', creato_da:'Alessandro Parrelli', note:'' }],
+        logo_url: logoUrl || null,
+        header_color: hc,
+        logo_height: lh,
+      })
+    });
+    var data = await r.json();
+    if(!r.ok) throw new Error(data.error||r.status);
+    if(resEl){ resEl.style.color='var(--success)'; resEl.textContent='✓ Sollecito di test inviato a '+email; }
+    toast('Sollecito di test inviato a '+email, 'success');
+  } catch(e) {
+    if(resEl){ resEl.style.color='var(--danger)'; resEl.textContent='Errore: '+e.message; }
+    toast('Errore: '+e.message, 'error');
+  }
+}
+
 async function comInvia() {
   var oggetto = (G('com-oggetto')||{}).value||'';
   if (!oggetto.trim()) { toast('Inserisci l\'oggetto dell\'email','error'); return; }
