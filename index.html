@@ -5243,11 +5243,11 @@ function edToolbarHtml(prefix, i, b) {
     +' <button class="ed-tb-btn" title="Giustifica" onmousedown="event.preventDefault();edSetAlign(\''+prefix+'\','+i+',\'justify\')">=</button>'
     // Colore testo
     +' <label title="Colore testo" class="ed-tb-btn" style="cursor:pointer;padding:2px 4px;">'
-    +'A <input type="color" id="'+colPickId+'" style="width:20px;height:16px;border:none;padding:0;cursor:pointer;" onchange="edSetColor(\''+prefix+'\','+i+',this.value)">'
+    +'A <input type="color" id="'+colPickId+'" style="width:20px;height:16px;border:none;padding:0;cursor:pointer;" onmousedown="edSaveRange()" onchange="edSetColor(\''+prefix+'\','+i+',this.value)">'
     +'</label>'
     // Colore sfondo
     +' <label title="Sfondo testo" class="ed-tb-btn" style="cursor:pointer;padding:2px 4px;">'
-    +'▣ <input type="color" id="'+bgPickId+'" style="width:20px;height:16px;border:none;padding:0;cursor:pointer;" onchange="edSetBgColor(\''+prefix+'\','+i+',this.value)">'
+    +'▣ <input type="color" id="'+bgPickId+'" style="width:20px;height:16px;border:none;padding:0;cursor:pointer;" onmousedown="edSaveRange()" onchange="edSetBgColor(\''+prefix+'\','+i+',this.value)">'
     +'</label>'
     // Formatta paragrafo
     +' <button class="ed-tb-btn" title="H1" onmousedown="event.preventDefault();edExecCmd(\'formatBlock\',\'h1\')">H1</button>'
