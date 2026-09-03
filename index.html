@@ -668,6 +668,12 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 ══════════════════════════════════════════════ */
 #view-comunicazione{overflow-y:auto;background:var(--bg);}
 .com-wrap{padding:16px;flex:1;display:flex;flex-direction:column;padding-bottom:40px;}
+.email-tabs{display:flex;gap:0;border-bottom:2px solid var(--border);margin-bottom:16px;}
+.email-tab{padding:10px 22px;font-size:14px;font-weight:700;cursor:pointer;border:none;background:none;color:var(--text-secondary);border-bottom:2px solid transparent;margin-bottom:-2px;transition:all .15s;display:flex;align-items:center;gap:7px;border-radius:0;}
+.email-tab:hover{color:var(--primary);background:var(--surface2);}
+.email-tab.active{color:var(--primary);border-bottom-color:var(--primary);}
+.email-tab-pane{display:none;}
+.email-tab-pane.active{display:block;}
 .com-header{margin-bottom:16px;}
 .com-header-title{font-size:18px;font-weight:800;color:var(--text);display:flex;align-items:center;gap:8px;}
 .com-header-sub{font-size:13px;color:var(--text-secondary);margin-top:3px;}
@@ -1088,165 +1094,166 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="2" y="4" width="20" height="16" rx="2"/><polyline points="2,4 12,13 22,4"/></svg>
             Comunicazione
           </div>
-          <div class="com-header-sub">Crea e invia email personalizzate ai contatti CRM per stato</div>
+          <div class="com-header-sub">Gestisci i template email per la comunicazione massiva e i solleciti agli operatori</div>
         </div>
       </div>
 
-      <div class="com-layout">
-
-        <!-- COLONNA SINISTRA: configurazione -->
-        <div class="com-sidebar">
-
-          <!-- Oggetto -->
-          <div class="com-card">
-            <div class="com-card-title">Oggetto email</div>
-            <input type="text" class="crm-input" id="com-oggetto" placeholder="Es. Aggiornamento sulla tua pratica" style="font-size:13px;" oninput="comAutosaveBlocchi()">
-          </div>
-
-          <!-- Destinatari per stato -->
-          <div class="com-card">
-            <div class="com-card-title">Destinatari — filtra per stato</div>
-            <div class="com-stati-grid" id="com-stati-grid">
-              <label class="com-stato-chk"><input type="checkbox" value="da_contattare" onchange="comAggiornaDest()"><span class="com-stato-pill lavorazione">Da contattare</span></label>
-              <label class="com-stato-chk"><input type="checkbox" value="assegnato" onchange="comAggiornaDest()"><span class="com-stato-pill lavorazione">Assegnato</span></label>
-              <label class="com-stato-chk"><input type="checkbox" value="chiamata_effettuata" onchange="comAggiornaDest()"><span class="com-stato-pill lavorazione">Chiamata effettuata</span></label>
-              <label class="com-stato-chk"><input type="checkbox" value="appuntamento_fissato" onchange="comAggiornaDest()"><span class="com-stato-pill lavorazione">Appuntamento fissato</span></label>
-              <label class="com-stato-chk"><input type="checkbox" value="appuntamento_completato" onchange="comAggiornaDest()"><span class="com-stato-pill lavorazione">App. completato</span></label>
-              <label class="com-stato-chk"><input type="checkbox" value="in_lavorazione" onchange="comAggiornaDest()"><span class="com-stato-pill lavorazione">In lavorazione</span></label>
-              <label class="com-stato-chk"><input type="checkbox" value="chiuso_positivo" onchange="comAggiornaDest()"><span class="com-stato-pill positivo">Chiuso positivo</span></label>
-              <label class="com-stato-chk"><input type="checkbox" value="chiuso_negativo" onchange="comAggiornaDest()"><span class="com-stato-pill negativo">Chiuso negativo</span></label>
-            </div>
-            <div class="com-dest-count" id="com-dest-count">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
-              Seleziona almeno uno stato
-            </div>
-          </div>
-
-          <!-- Header email -->
-          <div class="com-card">
-            <div class="com-card-title">Header email</div>
-            <div class="crm-field" style="margin-bottom:8px;">
-              <label style="font-size:11px;font-weight:700;color:var(--text-secondary);">URL Logo</label>
-              <div style="display:flex;gap:6px;margin-top:4px;">
-                <input type="url" class="crm-input" id="com-logo-url" placeholder="https://…/logo.png" style="flex:1;font-size:12px;" oninput="comPreviewLogo();comAutosaveHeader()">
-              </div>
-            </div>
-            <div class="crm-field" style="margin-bottom:8px;">
-              <label style="font-size:11px;font-weight:700;color:var(--text-secondary);">Colore sfondo header</label>
-              <div style="display:flex;gap:6px;margin-top:4px;align-items:center;">
-                <input type="color" id="com-header-color" value="#5B5FEF" oninput="comRefreshPreview();comAutosaveHeader()" style="width:40px;height:32px;border:1px solid var(--border);border-radius:6px;cursor:pointer;padding:2px;">
-                <input type="text" class="crm-input" id="com-header-color-txt" value="#5B5FEF" placeholder="#5B5FEF" style="font-size:12px;font-family:monospace;flex:1;" oninput="comSyncHeaderColor(this.value);comAutosaveHeader()">
-              </div>
-            </div>
-            <div class="crm-field" style="margin-bottom:8px;">
-              <label style="font-size:11px;font-weight:700;color:var(--text-secondary);">Altezza logo (px)</label>
-              <input type="number" class="crm-input" id="com-logo-height" value="44" min="20" max="120" oninput="comRefreshPreview();comAutosaveHeader()" style="font-size:12px;width:80px;margin-top:4px;">
-            </div>
-            <div id="com-logo-preview" style="margin-top:8px;display:none;">
-              <p style="font-size:11px;color:var(--text-tertiary);margin:0 0 4px;">Anteprima logo:</p>
-              <img id="com-logo-img" src="" style="height:36px;max-width:160px;object-fit:contain;border:1px solid var(--border);border-radius:6px;padding:4px;background:#fff;">
-            </div>
-          </div>
-
-          <!-- Variabili -->
-          <div class="com-card">
-            <div class="com-card-title">Variabili disponibili</div>
-            <div class="com-vars">
-              <span class="com-var-chip" onclick="comInserisciVar('{{nome_azienda}}')">{{nome_azienda}}</span>
-              <span class="com-var-chip" onclick="comInserisciVar('{{referente}}')">{{referente}}</span>
-              <span class="com-var-chip" onclick="comInserisciVar('{{telefono}}')">{{telefono}}</span>
-              <span class="com-var-chip" onclick="comInserisciVar('{{email_contatto}}')">{{email_contatto}}</span>
-              <span class="com-var-chip" onclick="comInserisciVar('{{stato}}')">{{stato}}</span>
-              <span class="com-var-chip" onclick="comInserisciVar('{{assegnato_a}}')">{{assegnato_a}}</span>
-              <span class="com-var-chip" onclick="comInserisciVar('{{data_creazione}}')">{{data_creazione}}</span>
-              <span class="com-var-chip" onclick="comInserisciVar('{{fonte}}')">{{fonte}}</span>
-              <span class="com-var-chip" onclick="comInserisciVar('{{creato_da}}')">{{creato_da}}</span>
-              <span class="com-var-chip" onclick="comInserisciVar('{{note}}')">{{note}}</span>
-            </div>
-            <p style="font-size:11px;color:var(--text-tertiary);margin:8px 0 0;">Clicca una variabile per inserirla nel blocco testo attivo</p>
-          </div>
-
-          <!-- Salva template comunicazione -->
-          <div class="com-card">
-            <div class="com-card-title">Template email massiva</div>
-            <div style="display:flex;gap:6px;">
-              <button class="btn-crm btn-crm-outline btn-crm-sm" onclick="comSalvaTemplate()" style="flex:1;justify-content:center;">
-                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13"/><polyline points="7 3 7 8 15 8"/></svg>
-                Salva
-              </button>
-              <button class="btn-crm btn-crm-outline btn-crm-sm" onclick="comRipristinaDefault()" style="color:var(--text-tertiary);" title="Ripristina template di default">
-                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
-                Ripristina default
-              </button>
-            </div>
-            <div id="com-save-msg" style="font-size:11px;text-align:center;color:var(--success);margin-top:6px;display:none;">Template salvato</div>
-          </div>
-
-          <!-- Invia -->
-          <button class="btn-crm btn-crm-primary" id="com-btn-invia" onclick="comInvia()" style="width:100%;justify-content:center;padding:13px;font-size:14px;" disabled>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
-            Invia a <span id="com-btn-count">0</span> operatori
-          </button>
-          <div id="com-send-result" style="margin-top:8px;font-size:12px;text-align:center;display:none;"></div>
-
-        </div>
-
-        <!-- COLONNA DESTRA: editor blocchi -->
-        <div class="com-editor-col">
-          <div class="com-card" style="flex:1;">
-            <div class="com-card-title" style="display:flex;justify-content:space-between;align-items:center;">
-              <span>Corpo email</span>
-              <div style="display:flex;gap:4px;flex-wrap:wrap;">
-                <button class="btn-crm btn-crm-outline btn-crm-sm" onclick="comAddBlocco('titolo')">+ Titolo</button>
-                <button class="btn-crm btn-crm-outline btn-crm-sm" onclick="comAddBlocco('testo')">+ Testo</button>
-                <button class="btn-crm btn-crm-outline btn-crm-sm" onclick="comAddBlocco('bottone')">+ Bottone</button>
-                <button class="btn-crm btn-crm-outline btn-crm-sm" onclick="comAddBlocco('immagine')">+ Immagine</button>
-                <button class="btn-crm btn-crm-outline btn-crm-sm" onclick="comAddBlocco('citazione')">+ Citazione</button>
-                <button class="btn-crm btn-crm-outline btn-crm-sm" onclick="comAddBlocco('tabella_contatto')">+ Tabella</button>
-                <button class="btn-crm btn-crm-outline btn-crm-sm" onclick="comAddBlocco('alert')">+ Alert</button>
-                <button class="btn-crm btn-crm-outline btn-crm-sm" onclick="comAddBlocco('separatore')">+ Sep.</button>
-              </div>
-            </div>
-            <div id="com-blocchi" style="min-height:200px;"></div>
-            <div id="com-empty-hint" style="padding:32px;text-align:center;color:var(--text-tertiary);font-size:13px;">
-              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="display:block;margin:0 auto 10px;opacity:.3"><rect x="2" y="4" width="20" height="16" rx="2"/><polyline points="2,4 12,13 22,4"/></svg>
-              Aggiungi un blocco per comporre l'email
-            </div>
-          </div>
-
-        </div>
-
-        <!-- COLONNA ANTEPRIMA EMAIL MASSIVA -->
-        <div class="com-preview-col">
-          <div class="com-preview-sticky">
-            <div class="com-card">
-              <div class="com-card-title" style="display:flex;justify-content:space-between;align-items:center;">
-                <span>Anteprima email</span>
-                <button class="btn-crm btn-crm-outline btn-crm-sm" onclick="comRefreshPreview()">&#8635;</button>
-              </div>
-              <div id="com-preview-frame" style="border:1px solid var(--border);border-radius:8px;overflow:hidden;background:#F0F2F5;min-height:calc(100vh - 280px);"></div>
-            </div>
-          </div>
-        </div>
-
+      <!-- TAB SWITCHER -->
+      <div class="email-tabs">
+        <button class="email-tab active" id="etab-com" onclick="switchEmailTab('com')">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="2" y="4" width="20" height="16" rx="2"/><polyline points="2,4 12,13 22,4"/></svg>
+          Email massiva
+        </button>
+        <button class="email-tab" id="etab-sol" onclick="switchEmailTab('sol')">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+          Template sollecito
+        </button>
       </div>
 
-      <!-- SEZIONE SOLLECITO -->
-      <div style="margin-top:24px;">
-        <div class="com-header" style="margin-bottom:12px;">
-          <div class="com-header-title" style="color:#7C3AED;">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
-            Template sollecito
-          </div>
-          <div class="com-header-sub">Questo template viene usato dal pulsante "Sollecito" nella scheda contatto. Le variabili vengono sostituite con i dati reali del contatto.</div>
-        </div>
-
+      <!-- ══════════════════════════════════════════════════════════════════ -->
+      <!-- TAB: EMAIL MASSIVA                                                 -->
+      <!-- ══════════════════════════════════════════════════════════════════ -->
+      <div class="email-tab-pane active" id="etabpane-com">
         <div class="com-layout">
+
+          <!-- COLONNA SINISTRA: configurazione -->
+          <div class="com-sidebar">
+
+            <!-- Oggetto -->
+            <div class="com-card">
+              <div class="com-card-title">Oggetto email</div>
+              <input type="text" class="crm-input" id="com-oggetto" placeholder="Es. Aggiornamento CRM — {{nome_azienda}}" style="font-size:13px;" oninput="comAutosaveBlocchi()">
+            </div>
+
+            <!-- Variabili -->
+            <div class="com-card">
+              <div class="com-card-title">Variabili disponibili</div>
+              <div class="com-vars">
+                <span class="com-var-chip" onclick="comInserisciVar('{{nome_azienda}}')">{{nome_azienda}}</span>
+                <span class="com-var-chip" onclick="comInserisciVar('{{referente}}')">{{referente}}</span>
+                <span class="com-var-chip" onclick="comInserisciVar('{{telefono}}')">{{telefono}}</span>
+                <span class="com-var-chip" onclick="comInserisciVar('{{email_contatto}}')">{{email_contatto}}</span>
+                <span class="com-var-chip" onclick="comInserisciVar('{{stato}}')">{{stato}}</span>
+                <span class="com-var-chip" onclick="comInserisciVar('{{assegnato_a}}')">{{assegnato_a}}</span>
+                <span class="com-var-chip" onclick="comInserisciVar('{{data_creazione}}')">{{data_creazione}}</span>
+                <span class="com-var-chip" onclick="comInserisciVar('{{fonte}}')">{{fonte}}</span>
+                <span class="com-var-chip" onclick="comInserisciVar('{{creato_da}}')">{{creato_da}}</span>
+                <span class="com-var-chip" onclick="comInserisciVar('{{note}}')">{{note}}</span>
+              </div>
+              <p style="font-size:11px;color:var(--text-tertiary);margin:8px 0 0;">Clicca una variabile per inserirla nel blocco testo attivo</p>
+            </div>
+
+            <!-- Header email -->
+            <div class="com-card">
+              <div class="com-card-title">Header email</div>
+              <label style="font-size:11px;font-weight:700;color:var(--text-secondary);display:block;margin-bottom:4px;">URL Logo</label>
+              <input type="url" class="crm-input" id="com-logo-url" placeholder="https://…/logo.png" style="font-size:12px;margin-bottom:8px;" oninput="comPreviewLogo();comAutosaveHeader()">
+              <div id="com-logo-preview" style="display:none;margin-bottom:8px;"><img id="com-logo-img" src="" style="max-height:44px;max-width:100%;border-radius:4px;border:1px solid var(--border);"></div>
+              <p style="font-size:11px;color:var(--text-tertiary);margin-bottom:8px;">Anteprima logo:</p>
+              <label style="font-size:11px;font-weight:700;color:var(--text-secondary);display:block;margin-bottom:4px;">Colore sfondo header</label>
+              <div style="display:flex;gap:6px;align-items:center;margin-bottom:8px;">
+                <input type="color" id="com-header-color" value="#5B5FEF" style="width:36px;height:36px;border:none;border-radius:6px;cursor:pointer;padding:2px;" oninput="comSyncHeaderColor(this.value);comAutosaveHeader()">
+                <input type="text" id="com-header-color-txt" class="crm-input" value="#5B5FEF" style="font-family:monospace;font-size:12px;" oninput="comSyncHeaderColor(this.value);comAutosaveHeader()">
+              </div>
+              <label style="font-size:11px;font-weight:700;color:var(--text-secondary);display:block;margin-bottom:4px;">Altezza logo (px)</label>
+              <input type="number" id="com-logo-height" class="crm-input" value="44" min="20" max="120" style="font-size:13px;width:80px;" oninput="comRefreshPreview();comAutosaveHeader()">
+            </div>
+
+            <!-- Destinatari -->
+            <div class="com-card">
+              <div class="com-card-title">Destinatari — Filtra per stato</div>
+              <div id="com-stati-grid" style="display:flex;flex-direction:column;gap:6px;margin-bottom:8px;">
+                <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;"><input type="checkbox" value="da_contattare" onchange="comAggiornaDest()"> <span class="badge-stato badge-da-contattare">Da contattare</span></label>
+                <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;"><input type="checkbox" value="assegnato" onchange="comAggiornaDest()"> <span class="badge-stato badge-assegnato">Assegnato</span></label>
+                <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;"><input type="checkbox" value="chiamata_effettuata" onchange="comAggiornaDest()"> <span class="badge-stato badge-chiamata">Chiamata effettuata</span></label>
+                <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;"><input type="checkbox" value="appuntamento_fissato" onchange="comAggiornaDest()"> <span class="badge-stato badge-appuntamento">Appuntamento fissato</span></label>
+                <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;"><input type="checkbox" value="appuntamento_completato" onchange="comAggiornaDest()"> <span class="badge-stato badge-app-completato">App. completato</span></label>
+                <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;"><input type="checkbox" value="in_lavorazione" onchange="comAggiornaDest()"> <span class="badge-stato badge-lavorazione">In lavorazione</span></label>
+                <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;"><input type="checkbox" value="chiuso_positivo" onchange="comAggiornaDest()"> <span class="badge-stato badge-positivo">Chiuso positivo</span></label>
+                <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;"><input type="checkbox" value="chiuso_negativo" onchange="comAggiornaDest()"> <span class="badge-stato badge-negativo">Chiuso negativo</span></label>
+              </div>
+              <div id="com-dest-count" style="font-size:12px;color:var(--text-secondary);display:flex;align-items:center;gap:5px;">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+                Seleziona almeno uno stato
+              </div>
+            </div>
+
+            <!-- Salva template comunicazione -->
+            <div class="com-card">
+              <div class="com-card-title">Template email massiva</div>
+              <div style="display:flex;gap:6px;">
+                <button class="btn-crm btn-crm-outline btn-crm-sm" onclick="comSalvaTemplate()" style="flex:1;justify-content:center;">
+                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13"/><polyline points="7 3 7 8 15 8"/></svg>
+                  Salva
+                </button>
+                <button class="btn-crm btn-crm-outline btn-crm-sm" onclick="comRipristinaDefault()" style="color:var(--text-tertiary);" title="Ripristina template di default">
+                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+                  Ripristina default
+                </button>
+              </div>
+              <div id="com-save-msg" style="font-size:11px;text-align:center;color:var(--success);margin-top:6px;display:none;">✓ Template salvato</div>
+            </div>
+
+            <!-- Invia -->
+            <button class="btn-crm btn-crm-primary" id="com-btn-invia" onclick="comInvia()" style="width:100%;justify-content:center;padding:13px;font-size:14px;" disabled>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+              Invia a <span id="com-btn-count">0</span> operatori
+            </button>
+            <div id="com-send-result" style="margin-top:8px;font-size:12px;text-align:center;display:none;"></div>
+
+          </div>
+
+          <!-- COLONNA CENTRO: editor blocchi -->
+          <div class="com-editor-col">
+            <div class="com-card" style="flex:1;">
+              <div class="com-card-title" style="display:flex;justify-content:space-between;align-items:center;">
+                <span>Corpo email</span>
+                <div style="display:flex;gap:4px;flex-wrap:wrap;">
+                  <button class="btn-crm btn-crm-outline btn-crm-sm" onclick="comAddBlocco('titolo')">+ Titolo</button>
+                  <button class="btn-crm btn-crm-outline btn-crm-sm" onclick="comAddBlocco('testo')">+ Testo</button>
+                  <button class="btn-crm btn-crm-outline btn-crm-sm" onclick="comAddBlocco('bottone')">+ Bottone</button>
+                  <button class="btn-crm btn-crm-outline btn-crm-sm" onclick="comAddBlocco('immagine')">+ Immagine</button>
+                  <button class="btn-crm btn-crm-outline btn-crm-sm" onclick="comAddBlocco('citazione')">+ Citazione</button>
+                  <button class="btn-crm btn-crm-outline btn-crm-sm" onclick="comAddBlocco('tabella_contatto')">+ Tabella</button>
+                  <button class="btn-crm btn-crm-outline btn-crm-sm" onclick="comAddBlocco('alert')">+ Alert</button>
+                  <button class="btn-crm btn-crm-outline btn-crm-sm" onclick="comAddBlocco('separatore')">+ Sep.</button>
+                </div>
+              </div>
+              <div id="com-blocchi" style="min-height:200px;"></div>
+              <div id="com-empty-hint" style="padding:32px;text-align:center;color:var(--text-tertiary);font-size:13px;">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="display:block;margin:0 auto 10px;opacity:.3"><rect x="2" y="4" width="20" height="16" rx="2"/><polyline points="2,4 12,13 22,4"/></svg>
+                Aggiungi un blocco per comporre l'email
+              </div>
+            </div>
+          </div>
+
+          <!-- COLONNA ANTEPRIMA -->
+          <div class="com-preview-col">
+            <div class="com-preview-sticky">
+              <div class="com-card">
+                <div class="com-card-title" style="display:flex;justify-content:space-between;align-items:center;">
+                  <span>Anteprima email</span>
+                  <button class="btn-crm btn-crm-outline btn-crm-sm" onclick="comRefreshPreview()">&#8635;</button>
+                </div>
+                <div id="com-preview-frame" style="border:1px solid var(--border);border-radius:8px;overflow:hidden;background:#F0F2F5;min-height:calc(100vh - 280px);"></div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div><!-- /etabpane-com -->
+
+      <!-- ══════════════════════════════════════════════════════════════════ -->
+      <!-- TAB: TEMPLATE SOLLECITO                                            -->
+      <!-- ══════════════════════════════════════════════════════════════════ -->
+      <div class="email-tab-pane" id="etabpane-sol">
+        <div class="com-layout">
+
           <!-- Sidebar sollecito -->
           <div class="com-sidebar">
             <div class="com-card">
               <div class="com-card-title">Oggetto sollecito</div>
-              <input type="text" class="crm-input" id="sol-tpl-oggetto" placeholder="Es. Aggiornamento sulla tua pratica — {{nome_azienda}}" style="font-size:13px;">
+              <input type="text" class="crm-input" id="sol-tpl-oggetto" placeholder="Es. Aggiornamento sulla tua pratica — {{nome_azienda}}" style="font-size:13px;" oninput="solAutosaveBlocchi()">
             </div>
 
             <div class="com-card">
@@ -1267,8 +1274,9 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
             </div>
 
             <div class="com-card">
-              <div class="com-card-title">Logo email</div>
+              <div class="com-card-title">Logo email sollecito</div>
               <input type="url" class="crm-input" id="sol-tpl-logo" placeholder="URL logo (usa quello generale se vuoto)" style="font-size:12px;">
+              <p style="font-size:11px;color:var(--text-tertiary);margin-top:6px;">Il colore header viene letto dal template email massiva</p>
             </div>
 
             <div style="display:flex;gap:6px;">
@@ -1281,7 +1289,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
                 Ripristina default
               </button>
             </div>
-            <div id="sol-save-msg" style="font-size:11px;text-align:center;color:var(--success);margin-top:4px;display:none;">Template salvato nel browser</div>
+            <div id="sol-save-msg" style="font-size:11px;text-align:center;color:var(--success);margin-top:4px;display:none;">✓ Template sollecito salvato</div>
           </div>
 
           <!-- Editor blocchi sollecito -->
@@ -1295,8 +1303,8 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
                   <button class="btn-crm btn-crm-outline btn-crm-sm" onclick="solAddBlocco('bottone')">+ Bottone</button>
                   <button class="btn-crm btn-crm-outline btn-crm-sm" onclick="solAddBlocco('immagine')">+ Immagine</button>
                   <button class="btn-crm btn-crm-outline btn-crm-sm" onclick="solAddBlocco('citazione')">+ Citazione</button>
-                <button class="btn-crm btn-crm-outline btn-crm-sm" onclick="solAddBlocco('tabella_contatto')">+ Tabella</button>
-                <button class="btn-crm btn-crm-outline btn-crm-sm" onclick="solAddBlocco('alert')">+ Alert</button>
+                  <button class="btn-crm btn-crm-outline btn-crm-sm" onclick="solAddBlocco('tabella_contatto')">+ Tabella</button>
+                  <button class="btn-crm btn-crm-outline btn-crm-sm" onclick="solAddBlocco('alert')">+ Alert</button>
                   <button class="btn-crm btn-crm-outline btn-crm-sm" onclick="solAddBlocco('separatore')">+ Sep.</button>
                 </div>
               </div>
@@ -1320,8 +1328,9 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
               </div>
             </div>
           </div>
+
         </div>
-      </div>
+      </div><!-- /etabpane-sol -->
 
     </div>
   </div>
@@ -4955,12 +4964,12 @@ function comAutosaveBlocchi() {
       var tpl = raw ? JSON.parse(raw) : {};
       tpl.blocchi  = comBlocchi;
       tpl.oggetto  = (G('com-oggetto')||{}).value || '';
-      if(!tpl.logo_url)     tpl.logo_url     = (G('com-logo-url')||{}).value || '';
-      if(!tpl.header_color) tpl.header_color = (G('com-header-color')||{}).value || '#ffffff';
-      if(!tpl.logo_height)  tpl.logo_height  = (G('com-logo-height')||{}).value || '44';
+      tpl.logo_url     = (G('com-logo-url')||{}).value || tpl.logo_url || '';
+      tpl.header_color = (G('com-header-color')||{}).value || tpl.header_color || '#5B5FEF';
+      tpl.logo_height  = (G('com-logo-height')||{}).value || tpl.logo_height || '44';
       localStorage.setItem(COM_TPL_KEY, JSON.stringify(tpl));
-    } catch(e) {}
-  }, 2000);
+    } catch(e) { console.warn('autosave COM:', e); }
+  }, 800);
 }
 
 // Autosave sollecito blocchi + oggetto
@@ -4976,8 +4985,8 @@ function solAutosaveBlocchi() {
       tpl.oggetto  = (G('sol-tpl-oggetto')||{}).value || '';
       tpl.logo_url = (G('sol-tpl-logo')||{}).value || '';
       localStorage.setItem(SOL_TPL_KEY, JSON.stringify(tpl));
-    } catch(e) {}
-  }, 2000);
+    } catch(e) { console.warn('autosave SOL:', e); }
+  }, 800);
 }
 
 function comRipristinaDefault() {
@@ -5015,6 +5024,24 @@ function solRipristinaDefault() {
   solRefreshPreview();
   var ogg = G('sol-tpl-oggetto'); if(ogg) ogg.value = solGetDefaultTemplate().oggetto;
   toast('Template ripristinato!', 'success');
+}
+
+function switchEmailTab(which) {
+  // Flush l'editor attivo prima di cambiare tab
+  if(which === 'sol') {
+    flushComTemplate();
+  } else {
+    flushSolTemplate();
+  }
+  document.querySelectorAll('.email-tab').forEach(function(t){ t.classList.remove('active'); });
+  document.querySelectorAll('.email-tab-pane').forEach(function(p){ p.classList.remove('active'); });
+  var btn = document.getElementById('etab-'+which);
+  var pane = document.getElementById('etabpane-'+which);
+  if(btn) btn.classList.add('active');
+  if(pane) pane.classList.add('active');
+  // Ri-renderizza l'editor della tab che si apre
+  if(which === 'com') { comRenderBlocchi(); setTimeout(comRefreshPreview, 100); }
+  else { solRenderBlocchi(); setTimeout(solRefreshPreview, 100); }
 }
 
 function loadComunicazione() {
