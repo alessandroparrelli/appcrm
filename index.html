@@ -669,6 +669,19 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 #view-comunicazione{overflow-y:auto;background:var(--bg);}
 .com-wrap{padding:16px;flex:1;display:flex;flex-direction:column;padding-bottom:40px;}
 .email-tabs{display:flex;gap:0;border-bottom:2px solid var(--border);margin-bottom:16px;}
+.ed-block{border:1px solid var(--border);border-radius:8px;margin-bottom:10px;overflow:hidden;background:#fff;transition:box-shadow .15s;}
+.ed-block:hover{box-shadow:0 2px 8px rgba(0,0,0,.08);}
+.ed-block-header{display:flex;justify-content:space-between;align-items:center;padding:6px 10px;background:var(--surface2);border-bottom:1px solid var(--border);}
+.ed-block-label{font-size:10px;font-weight:800;color:var(--text-secondary);letter-spacing:.08em;}
+.ed-toolbar{display:flex;flex-wrap:wrap;gap:3px;padding:6px 8px;background:#FAFAFA;border-bottom:1px solid var(--border);align-items:center;}
+.ed-tb-btn{border:1px solid #ddd;background:#fff;border-radius:4px;cursor:pointer;padding:3px 7px;font-size:12px;line-height:1.4;transition:background .1s;}
+.ed-tb-btn:hover{background:#f0f0f0;}
+.ed-dd-menu{box-shadow:0 4px 16px rgba(0,0,0,.15);}
+.ed-dd-item{padding:6px 14px;cursor:pointer;font-size:13px;white-space:nowrap;}
+.ed-dd-item:hover{background:var(--surface2);}
+.ed-content{min-height:60px;padding:12px;font-size:15px;color:#374151;line-height:1.6;outline:none;font-family:Inter,Arial,sans-serif;}
+.ed-content:empty:before{content:attr(placeholder);color:#9CA3AF;pointer-events:none;font-style:italic;}
+.ed-content:focus{background:#FEFCE8;}
 .email-tab{padding:10px 22px;font-size:14px;font-weight:700;cursor:pointer;border:none;background:none;color:var(--text-secondary);border-bottom:2px solid transparent;margin-bottom:-2px;transition:all .15s;display:flex;align-items:center;gap:7px;border-radius:0;}
 .email-tab:hover{color:var(--primary);background:var(--surface2);}
 .email-tab.active{color:var(--primary);border-bottom-color:var(--primary);}
@@ -4388,52 +4401,6 @@ function solAddBlocco(tipo) {
   solRefreshPreview();
 }
 
-function solRenderBlocchi() {
-  var wrap = G('sol-blocchi');
-  var hint = G('sol-empty-hint');
-  if (!wrap) return;
-  if (!solBlocchi.length) { wrap.innerHTML=''; if(hint) hint.style.display='block'; return; }
-  if (hint) hint.style.display='none';
-  wrap.innerHTML = solBlocchi.map(function(b, i) {
-    var isActive = (solActiveBloccoIdx === i);
-    var tipoLabel = {titolo:'Titolo',testo:'Testo',bottone:'Bottone',separatore:'Separatore'}[b.tipo]||b.tipo;
-    var bodyHtml = '';
-    if (b.tipo === 'titolo')
-      bodyHtml = '<input type="text" value="'+esc(b.testo||'')+'" placeholder="Testo titolo" oninput="solUpdateBlocco('+i+',\'testo\',this.value)" onfocus="solActiveBloccoIdx='+i+'">';
-    else if (b.tipo === 'testo')
-      bodyHtml = '<textarea rows="4" placeholder="Testo del paragrafo..." oninput="solUpdateBlocco('+i+',\'html\',this.value)" onfocus="solActiveBloccoIdx='+i+'">'+esc(b.html||'')+'</textarea>';
-    else if (b.tipo === 'bottone')
-      bodyHtml = '<input type="text" value="'+esc(b.testo||'')+'" placeholder="Testo bottone" oninput="solUpdateBlocco('+i+',\'testo\',this.value)" style="margin-bottom:6px;" onfocus="solActiveBloccoIdx='+i+'">'
-               + '<input type="url" value="'+esc(b.url||'')+'" placeholder="URL destinazione" oninput="solUpdateBlocco('+i+',\'url\',this.value)">';
-    else if (b.tipo === 'separatore')
-      bodyHtml = '<div style="height:1px;background:var(--border);margin:4px 0;"></div>';
-    return '<div class="com-blocco'+(isActive?' active-focus':'')+'" onclick="solActiveBloccoIdx='+i+';solRenderBlocchi();">'
-      +'<div class="com-blocco-hdr">'+tipoLabel
-      +'<div class="com-b-actions">'
-      +(i>0?'<button class="com-b-btn" onclick="event.stopPropagation();solMoveBlocco('+i+',-1)">↑</button>':'')
-      +(i<solBlocchi.length-1?'<button class="com-b-btn" onclick="event.stopPropagation();solMoveBlocco('+i+',1)">↓</button>':'')
-      +'<button class="com-b-btn" onclick="event.stopPropagation();solDeleteBlocco('+i+')" style="color:var(--danger)">✕</button>'
-      +'</div></div>'
-      +'<div class="com-blocco-body">'+bodyHtml+'</div>'
-      +'</div>';
-  }).join('');
-}
-
-function solUpdateBlocco(i, field, val) { if(solBlocchi[i]) solBlocchi[i][field]=val; setTimeout(solRefreshPreview,300); }
-function solDeleteBlocco(i) { solBlocchi.splice(i,1); solActiveBloccoIdx=null; solRenderBlocchi(); solRefreshPreview(); }
-function solMoveBlocco(i,dir) { var j=i+dir; if(j<0||j>=solBlocchi.length)return; var t=solBlocchi[i];solBlocchi[i]=solBlocchi[j];solBlocchi[j]=t; solActiveBloccoIdx=j; solRenderBlocchi(); solRefreshPreview(); }
-
-function solInserisciVar(varStr) {
-  if (solActiveBloccoIdx === null) { toast('Seleziona prima un blocco','error'); return; }
-  var b = solBlocchi[solActiveBloccoIdx];
-  if (!b) return;
-  if (b.tipo==='testo') b.html=(b.html||'')+varStr;
-  else if (b.tipo==='titolo') b.testo=(b.testo||'')+varStr;
-  else if (b.tipo==='bottone') b.testo=(b.testo||'')+varStr;
-  else { toast('Seleziona un blocco Testo, Titolo o Bottone','error'); return; }
-  solRenderBlocchi(); solRefreshPreview();
-}
-
 function solRefreshPreview() {
   var frame = G('sol-preview-frame');
   if (!frame) return;
@@ -4927,67 +4894,7 @@ function comAutosaveHeader() {
   } catch(e) {}
 }
 
-// Autosave blocchi + oggetto dopo ogni modifica (debounced 2s)
-/* ── Flush immediato template → localStorage (usa prima di ogni invio) ── */
-function flushComTemplate() {
-  try {
-    edSyncDOM('com');
-    var raw = localStorage.getItem(COM_TPL_KEY);
-    var tpl = raw ? JSON.parse(raw) : {};
-    tpl.blocchi      = comBlocchi;
-    tpl.oggetto      = (G('com-oggetto')||{}).value || tpl.oggetto || '';
-    tpl.logo_url     = (G('com-logo-url')||{}).value || tpl.logo_url || '';
-    tpl.header_color = (G('com-header-color')||{}).value || tpl.header_color || '#ffffff';
-    tpl.logo_height  = (G('com-logo-height')||{}).value || tpl.logo_height || '44';
-    localStorage.setItem(COM_TPL_KEY, JSON.stringify(tpl));
-  } catch(e) { console.warn('flushComTemplate:', e); }
-}
-function flushSolTemplate() {
-  try {
-    edSyncDOM('sol');
-    var raw = localStorage.getItem(SOL_TPL_KEY);
-    var tpl = raw ? JSON.parse(raw) : {};
-    tpl.blocchi  = solBlocchi;
-    tpl.oggetto  = (G('sol-tpl-oggetto')||{}).value || tpl.oggetto || '';
-    tpl.logo_url = (G('sol-tpl-logo')||{}).value || tpl.logo_url || '';
-    localStorage.setItem(SOL_TPL_KEY, JSON.stringify(tpl));
-  } catch(e) { console.warn('flushSolTemplate:', e); }
-}
 
-var _comAutosaveTimer = null;
-function comAutosaveBlocchi() {
-  clearTimeout(_comAutosaveTimer);
-  _comAutosaveTimer = setTimeout(function(){
-    try {
-      edSyncDOM('com');
-      var raw = localStorage.getItem(COM_TPL_KEY);
-      var tpl = raw ? JSON.parse(raw) : {};
-      tpl.blocchi  = comBlocchi;
-      tpl.oggetto  = (G('com-oggetto')||{}).value || '';
-      tpl.logo_url     = (G('com-logo-url')||{}).value || tpl.logo_url || '';
-      tpl.header_color = (G('com-header-color')||{}).value || tpl.header_color || '#5B5FEF';
-      tpl.logo_height  = (G('com-logo-height')||{}).value || tpl.logo_height || '44';
-      localStorage.setItem(COM_TPL_KEY, JSON.stringify(tpl));
-    } catch(e) { console.warn('autosave COM:', e); }
-  }, 800);
-}
-
-// Autosave sollecito blocchi + oggetto
-var _solAutosaveTimer = null;
-function solAutosaveBlocchi() {
-  clearTimeout(_solAutosaveTimer);
-  _solAutosaveTimer = setTimeout(function(){
-    try {
-      edSyncDOM('sol');
-      var raw = localStorage.getItem(SOL_TPL_KEY);
-      var tpl = raw ? JSON.parse(raw) : {};
-      tpl.blocchi  = solBlocchi;
-      tpl.oggetto  = (G('sol-tpl-oggetto')||{}).value || '';
-      tpl.logo_url = (G('sol-tpl-logo')||{}).value || '';
-      localStorage.setItem(SOL_TPL_KEY, JSON.stringify(tpl));
-    } catch(e) { console.warn('autosave SOL:', e); }
-  }, 800);
-}
 
 function comRipristinaDefault() {
   if (!confirm('Ripristinare il template di default? Il template attuale andr\u00e0 perso.')) return;
@@ -5148,7 +5055,17 @@ function comGetHeaderColor() {
   return (G('com-header-color')||{}).value || '#ffffff';
 }
 
-/* ── Defaults blocchi ────────────────────────────── */
+/* ══════════════════════════════════════════════════════════════════
+   EDITOR BLOCCHI EMAIL — v3 (no re-render DOM)
+   Principi chiave:
+   - I blocchi contenteditable non vengono MAI distrutti/ricreati
+   - Solo i blocchi non-testo vengono aggiornati in-place quando necessario
+   - edSyncDOM legge l'innerHTML corrente dal DOM esistente
+   - Nessun dropdown rimane aperto sui blocchi sbagliati
+   - Autosave silenzioso ogni 800ms dopo modifiche
+   ══════════════════════════════════════════════════════════════════ */
+
+/* ── Dati di default per ogni tipo di blocco ─────── */
 var BLOCCO_DEFAULTS = {
   titolo:     { tipo:'titolo',    html:'<strong>Titolo</strong>',    color:'#0A0A0A', size:22, align:'left' },
   testo:      { tipo:'testo',     html:'<p>Scrivi qui il testo...</p>', color:'#374151', size:15, align:'left' },
@@ -5165,520 +5082,535 @@ var BLOCCO_DEFAULTS = {
 
 function edDeepCopy(obj){ return JSON.parse(JSON.stringify(obj)); }
 
-/* ── Add blocco ──────────────────────────────────── */
-function edAddBlocco(prefix, tipo) {
+/* ── Stato editor ────────────────────────────────── */
+var _edOpenDropdown   = null;  // dropdown attualmente aperto {el, prefix, idx}
+var _edLastFocus      = null;  // { prefix, idx } — ultimo blocco con focus
+
+/* ── Chiudi tutti i dropdown ─────────────────────── */
+function edCloseAll() {
+  document.querySelectorAll('.ed-dd-menu').forEach(function(m){ m.style.display='none'; });
+  _edOpenDropdown = null;
+}
+document.addEventListener('click', function(e){
+  if(!e.target.closest('.ed-dd-btn') && !e.target.closest('.ed-dd-menu')) edCloseAll();
+});
+
+/* ── Toggle dropdown ─────────────────────────────── */
+function edToggleDD(btn, menuId) {
+  var menu = document.getElementById(menuId);
+  if(!menu) return;
+  var isOpen = menu.style.display === 'block';
+  edCloseAll();
+  if(!isOpen){ menu.style.display='block'; }
+}
+
+/* ── Sync DOM → array ────────────────────────────── */
+function edSyncDOM(prefix) {
   var arr = prefix==='com' ? comBlocchi : solBlocchi;
-  arr.push(edDeepCopy(BLOCCO_DEFAULTS[tipo]||{tipo:tipo,html:''}));
-  if(prefix==='com') comActiveBloccoIdx=arr.length-1;
-  else solActiveBloccoIdx=arr.length-1;
-  edRender(prefix);
-  setTimeout(function(){
-    var ed=document.querySelector('#'+prefix+'-blocchi .com-blocco:last-child .ed-content');
-    if(ed){ed.focus();edPlaceCaret(ed);}
-  },60);
-}
-function comAddBlocco(t){edAddBlocco('com',t);}
-function solAddBlocco(t){edAddBlocco('sol',t);}
-
-function edPlaceCaret(el){
-  try{var r=document.createRange(),s=window.getSelection();r.selectNodeContents(el);r.collapse(false);s.removeAllRanges();s.addRange(r);}catch(e){}
-}
-
-/* ── Sync DOM -> array ───────────────────────────── */
-function edSyncDOM(prefix){
-  var arr=prefix==='com'?comBlocchi:solBlocchi;
-  arr.forEach(function(b,i){
-    if(b.tipo==='titolo'||b.tipo==='testo'){
-      var ed=document.getElementById(prefix+'-ed-'+i);
-      if(ed) b.html=ed.innerHTML;
+  arr.forEach(function(b, i){
+    if(b.tipo==='titolo' || b.tipo==='testo' || b.tipo==='citazione') {
+      var el = document.getElementById(prefix+'-ed-'+i);
+      if(el) b.html = el.innerHTML;
     }
   });
-  // Autosave silenzioso
-  if(prefix==='com') comAutosaveBlocchi();
-  else solAutosaveBlocchi();
 }
 
-/* ── Toolbar & Editor engine ─────────────────────── */
-// ARCHITETTURA:
-// - Tutti i button usano onmousedown+preventDefault per NON perdere mai la selezione
-// - edExecStyled usa styleWithCSS=true per produrre <span style="..."> invece di tag legacy
-// - edSetFontSize wrappa la selezione in un <span> inline (insertHTML approach)
-// - edApplyColor usa foreColor / hiliteColor con styleWithCSS
-// - edInsertBlockquote inserisce un blockquote visivo direttamente con insertHTML
-// - edToolbarHtml è definita UNA SOLA VOLTA e usa solo onmousedown+button dropdown
-
-// ── Stato globale selezione salvata (per picker colore) ──
-var _edSavedRange = null;
-
-function edSaveRange() {
-  var sel = window.getSelection();
-  if(sel && sel.rangeCount > 0) _edSavedRange = sel.getRangeAt(0).cloneRange();
-}
-
-function edRestoreRange() {
-  if(!_edSavedRange) return;
-  try {
-    var sel = window.getSelection();
-    sel.removeAllRanges();
-    sel.addRange(_edSavedRange);
-  } catch(e){}
-}
-
-function edFocusEditor(prefix, i) {
-  var ed = document.getElementById(prefix+'-ed-'+i);
-  if(ed) { ed.focus(); }
-  if(prefix==='com') comActiveBloccoIdx=i; else solActiveBloccoIdx=i;
-}
-
-// Esegue un comando execCommand preservando styleWithCSS per output inline
-function edExecStyled(cmd, val) {
-  try { document.execCommand('styleWithCSS', false, true); } catch(e){}
-  document.execCommand(cmd, false, val||null);
-  try { document.execCommand('styleWithCSS', false, false); } catch(e){}
-  edSyncActiveEditor();
-  setTimeout(edRefreshActive, 150);
-}
-
-// Applica font-family alla selezione
-function edSetFontFamily(family) {
-  try { document.execCommand('styleWithCSS', false, true); } catch(e){}
-  document.execCommand('fontName', false, family);
-  try { document.execCommand('styleWithCSS', false, false); } catch(e){}
-  edSyncActiveEditor();
-  setTimeout(edRefreshActive, 150);
-}
-
-// Applica font-size alla selezione (wrapping span, approccio più affidabile)
-function edSetFontSize(px) {
-  var sel = window.getSelection();
-  if(!sel || sel.rangeCount === 0) return;
-  if(sel.isCollapsed) {
-    // Nessuna selezione: applica tramite execCommand fontSize (legacy ma funziona)
-    var map = {11:1,12:1,13:2,14:3,15:3,16:3,18:4,20:4,24:5,28:6,32:6,36:7};
-    var sz = map[px] || 3;
-    try { document.execCommand('styleWithCSS', false, true); } catch(e){}
-    document.execCommand('fontSize', false, sz);
-    try { document.execCommand('styleWithCSS', false, false); } catch(e){}
-  } else {
-    var range = sel.getRangeAt(0);
-    var selectedText = range.toString();
-    if(!selectedText) return;
-    // Wrap selection in a span with explicit font-size
-    var span = document.createElement('span');
-    span.style.fontSize = px + 'px';
-    span.style.lineHeight = '1.4';
+/* ── Autosave debounced ──────────────────────────── */
+var _comAST = null, _solAST = null;
+function comAutosaveBlocchi() {
+  clearTimeout(_comAST);
+  _comAST = setTimeout(function(){
     try {
-      range.surroundContents(span);
-    } catch(e) {
-      // If surroundContents fails (partial selection crossing tags), use insertHTML
-      var html = '<span style="font-size:'+px+'px;line-height:1.4;">'+selectedText+'</span>';
-      document.execCommand('insertHTML', false, html);
-    }
-  }
-  edSyncActiveEditor();
-  setTimeout(edRefreshActive, 150);
+      edSyncDOM('com');
+      var raw = localStorage.getItem(COM_TPL_KEY);
+      var tpl = raw ? JSON.parse(raw) : {};
+      tpl.blocchi      = comBlocchi;
+      tpl.oggetto      = (G('com-oggetto')||{}).value || tpl.oggetto || '';
+      tpl.logo_url     = (G('com-logo-url')||{}).value || tpl.logo_url || '';
+      tpl.header_color = (G('com-header-color')||{}).value || tpl.header_color || '#5B5FEF';
+      tpl.logo_height  = (G('com-logo-height')||{}).value || tpl.logo_height || '44';
+      localStorage.setItem(COM_TPL_KEY, JSON.stringify(tpl));
+    } catch(e){ console.warn('autosave COM:', e); }
+  }, 800);
+}
+function solAutosaveBlocchi() {
+  clearTimeout(_solAST);
+  _solAST = setTimeout(function(){
+    try {
+      edSyncDOM('sol');
+      var raw = localStorage.getItem(SOL_TPL_KEY);
+      var tpl = raw ? JSON.parse(raw) : {};
+      tpl.blocchi  = solBlocchi;
+      tpl.oggetto  = (G('sol-tpl-oggetto')||{}).value || tpl.oggetto || '';
+      tpl.logo_url = (G('sol-tpl-logo')||{}).value || tpl.logo_url || '';
+      localStorage.setItem(SOL_TPL_KEY, JSON.stringify(tpl));
+    } catch(e){ console.warn('autosave SOL:', e); }
+  }, 800);
 }
 
-// Applica colore testo o evidenziatore
-function edApplyColor(prop, color) {
-  edRestoreRange(); // ripristina selezione persa mentre il picker era aperto
-  try { document.execCommand('styleWithCSS', false, true); } catch(e){}
-  if(prop === 'bg') {
-    document.execCommand('hiliteColor', false, color);
-  } else {
-    document.execCommand('foreColor', false, color);
-  }
-  try { document.execCommand('styleWithCSS', false, false); } catch(e){}
-  edSyncActiveEditor();
-  setTimeout(edRefreshActive, 150);
+/* ── flushTemplate: sync immediato prima di inviare/salvare ── */
+function flushComTemplate() {
+  try {
+    edSyncDOM('com');
+    var raw = localStorage.getItem(COM_TPL_KEY);
+    var tpl = raw ? JSON.parse(raw) : {};
+    tpl.blocchi      = comBlocchi;
+    tpl.oggetto      = (G('com-oggetto')||{}).value || tpl.oggetto || '';
+    tpl.logo_url     = (G('com-logo-url')||{}).value || tpl.logo_url || '';
+    tpl.header_color = (G('com-header-color')||{}).value || tpl.header_color || '#5B5FEF';
+    tpl.logo_height  = (G('com-logo-height')||{}).value || tpl.logo_height || '44';
+    localStorage.setItem(COM_TPL_KEY, JSON.stringify(tpl));
+  } catch(e){ console.warn('flushComTemplate:', e); }
+}
+function flushSolTemplate() {
+  try {
+    edSyncDOM('sol');
+    var raw = localStorage.getItem(SOL_TPL_KEY);
+    var tpl = raw ? JSON.parse(raw) : {};
+    tpl.blocchi  = solBlocchi;
+    tpl.oggetto  = (G('sol-tpl-oggetto')||{}).value || tpl.oggetto || '';
+    tpl.logo_url = (G('sol-tpl-logo')||{}).value || tpl.logo_url || '';
+    localStorage.setItem(SOL_TPL_KEY, JSON.stringify(tpl));
+  } catch(e){ console.warn('flushSolTemplate:', e); }
 }
 
-// Inserisce un blockquote citazione dentro il blocco testo attivo
-function edInsertCitazione(prefix, i) {
-  var ed = document.getElementById(prefix+'-ed-'+i);
-  if(!ed) return;
-  ed.focus();
-  var html = '<blockquote style="border-left:4px solid #5B5FEF;margin:12px 0;padding:10px 16px;'
-    +'background:#EEEFFD;color:#4347D0;font-style:italic;border-radius:0 6px 6px 0;'
-    +'font-family:Inter,Arial,sans-serif;font-size:15px;line-height:1.7;">'
-    +'Scrivi qui la citazione...</blockquote><p><br></p>';
-  document.execCommand('insertHTML', false, html);
+/* ── Genera HTML toolbar per blocco testo/titolo ─── */
+function edToolbarHtml(prefix, i, b) {
+  var menuId = prefix+'-dd-font-'+i;
+  var menuIdPx = prefix+'-dd-px-'+i;
+  var colPickId = prefix+'-cp-'+i;
+  var bgPickId  = prefix+'-bgcp-'+i;
+  var sel  = JSON.stringify; // no-op alias for clarity
+  var fam  = (b.fontFamily||'inherit');
+  var size = (b.size||15);
+  return '<div class="ed-toolbar" onmousedown="event.preventDefault()">'
+    // Font family
+    +'<div style="position:relative;display:inline-block;">'
+    +'<button class="ed-tb-btn ed-dd-btn" onmousedown="event.preventDefault();edToggleDD(this,\''+menuId+'\')">Font ▾</button>'
+    +'<div class="ed-dd-menu" id="'+menuId+'" style="display:none;position:absolute;top:100%;left:0;background:#fff;border:1px solid #ddd;border-radius:6px;z-index:9999;min-width:140px;padding:4px 0;">'
+    +'<div onmousedown="event.preventDefault();edSetFontFamily(\''+prefix+'\','+i+',\'Inter,Arial,sans-serif\');" class="ed-dd-item">Inter (default)</div>'
+    +'<div onmousedown="event.preventDefault();edSetFontFamily(\''+prefix+'\','+i+',\'Georgia,serif\');" class="ed-dd-item">Georgia</div>'
+    +'<div onmousedown="event.preventDefault();edSetFontFamily(\''+prefix+'\','+i+',\'\'Courier New\',monospace\');" class="ed-dd-item">Courier New</div>'
+    +'<div onmousedown="event.preventDefault();edSetFontFamily(\''+prefix+'\','+i+',\'Verdana,sans-serif\');" class="ed-dd-item">Verdana</div>'
+    +'<div onmousedown="event.preventDefault();edSetFontFamily(\''+prefix+'\','+i+',\'Tahoma,sans-serif\');" class="ed-dd-item">Tahoma</div>'
+    +'</div></div>'
+    // Font size
+    +' <div style="position:relative;display:inline-block;">'
+    +'<button class="ed-tb-btn ed-dd-btn" onmousedown="event.preventDefault();edToggleDD(this,\''+menuIdPx+'\')">px ▾</button>'
+    +'<div class="ed-dd-menu" id="'+menuIdPx+'" style="display:none;position:absolute;top:100%;left:0;background:#fff;border:1px solid #ddd;border-radius:6px;z-index:9999;padding:4px 0;">'
+    +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:2px;padding:4px;">'
+    +[11,12,13,14,15,16,18,20,22,24,28,32].map(function(s){
+      return '<div onmousedown="event.preventDefault();edSetFontSize(\''+prefix+'\','+i+','+s+');" class="ed-dd-item" style="min-width:36px;text-align:center;">'+s+'</div>';
+    }).join('')
+    +'</div></div></div>'
+    // Formattazione
+    +' <button class="ed-tb-btn" title="Grassetto" onmousedown="event.preventDefault();edExecCmd(\'bold\')"><b>B</b></button>'
+    +' <button class="ed-tb-btn" title="Corsivo"   onmousedown="event.preventDefault();edExecCmd(\'italic\')"><i>I</i></button>'
+    +' <button class="ed-tb-btn" title="Sottolineato" onmousedown="event.preventDefault();edExecCmd(\'underline\')"><u>U</u></button>'
+    +' <button class="ed-tb-btn" title="Barrato"   onmousedown="event.preventDefault();edExecCmd(\'strikeThrough\')"><s>S</s></button>'
+    // Allineamento
+    +' <button class="ed-tb-btn" title="Sinistra"  onmousedown="event.preventDefault();edSetAlign(\''+prefix+'\','+i+',\'left\')">⇐</button>'
+    +' <button class="ed-tb-btn" title="Centro"    onmousedown="event.preventDefault();edSetAlign(\''+prefix+'\','+i+',\'center\')">≡</button>'
+    +' <button class="ed-tb-btn" title="Destra"    onmousedown="event.preventDefault();edSetAlign(\''+prefix+'\','+i+',\'right\')">⇒</button>'
+    +' <button class="ed-tb-btn" title="Giustifica" onmousedown="event.preventDefault();edSetAlign(\''+prefix+'\','+i+',\'justify\')">=</button>'
+    // Colore testo
+    +' <label title="Colore testo" class="ed-tb-btn" style="cursor:pointer;padding:2px 4px;">'
+    +'A <input type="color" id="'+colPickId+'" style="width:20px;height:16px;border:none;padding:0;cursor:pointer;" onchange="edSetColor(\''+prefix+'\','+i+',this.value)">'
+    +'</label>'
+    // Colore sfondo
+    +' <label title="Sfondo testo" class="ed-tb-btn" style="cursor:pointer;padding:2px 4px;">'
+    +'▣ <input type="color" id="'+bgPickId+'" style="width:20px;height:16px;border:none;padding:0;cursor:pointer;" onchange="edSetBgColor(\''+prefix+'\','+i+',this.value)">'
+    +'</label>'
+    // Formatta paragrafo
+    +' <button class="ed-tb-btn" title="H1" onmousedown="event.preventDefault();edExecCmd(\'formatBlock\',\'h1\')">H1</button>'
+    +' <button class="ed-tb-btn" title="H2" onmousedown="event.preventDefault();edExecCmd(\'formatBlock\',\'h2\')">H2</button>'
+    +' <button class="ed-tb-btn" title="P"  onmousedown="event.preventDefault();edExecCmd(\'formatBlock\',\'p\')">¶</button>'
+    +' <button class="ed-tb-btn" title="Rimuovi formattazione" onmousedown="event.preventDefault();edExecCmd(\'removeFormat\')">✕</button>'
+    +'</div>';
+}
+
+/* ── Esegui comando execCommand ──────────────────── */
+function edExecCmd(cmd, val) {
+  document.execCommand(cmd, false, val||null);
+}
+
+/* ── Set font family su blocco ───────────────────── */
+function edSetFontFamily(prefix, i, family) {
+  edCloseAll();
   var arr = prefix==='com' ? comBlocchi : solBlocchi;
-  if(arr[i]) arr[i].html = ed.innerHTML;
-  setTimeout(prefix==='com' ? comRefreshPreview : solRefreshPreview, 200);
+  arr[i].fontFamily = family;
+  var el = document.getElementById(prefix+'-ed-'+i);
+  if(el) el.style.fontFamily = family;
+  edTriggerAutosave(prefix);
 }
 
-// Chiude tutti i dropdown aperti nella toolbar
-function edCloseDropdowns() {
-  document.querySelectorAll('.tb-dropdown.open').forEach(function(d){ d.classList.remove('open'); });
-}
-
-// ── Unica funzione toolbar (dropdown button, nessun <select>) ──
-function edToolbarHtml(prefix, i) {
-  var p = prefix;
-  return '<div class="com-blocco-toolbar">'
-
-    // ── Font dropdown ──────────────────────────────────────
-    +'<div class="tb-dropdown" onmousedown="event.preventDefault()">'
-    +'<button class="tb-btn tb-dropdown-btn" onmousedown="event.preventDefault();this.parentNode.classList.toggle(\'open\')">Font &#9660;</button>'
-    +'<div class="tb-dropdown-menu">'
-    +'<button class="tb-ddi" onmousedown="event.preventDefault();edCloseDropdowns();edSetFontFamily(\'Inter,Arial,sans-serif\')">Inter</button>'
-    +'<button class="tb-ddi" onmousedown="event.preventDefault();edCloseDropdowns();edSetFontFamily(\'Outfit,Inter,sans-serif\')">Outfit</button>'
-    +'<button class="tb-ddi" onmousedown="event.preventDefault();edCloseDropdowns();edSetFontFamily(\'Arial,sans-serif\')">Arial</button>'
-    +'<button class="tb-ddi" onmousedown="event.preventDefault();edCloseDropdowns();edSetFontFamily(\'Georgia,serif\')" style="font-family:Georgia,serif">Georgia</button>'
-    +'<button class="tb-ddi" onmousedown="event.preventDefault();edCloseDropdowns();edSetFontFamily(\'Courier New,monospace\')" style="font-family:monospace">Mono</button>'
-    +'</div></div>'
-
-    // ── Dimensione dropdown ────────────────────────────────
-    +'<div class="tb-dropdown" onmousedown="event.preventDefault()">'
-    +'<button class="tb-btn tb-dropdown-btn" onmousedown="event.preventDefault();this.parentNode.classList.toggle(\'open\')">px &#9660;</button>'
-    +'<div class="tb-dropdown-menu" style="display:grid;grid-template-columns:1fr 1fr;min-width:104px;">'
-    +'<button class="tb-ddi" onmousedown="event.preventDefault();edCloseDropdowns();edSetFontSize(11)">11</button>'
-    +'<button class="tb-ddi" onmousedown="event.preventDefault();edCloseDropdowns();edSetFontSize(12)">12</button>'
-    +'<button class="tb-ddi" onmousedown="event.preventDefault();edCloseDropdowns();edSetFontSize(13)">13</button>'
-    +'<button class="tb-ddi" onmousedown="event.preventDefault();edCloseDropdowns();edSetFontSize(14)">14</button>'
-    +'<button class="tb-ddi" onmousedown="event.preventDefault();edCloseDropdowns();edSetFontSize(15)">15</button>'
-    +'<button class="tb-ddi" onmousedown="event.preventDefault();edCloseDropdowns();edSetFontSize(16)">16</button>'
-    +'<button class="tb-ddi" onmousedown="event.preventDefault();edCloseDropdowns();edSetFontSize(18)">18</button>'
-    +'<button class="tb-ddi" onmousedown="event.preventDefault();edCloseDropdowns();edSetFontSize(20)">20</button>'
-    +'<button class="tb-ddi" onmousedown="event.preventDefault();edCloseDropdowns();edSetFontSize(24)">24</button>'
-    +'<button class="tb-ddi" onmousedown="event.preventDefault();edCloseDropdowns();edSetFontSize(28)">28</button>'
-    +'<button class="tb-ddi" onmousedown="event.preventDefault();edCloseDropdowns();edSetFontSize(32)">32</button>'
-    +'<button class="tb-ddi" onmousedown="event.preventDefault();edCloseDropdowns();edSetFontSize(36)">36</button>'
-    +'</div></div>'
-
-    +'<span class="tb-sep"></span>'
-
-    // ── Stili testo ────────────────────────────────────────
-    +'<button class="tb-btn" onmousedown="event.preventDefault();edExecStyled(\'bold\')" title="Grassetto"><b>B</b></button>'
-    +'<button class="tb-btn" onmousedown="event.preventDefault();edExecStyled(\'italic\')" title="Corsivo"><i>I</i></button>'
-    +'<button class="tb-btn" onmousedown="event.preventDefault();edExecStyled(\'underline\')" title="Sottolineato"><u>U</u></button>'
-    +'<button class="tb-btn" onmousedown="event.preventDefault();edExecStyled(\'strikeThrough\')" title="Barrato"><s>S</s></button>'
-
-    +'<span class="tb-sep"></span>'
-
-    // ── Allineamento ───────────────────────────────────────
-    +'<button class="tb-btn" onmousedown="event.preventDefault();edExecStyled(\'justifyLeft\')"   title="Sinistra">&#8676;</button>'
-    +'<button class="tb-btn" onmousedown="event.preventDefault();edExecStyled(\'justifyCenter\')" title="Centro">&#9644;</button>'
-    +'<button class="tb-btn" onmousedown="event.preventDefault();edExecStyled(\'justifyRight\')"  title="Destra">&#8677;</button>'
-    +'<button class="tb-btn" onmousedown="event.preventDefault();edExecStyled(\'justifyFull\')"   title="Giustifica">=</button>'
-
-    +'<span class="tb-sep"></span>'
-
-    // ── Colore testo (picker inline, salva range prima) ────
-    +'<label class="tb-color-lbl" title="Colore testo" onmousedown="event.preventDefault();edSaveRange();">'
-    +'<span style="font-weight:700;font-size:11px;text-decoration:underline;text-decoration-color:currentColor;">A</span>'
-    +'<input type="color" class="tb-color" value="#374151"'
-    +' onmousedown="event.stopPropagation();edSaveRange();"'
-    +' oninput="edApplyColor(\'fg\',this.value)" title="Colore testo"></label>'
-
-    // ── Evidenzia (picker inline) ──────────────────────────
-    +'<label class="tb-color-lbl" title="Evidenzia testo" onmousedown="event.preventDefault();edSaveRange();">'
-    +'<span style="font-weight:700;font-size:11px;background:#FFFF00;padding:0 2px;">H</span>'
-    +'<input type="color" class="tb-color" value="#FFFF00"'
-    +' onmousedown="event.stopPropagation();edSaveRange();"'
-    +' oninput="edApplyColor(\'bg\',this.value)" title="Evidenzia"></label>'
-
-    +'<span class="tb-sep"></span>'
-
-    // ── Liste e citazione ──────────────────────────────────
-    +'<button class="tb-btn" onmousedown="event.preventDefault();edExecStyled(\'insertUnorderedList\')" title="Elenco puntato">&#8226;</button>'
-    +'<button class="tb-btn" onmousedown="event.preventDefault();edExecStyled(\'insertOrderedList\')"   title="Elenco numerato">1.</button>'
-    +'<button class="tb-btn" onmousedown="event.preventDefault();edInsertCitazione(\''+p+'\','+i+')" title="Citazione">&#10077;</button>'
-
-    +'<span class="tb-sep"></span>'
-
-    // ── Rimuovi formato ────────────────────────────────────
-    +'<button class="tb-btn" onmousedown="event.preventDefault();edExecStyled(\'removeFormat\')" title="Rimuovi formato" style="color:var(--danger);font-size:10px;">&#10006;</button>'
-
-    +'</div>'
-
-    // ── Area testo editabile ───────────────────────────────
-    +'<div class="ed-content"'
-    +' id="'+p+'-ed-'+i+'"'
-    +' data-prefix="'+p+'"'
-    +' data-idx="'+i+'"'
-    +' contenteditable="true"'
-    +' data-placeholder="Scrivi qui il testo. Seleziona le parole e usa la toolbar per formattarle."'
-    +' oninput="edSyncDOM(\''+p+'\');"'
-    +' onmouseup="edSaveRange();"'
-    +' onkeyup="edSaveRange();"'
-    +' onfocus="edCloseDropdowns();if(\''+p+'\'===\'com\')comActiveBloccoIdx='+i+';else solActiveBloccoIdx='+i+';"'
-    +' onclick="edCloseDropdowns();"'
-    +'></div>';
-}
-
-function edSyncActiveEditor(){
-  var ae=document.activeElement;
-  if(!ae) return;
-  var ed=ae.classList&&ae.classList.contains('ed-content')?ae:(ae.closest?ae.closest('.ed-content'):null);
-  if(!ed) return;
-  var prefix=ed.id.indexOf('com-ed')===0?'com':'sol';
-  var i=parseInt(ed.dataset.idx);
-  var arr=prefix==='com'?comBlocchi:solBlocchi;
-  if(arr[i]) arr[i].html=ed.innerHTML;
-}
-
-function edRefreshActive(){
-  var ae=document.activeElement;
-  var ed=ae&&ae.closest?ae.closest('.ed-content'):null;
-  if(ed&&ed.id.indexOf('sol-ed')===0) solRefreshPreview();
-  else comRefreshPreview();
-}
-/* ── Render blocchi ──────────────────────────────── */
-function edRender(prefix){
-  edSyncDOM(prefix);
-  var arr=prefix==='com'?comBlocchi:solBlocchi;
-  var wid=prefix+'-blocchi', hid=prefix+'-empty-hint';
-  var aIdx=prefix==='com'?comActiveBloccoIdx:solActiveBloccoIdx;
-  var wrap=G(wid),hint=G(hid);
-  if(!wrap) return;
-  if(!arr.length){wrap.innerHTML='';if(hint)hint.style.display='block';return;}
-  if(hint) hint.style.display='none';
-
-  var html=arr.map(function(b,i){
-    var isActive=(aIdx===i);
-    var lbl={titolo:'Titolo',testo:'Testo',bottone:'Bottone',immagine:'Immagine',separatore:'Separatore',citazione:'Citazione',tabella_contatto:'Tabella contatto',alert:'Alert'}[b.tipo]||b.tipo;
-    var body='';
-
-    if(b.tipo==='titolo'||b.tipo==='testo'){
-      body=edToolbarHtml(prefix,i);
-
-    }else if(b.tipo==='bottone'){
-      var pf='\''+prefix+'\'';
-      var upd='(function(f,v){var a='+pf+'===\'com\'?comBlocchi:solBlocchi;a['+i+'][f]=v;setTimeout('+pf+'===\'com\'?comRefreshPreview:solRefreshPreview,200);})(';
-      body='<div class="ed-props-grid">'
-        +'<div class="ed-prop"><label>Testo bottone</label><input class="crm-input" value="'+esc(b.testo||'')+'" oninput="'+upd+'\'testo\',this.value)"></div>'
-        +'<div class="ed-prop"><label>URL destinazione</label><input class="crm-input" type="url" value="'+esc(b.url||'')+'" placeholder="https://…" oninput="'+upd+'\'url\',this.value)"></div>'
-        +'<div class="ed-prop"><label>Sfondo</label><div class="ed-color-row">'
-        +'<input type="color" value="'+(b.color||'#5B5FEF')+'" oninput="'+upd+'\'color\',this.value);this.nextElementSibling.value=this.value;">'
-        +'<input class="crm-input" value="'+(b.color||'#5B5FEF')+'" style="font-family:monospace;font-size:11px;" oninput="if(/^#[0-9a-fA-F]{6}$/.test(this.value)){'+upd+'\'color\',this.value);this.previousElementSibling.value=this.value;}"></div></div>'
-        +'<div class="ed-prop"><label>Colore testo</label><div class="ed-color-row">'
-        +'<input type="color" value="'+(b.textColor||'#ffffff')+'" oninput="'+upd+'\'textColor\',this.value);this.nextElementSibling.value=this.value;">'
-        +'<input class="crm-input" value="'+(b.textColor||'#ffffff')+'" style="font-family:monospace;font-size:11px;" oninput="if(/^#[0-9a-fA-F]{6}$/.test(this.value)){'+upd+'\'textColor\',this.value);this.previousElementSibling.value=this.value;}"></div></div>'
-        +'<div class="ed-prop"><label>Allineamento</label><select class="crm-select" onchange="'+upd+'\'align\',this.value)">'
-        +'<option value="center"'+(b.align==='center'?' selected':'')+'>Centro</option>'
-        +'<option value="left"'+(b.align==='left'?' selected':'')+'>Sinistra</option>'
-        +'<option value="right"'+(b.align==='right'?' selected':'')+'>Destra</option></select></div>'
-        +'<div class="ed-prop"><label>Bordi (px)</label><input type="number" class="crm-input" value="'+(b.radius||8)+'" min="0" max="40" oninput="'+upd+'\'radius\',parseInt(this.value)||0)"></div>'
-        +'</div>';
-
-    }else if(b.tipo==='immagine'){
-      var pf2='\''+prefix+'\'';
-      var upd2='(function(f,v){var a='+pf2+'===\'com\'?comBlocchi:solBlocchi;a['+i+'][f]=v;setTimeout('+pf2+'===\'com\'?comRefreshPreview:solRefreshPreview,300);})(';
-      body='<div class="ed-props-grid">'
-        +'<div class="ed-prop" style="grid-column:1/-1"><label>URL immagine</label><input class="crm-input" type="url" value="'+esc(b.src||'')+'" placeholder="https://…/img.jpg" oninput="'+upd2+'\'src\',this.value)"></div>'
-        +'<div class="ed-prop"><label>Larghezza</label><input class="crm-input" value="'+(b.width||'100%')+'" placeholder="100% o 300px" oninput="'+upd2+'\'width\',this.value)"></div>'
-        +'<div class="ed-prop"><label>Allineamento</label><select class="crm-select" onchange="'+upd2+'\'align\',this.value)">'
-        +'<option value="center"'+(b.align==='center'?' selected':'')+'>Centro</option>'
-        +'<option value="left"'+(b.align==='left'?' selected':'')+'>Sinistra</option>'
-        +'<option value="right"'+(b.align==='right'?' selected':'')+'>Destra</option></select></div>'
-        +(b.src?'<div style="grid-column:1/-1"><img src="'+esc(b.src)+'" style="max-height:80px;max-width:100%;border-radius:6px;border:1px solid var(--border);"></div>':'')
-        +'</div>';
-
-
-    }else if(b.tipo==='citazione'){
-      var pf_q="'"+prefix+"'";
-      var upd_q='(function(v){var a='+pf_q+'===\'com\'?comBlocchi:solBlocchi;a['+i+'].html=v;setTimeout('+pf_q+'===\'com\'?comRefreshPreview:solRefreshPreview,300);})';
-      body='<div style="padding:8px;">'
-        +'<textarea style="width:100%;box-sizing:border-box;min-height:72px;border:none;resize:vertical;font-style:italic;font-size:14px;color:#4347D0;background:#EEEFFD;border-left:4px solid #5B5FEF;padding:10px 14px;border-radius:0 6px 6px 0;font-family:Inter,Arial,sans-serif;outline:none;" oninput="'+upd_q+'(this.value)">'+esc(b.html||'Scrivi la citazione...')+'</textarea>'
-        +'</div>';
-
-    } else if(b.tipo==='tabella_contatto'){
-      var RLABELS = {azienda:'Azienda',referente:'Referente',telefono:'Telefono',
-        email_contatto:'Email',fonte:'Fonte',stato:'Stato',
-        data_creazione:'Data creazione',assegnato_a:'Assegnato a',creato_da:'Creato da'};
-      var RVARS   = {azienda:'nome_azienda',referente:'referente',telefono:'telefono',
-        email_contatto:'email_contatto',fonte:'fonte',stato:'stato',
-        data_creazione:'data_creazione',assegnato_a:'assegnato_a',creato_da:'creato_da'};
-      var righe = b.righe || ['azienda','referente','telefono','email_contatto','fonte','stato'];
-      var titolo = rv(b.titolo || 'DETTAGLI CONTATTO');
-      var borderIdx = 0;
-      var rows = righe.map(function(r){
-        var varKey = RVARS[r] || r;
-        var val = (vars && vars[varKey] !== undefined) ? String(vars[varKey]) : '';
-        if(!val) return '';
-        var border = borderIdx > 0 ? 'border-top:1px solid #E5E7EB;' : '';
-        borderIdx++;
-        var cellContent = r === 'stato'
-          ? '<span style="background:#2563EB;color:#fff;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;font-family:Inter,Arial,sans-serif;">'+val+'</span>'
-          : val;
-        return '<tr style="'+border+'">'
-          +'<td style="padding:8px 16px;font-size:13px;color:#6B7280;font-family:Inter,Arial,sans-serif;width:130px;vertical-align:top;">'+RLABELS[r]+'</td>'
-          +'<td style="padding:8px 16px;font-size:14px;font-weight:600;color:#0A0A0A;font-family:Inter,Arial,sans-serif;">'+cellContent+'</td>'
-          +'</tr>';
-      }).filter(Boolean).join('');
-      if(!rows) return '';
-      return '<table style="width:100%;border-collapse:collapse;background:#F9FAFB;border-radius:10px;overflow:hidden;margin:0 0 16px;">'
-        +'<tr><td colspan="2" style="padding:10px 16px 6px;font-size:11px;font-weight:700;color:#6B7280;text-transform:uppercase;letter-spacing:.06em;font-family:Inter,Arial,sans-serif;">'+titolo+'</td></tr>'
-        + rows
-        +'</table>';
-    } else if(b.tipo==='alert'){
-      var pfa='\''+prefix+'\'';
-      var upda='(function(f,v){var a='+pfa+'===\'com\'?comBlocchi:solBlocchi;a['+i+'][f]=v;setTimeout('+pfa+'===\'com\'?comRefreshPreview:solRefreshPreview,200);})(';
-      body = '<div class="ed-props-grid">'
-        +'<div class="ed-prop" style="grid-column:1/-1"><label>Titolo alert</label>'
-        +'<input class="crm-input" value="'+esc(b.titolo||'NOTA IMPORTANTE')+'" oninput="'+upda+'\'titolo\',this.value)"></div>'
-        +'<div class="ed-prop" style="grid-column:1/-1"><label>Testo</label>'
-        +'<textarea class="crm-input" rows="3" style="resize:vertical;" oninput="'+upda+'\'testo\',this.value)">'+esc(b.testo||'')+'</textarea></div>'
-        +'<div class="ed-prop"><label>Colore bordo</label><div class="ed-color-row">'
-        +'<input type="color" value="'+(b.color||'#F59E0B')+'" oninput="'+upda+'\'color\',this.value);this.nextElementSibling.value=this.value;">'
-        +'<input class="crm-input" value="'+(b.color||'#F59E0B')+'" style="font-family:monospace;font-size:11px;" oninput="if(/^#[0-9a-fA-F]{6}$/.test(this.value)){'+upda+'\'color\',this.value);this.previousElementSibling.value=this.value;}"></div></div>'
-        +'<div class="ed-prop"><label>Sfondo</label><div class="ed-color-row">'
-        +'<input type="color" value="'+(b.bg||'#FFF7ED')+'" oninput="'+upda+'\'bg\',this.value);this.nextElementSibling.value=this.value;">'
-        +'<input class="crm-input" value="'+(b.bg||'#FFF7ED')+'" style="font-family:monospace;font-size:11px;" oninput="if(/^#[0-9a-fA-F]{6}$/.test(this.value)){'+upda+'\'bg\',this.value);this.previousElementSibling.value=this.value;}"></div></div>'
-        +'<div class="ed-prop"><label>Colore testo</label><div class="ed-color-row">'
-        +'<input type="color" value="'+(b.textColor||'#92400E')+'" oninput="'+upda+'\'textColor\',this.value);this.nextElementSibling.value=this.value;">'
-        +'<input class="crm-input" value="'+(b.textColor||'#92400E')+'" style="font-family:monospace;font-size:11px;" oninput="if(/^#[0-9a-fA-F]{6}$/.test(this.value)){'+upda+'\'textColor\',this.value);this.previousElementSibling.value=this.value;}"></div></div>'
-        +'<div class="ed-prop" style="grid-column:1/-1;margin-top:4px;">'
-        +'<div style="border-left:4px solid '+(b.color||'#F59E0B')+';background:'+(b.bg||'#FFF7ED')+';border-radius:0 6px 6px 0;padding:10px 14px;">'
-        +'<p style="margin:0 0 4px;font-size:11px;font-weight:700;color:'+(b.textColor||'#92400E')+';text-transform:uppercase;">'+(b.titolo||'NOTA')+'</p>'
-        +'<p style="margin:0;font-size:13px;color:'+(b.textColor||'#92400E')+';font-style:italic;">'+(b.testo||'...')+'</p>'
-        +'</div></div>'
-        +'</div>';
-
-    }else if(b.tipo==='separatore'){
-      var pf3='\''+prefix+'\'';
-      var upd3='(function(f,v){var a='+pf3+'===\'com\'?comBlocchi:solBlocchi;a['+i+'][f]=v;setTimeout('+pf3+'===\'com\'?comRefreshPreview:solRefreshPreview,200);})(';
-      body='<div class="ed-props-grid" style="grid-template-columns:auto 1fr;align-items:center;">'
-        +'<div class="ed-prop"><label>Colore</label><div class="ed-color-row">'
-        +'<input type="color" value="'+(b.color||'#E5E7EB')+'" oninput="'+upd3+'\'color\',this.value);this.nextElementSibling.value=this.value;">'
-        +'<input class="crm-input" value="'+(b.color||'#E5E7EB')+'" style="font-family:monospace;font-size:11px;" oninput="if(/^#[0-9a-fA-F]{6}$/.test(this.value)){'+upd3+'\'color\',this.value);this.previousElementSibling.value=this.value;}"></div></div>'
-        +'<hr style="border:none;border-top:2px solid '+(b.color||'#E5E7EB')+';margin:0 0 0 12px;">'
-        +'</div>';
+/* ── Set font size su selezione ──────────────────── */
+function edSetFontSize(prefix, i, px) {
+  edCloseAll();
+  var el = document.getElementById(prefix+'-ed-'+i);
+  if(!el) return;
+  el.focus();
+  var sel = window.getSelection();
+  if(sel && sel.rangeCount > 0 && !sel.isCollapsed) {
+    try {
+      var range = sel.getRangeAt(0);
+      var span = document.createElement('span');
+      span.style.fontSize = px + 'px';
+      range.surroundContents(span);
+      sel.removeAllRanges();
+      var nr = document.createRange();
+      nr.selectNodeContents(span);
+      sel.addRange(nr);
+    } catch(e) {
+      document.execCommand('fontSize', false, '7');
+      document.querySelectorAll('[size="7"]').forEach(function(n){
+        n.removeAttribute('size');
+        n.style.fontSize = px+'px';
+      });
     }
-
-    return '<div class="com-blocco'+(isActive?' active-focus':'')+'">'
-      +'<div class="com-blocco-hdr"><span>'+lbl+'</span>'
-      +'<div class="com-b-actions">'
-      +(i>0?'<button class="com-b-btn" onclick="edMove(\''+prefix+'\','+i+',-1)">\u2191</button>':'')
-      +(i<arr.length-1?'<button class="com-b-btn" onclick="edMove(\''+prefix+'\','+i+',1)">\u2193</button>':'')
-      +'<button class="com-b-btn" onclick="edDelete(\''+prefix+'\','+i+')" style="color:var(--danger)">\u00d7</button>'
-      +'</div></div>'
-      +'<div class="com-blocco-body" style="padding:0;">'+body+'</div>'
-      +'</div>';
-  }).join('');
-
-  wrap.innerHTML=html;
-
-  // Ripopola i contenteditable con il loro HTML
-  arr.forEach(function(b,i){
-    if(b.tipo==='titolo'||b.tipo==='testo'){
-      var ed=document.getElementById(prefix+'-ed-'+i);
-      if(ed&&b.html) ed.innerHTML=b.html;
-    }
-  });
-}
-
-function comRenderBlocchi(){edRender('com');}
-function solRenderBlocchi(){edRender('sol');}
-
-function edMove(prefix,i,dir){
-  edSyncDOM(prefix);
-  var arr=prefix==='com'?comBlocchi:solBlocchi;
-  var j=i+dir; if(j<0||j>=arr.length) return;
-  var t=arr[i];arr[i]=arr[j];arr[j]=t;
-  if(prefix==='com') comActiveBloccoIdx=j; else solActiveBloccoIdx=j;
-  edRender(prefix);
-  if(prefix==='com') comRefreshPreview(); else solRefreshPreview();
-}
-function edDelete(prefix,i){
-  edSyncDOM(prefix);
-  var arr=prefix==='com'?comBlocchi:solBlocchi;
-  arr.splice(i,1);
-  if(prefix==='com') comActiveBloccoIdx=null; else solActiveBloccoIdx=null;
-  edRender(prefix);
-  if(prefix==='com') comRefreshPreview(); else solRefreshPreview();
-}
-function comDeleteBlocco(i){edDelete('com',i);}
-function comMoveBlocco(i,d){edMove('com',i,d);}
-function solDeleteBlocco(i){edDelete('sol',i);}
-function solMoveBlocco(i,d){edMove('sol',i,d);}
-
-/* ── Inserisci variabile ─────────────────────────── */
-function edInserisciVar(prefix,varStr){
-  var ae=document.activeElement;
-  var ed=ae&&ae.classList&&ae.classList.contains('ed-content')?ae:(ae&&ae.closest?ae.closest('.ed-content'):null);
-  if(ed){
-    ed.focus();
-    document.execCommand('insertText',false,varStr);
-    var i=parseInt(ed.dataset.idx);
-    var arr=prefix==='com'?comBlocchi:solBlocchi;
-    if(arr[i]) arr[i].html=ed.innerHTML;
   } else {
-    var aIdx=prefix==='com'?comActiveBloccoIdx:solActiveBloccoIdx;
-    if(aIdx===null){toast('Clicca prima dentro un blocco testo','error');return;}
-    var arr2=prefix==='com'?comBlocchi:solBlocchi;
-    var b=arr2[aIdx];if(!b) return;
-    if(b.tipo==='testo'||b.tipo==='titolo') b.html=(b.html||'')+varStr;
-    else if(b.tipo==='bottone') b.testo=(b.testo||'')+varStr;
-    else{toast('Seleziona un blocco Testo o Titolo','error');return;}
-    edRender(prefix);
+    // No selection: set default size for block
+    var arr = prefix==='com' ? comBlocchi : solBlocchi;
+    arr[i].size = px;
+    el.style.fontSize = px + 'px';
   }
-  if(prefix==='com') comRefreshPreview(); else solRefreshPreview();
+  edTriggerAutosave(prefix);
 }
-function comInserisciVar(v){edInserisciVar('com',v);}
-function solInserisciVar(v){edInserisciVar('sol',v);}
 
-/* ── HTML builder ────────────────────────────────── */
-function edBlocchiToHtml(arr,vars){
-  vars=vars||{};
-  function rv(s){return (s||'').replace(/\{\{(\w+)\}\}/g,function(_,k){return vars[k]!==undefined?vars[k]:'{{'+k+'}}';});}
-  function clean(h){
-    // Converte tag <font> legacy in <span style>
-    return rv((h||'')
-      .replace(/<font[^>]*face="([^"]*)"[^>]*>([\s\S]*?)<\/font>/gi,function(_,ff,inn){return '<span style="font-family:'+ff+'">'+inn+'</span>';})
-      .replace(/<font[^>]*size="([^"]*)"[^>]*>([\s\S]*?)<\/font>/gi,function(_,sz,inn){
-        var pm={'1':'10','2':'12','3':'14','4':'16','5':'18','6':'22','7':'28'};
-        return '<span style="font-size:'+(pm[sz]||'14')+'px">'+inn+'</span>';
-      })
-      .replace(/<font[^>]*>/gi,'').replace(/<\/font>/gi,'')
-    );
+/* ── Set alignment ───────────────────────────────── */
+function edSetAlign(prefix, i, align) {
+  var arr = prefix==='com' ? comBlocchi : solBlocchi;
+  arr[i].align = align;
+  var el = document.getElementById(prefix+'-ed-'+i);
+  if(el) el.style.textAlign = align;
+  edTriggerAutosave(prefix);
+}
+
+/* ── Set text color su selezione ─────────────────── */
+function edSetColor(prefix, i, color) {
+  var el = document.getElementById(prefix+'-ed-'+i);
+  if(!el) return;
+  el.focus();
+  document.execCommand('foreColor', false, color);
+  edTriggerAutosave(prefix);
+}
+
+/* ── Set background color su selezione ──────────── */
+function edSetBgColor(prefix, i, color) {
+  var el = document.getElementById(prefix+'-ed-'+i);
+  if(!el) return;
+  el.focus();
+  document.execCommand('hiliteColor', false, color);
+  edTriggerAutosave(prefix);
+}
+
+/* ── Trigger autosave del prefisso giusto ─────────── */
+function edTriggerAutosave(prefix) {
+  if(prefix==='com') comAutosaveBlocchi(); else solAutosaveBlocchi();
+}
+
+/* ── Genera HTML di un singolo blocco non-editor ─── */
+function edBloccoStaticHtml(prefix, i, b) {
+  var up   = i>0 ? '<button class="btn-crm btn-crm-outline btn-crm-sm" onmousedown="event.preventDefault();edMove(\''+prefix+'\','+i+',-1)" title="Su">↑</button>' : '';
+  var down = '<button class="btn-crm btn-crm-outline btn-crm-sm" onmousedown="event.preventDefault();edMove(\''+prefix+'\','+i+',1)" title="Giù">↓</button>';
+  var del  = '<button class="btn-crm btn-crm-outline btn-crm-sm" style="color:var(--danger)" onmousedown="event.preventDefault();edDelete(\''+prefix+'\','+i+')" title="Elimina">✕</button>';
+  var controls = '<div style="display:flex;gap:4px;align-items:center;">'+up+down+del+'</div>';
+  var header = '<div class="ed-block-header"><span class="ed-block-label">'+b.tipo.toUpperCase().replace('_',' ')+'</span>'+controls+'</div>';
+
+  var body = '';
+  if(b.tipo==='separatore') {
+    body = '<div style="padding:8px 0;"><label style="font-size:11px;font-weight:700;color:var(--text-secondary);display:block;margin-bottom:4px;">Colore</label>'
+      +'<div style="display:flex;gap:8px;align-items:center;">'
+      +'<input type="color" value="'+(b.color||'#E5E7EB')+'" style="width:36px;height:28px;border:none;cursor:pointer;border-radius:4px;" onchange="edUpdateSep(\''+prefix+'\','+i+',this.value)">'
+      +'<input type="text" class="crm-input" value="'+(b.color||'#E5E7EB')+'" style="font-family:monospace;font-size:12px;width:90px;" oninput="edUpdateSep(\''+prefix+'\','+i+',this.value)">'
+      +'<hr style="flex:1;border-top:2px solid '+(b.color||'#E5E7EB')+';margin:0;">'
+      +'</div></div>';
+  } else if(b.tipo==='bottone') {
+    body = '<div style="display:flex;flex-direction:column;gap:8px;padding:4px 0;">'
+      +'<div style="display:flex;gap:8px;">'
+      +'<input type="text" class="crm-input" placeholder="Testo bottone" value="'+(b.testo||'')+'" style="flex:1;" oninput="edUpdateBtn(\''+prefix+'\','+i+',\'testo\',this.value)">'
+      +'<input type="url"  class="crm-input" placeholder="URL link"     value="'+(b.url||'')+'"   style="flex:2;" oninput="edUpdateBtn(\''+prefix+'\','+i+',\'url\',this.value)">'
+      +'</div>'
+      +'<div style="display:flex;gap:8px;align-items:center;">'
+      +'<label style="font-size:11px;">Sfondo</label><input type="color" value="'+(b.color||'#5B5FEF')+'" style="width:30px;height:24px;border:none;cursor:pointer;" onchange="edUpdateBtn(\''+prefix+'\','+i+',\'color\',this.value)">'
+      +'<label style="font-size:11px;">Testo</label><input type="color" value="'+(b.textColor||'#ffffff')+'" style="width:30px;height:24px;border:none;cursor:pointer;" onchange="edUpdateBtn(\''+prefix+'\','+i+',\'textColor\',this.value)">'
+      +'<label style="font-size:11px;">Raggio</label><input type="number" class="crm-input" value="'+(b.radius||12)+'" style="width:60px;" oninput="edUpdateBtn(\''+prefix+'\','+i+',\'radius\',this.value)">'
+      +'<select class="crm-input" onchange="edUpdateBtn(\''+prefix+'\','+i+',\'align\',this.value)" style="width:100px;">'
+      +['left','center','right'].map(function(a){ return '<option value="'+a+'"'+(b.align===a?' selected':'')+'>'+a+'</option>'; }).join('')
+      +'</select>'
+      +'</div>'
+      +'<div style="text-align:'+(b.align||'center')+';">'
+      +'<span style="display:inline-block;padding:10px 24px;background:'+(b.color||'#5B5FEF')+';color:'+(b.textColor||'#ffffff')+';border-radius:'+(b.radius||12)+'px;font-family:Inter,sans-serif;font-size:14px;">'+(b.testo||'Bottone')+'</span>'
+      +'</div></div>';
+  } else if(b.tipo==='immagine') {
+    body = '<div style="display:flex;flex-direction:column;gap:6px;padding:4px 0;">'
+      +'<input type="url" class="crm-input" placeholder="URL immagine" value="'+(b.src||'')+'" oninput="edUpdateImg(\''+prefix+'\','+i+',\'src\',this.value)">'
+      +'<input type="text" class="crm-input" placeholder="Testo alt" value="'+(b.alt||'')+'" oninput="edUpdateImg(\''+prefix+'\','+i+',\'alt\',this.value)">'
+      +'<div style="display:flex;gap:8px;align-items:center;">'
+      +'<label style="font-size:11px;">Larghezza:</label><input type="text" class="crm-input" value="'+(b.width||'100%')+'" style="width:80px;" oninput="edUpdateImg(\''+prefix+'\','+i+',\'width\',this.value)">'
+      +'</div>'
+      +(b.src ? '<img src="'+b.src+'" alt="'+(b.alt||'')+'" style="max-width:100%;max-height:120px;object-fit:contain;border-radius:4px;border:1px solid var(--border);">' : '<div style="padding:16px;text-align:center;color:var(--text-tertiary);font-size:12px;border:1px dashed var(--border);border-radius:4px;">Nessuna immagine</div>')
+      +'</div>';
+  } else if(b.tipo==='tabella_contatto') {
+    body = '<div style="font-size:12px;color:var(--text-secondary);padding:4px 0;">Tabella automatica con i dati del contatto: azienda, referente, telefono, email, stato, ecc.</div>'
+      +'<input type="text" class="crm-input" placeholder="Titolo tabella" value="'+(b.titolo||'DETTAGLI CONTATTO')+'" oninput="edUpdateTitTab(\''+prefix+'\','+i+',this.value)" style="margin-top:6px;">';
+  } else if(b.tipo==='alert') {
+    body = '<div style="display:flex;flex-direction:column;gap:6px;padding:4px 0;">'
+      +'<input type="text" class="crm-input" placeholder="Titolo alert" value="'+(b.titolo||'')+'" oninput="edUpdateAlert(\''+prefix+'\','+i+',\'titolo\',this.value)">'
+      +'<textarea class="crm-input" rows="2" placeholder="Testo alert" oninput="edUpdateAlert(\''+prefix+'\','+i+',\'testo\',this.value)" style="resize:vertical;">'+(b.testo||'')+'</textarea>'
+      +'<div style="display:flex;gap:8px;align-items:center;">'
+      +'<label style="font-size:11px;">Colore bordo</label><input type="color" value="'+(b.color||'#F59E0B')+'" style="width:30px;height:24px;border:none;cursor:pointer;" onchange="edUpdateAlert(\''+prefix+'\','+i+',\'color\',this.value)">'
+      +'<label style="font-size:11px;">Sfondo</label><input type="color" value="'+(b.bg||'#FFF7ED')+'" style="width:30px;height:24px;border:none;cursor:pointer;" onchange="edUpdateAlert(\''+prefix+'\','+i+',\'bg\',this.value)">'
+      +'<label style="font-size:11px;">Testo</label><input type="color" value="'+(b.textColor||'#92400E')+'" style="width:30px;height:24px;border:none;cursor:pointer;" onchange="edUpdateAlert(\''+prefix+'\','+i+',\'textColor\',this.value)">'
+      +'</div></div>';
   }
-  return arr.map(function(b){
-    if(b.tipo==='titolo'){var _lvl=parseInt(b.livello)||1;var _sz={1:'22px',2:'18px',3:'15px'}[_lvl]||'18px';return '<div style="font-family:Inter,Arial,sans-serif;font-size:'+_sz+';font-weight:700;line-height:1.3;color:#111827;margin:0 0 14px;">'+clean(b.html||b.testo||'')+'</div>';}
-    if(b.tipo==='testo')      return '<div style="font-family:Inter,Arial,sans-serif;font-size:15px;line-height:1.7;color:#374151;margin:0 0 16px;">'+clean(b.html)+'</div>';
-    if(b.tipo==='bottone')    return '<div style="text-align:'+(b.align||'center')+';margin:20px 0;"><a href="'+rv(b.url||'#')+'" style="background:'+(b.color||'#5B5FEF')+';color:'+(b.textColor||'#fff')+';padding:12px 30px;border-radius:'+(b.radius||8)+'px;text-decoration:none;font-size:15px;font-weight:700;display:inline-block;font-family:Inter,Arial,sans-serif;">'+rv(b.testo||'Clicca qui')+'</a></div>';
-    if(b.tipo==='immagine')   return b.src?'<div style="text-align:'+(b.align||'center')+';margin:0 0 16px;"><img src="'+b.src+'" alt="'+(b.alt||'')+'" style="max-width:'+(b.width||'100%')+';height:auto;display:inline-block;border-radius:4px;"/></div>':'';
-    if(b.tipo==='citazione')   return '<blockquote style="border-left:4px solid #5B5FEF;margin:16px 0;padding:12px 18px;background:#EEEFFD;color:#4347D0;font-style:italic;border-radius:0 8px 8px 0;font-family:Inter,Arial,sans-serif;font-size:15px;line-height:1.7;">'+rv(b.html||'')+'</blockquote>';
-    if(b.tipo==='tabella_contatto'){
-      var RLABELS = {azienda:'Azienda',referente:'Referente',telefono:'Telefono',
-        email_contatto:'Email',fonte:'Fonte',stato:'Stato',
-        data_creazione:'Data creazione',assegnato_a:'Assegnato a',creato_da:'Creato da',note:'Note'};
-      var RVARS   = {azienda:'nome_azienda',referente:'referente',telefono:'telefono',
-        email_contatto:'email_contatto',fonte:'fonte',stato:'stato',
-        data_creazione:'data_creazione',assegnato_a:'assegnato_a',creato_da:'creato_da',note:'note'};
-      var righe = b.righe || ['azienda','referente','telefono','email_contatto','fonte','stato'];
-      var titolo = b.titolo || 'DETTAGLI CONTATTO';
-      var borderIdx = 0;
-      var rows = righe.map(function(r){
-        var val = rv('{{' + (RVARS[r]||r) + '}}');
-        if(!val) return '';
-        var border = borderIdx > 0 ? 'border-top:1px solid #E5E7EB;' : '';
-        borderIdx++;
-        var cellContent = r === 'stato'
-          ? '<span style="background:#2563EB;color:#fff;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;font-family:Inter,Arial,sans-serif;">'+val+'</span>'
-          : (r === 'note' ? '<span style="white-space:pre-wrap;">'+val+'</span>' : val);
-        return '<tr style="'+border+'">'
-          +'<td style="padding:8px 16px;font-size:13px;color:#6B7280;font-family:Inter,Arial,sans-serif;width:130px;vertical-align:top;">'+(RLABELS[r]||r)+'</td>'
-          +'<td style="padding:8px 16px;font-size:14px;font-weight:600;color:#0A0A0A;font-family:Inter,Arial,sans-serif;">'+cellContent+'</td>'
-          +'</tr>';
-      }).filter(Boolean).join('');
-      return '<table style="width:100%;border-collapse:collapse;background:#F9FAFB;border-radius:10px;overflow:hidden;margin:0 0 16px;">'
-        +'<tr><td colspan="2" style="padding:10px 16px 6px;font-size:11px;font-weight:700;color:#6B7280;text-transform:uppercase;letter-spacing:.06em;font-family:Inter,Arial,sans-serif;">'+rv(titolo)+'</td></tr>'
-        + rows
-        +'</table>';
+  return header + body;
+}
+
+/* ── Crea elemento DOM per un blocco ─────────────── */
+function edCreateBloccoEl(prefix, i, b) {
+  var wrap = document.createElement('div');
+  wrap.className = 'ed-block';
+  wrap.id = prefix+'-block-'+i;
+  wrap.setAttribute('data-idx', i);
+
+  var isText = (b.tipo==='titolo' || b.tipo==='testo' || b.tipo==='citazione');
+  if(isText) {
+    var up   = i>0 ? '<button class="btn-crm btn-crm-outline btn-crm-sm" onmousedown="event.preventDefault();edMove(\''+prefix+'\','+i+',-1)" title="Su">↑</button>' : '';
+    var down = '<button class="btn-crm btn-crm-outline btn-crm-sm" onmousedown="event.preventDefault();edMove(\''+prefix+'\','+i+',1)" title="Giù">↓</button>';
+    var del  = '<button class="btn-crm btn-crm-outline btn-crm-sm" style="color:var(--danger)" onmousedown="event.preventDefault();edDelete(\''+prefix+'\','+i+')" title="Elimina">✕</button>';
+    var controls = '<div style="display:flex;gap:4px;align-items:center;">'+up+down+del+'</div>';
+    var label = b.tipo === 'citazione' ? 'CITAZIONE' : b.tipo.toUpperCase();
+    wrap.innerHTML = '<div class="ed-block-header"><span class="ed-block-label">'+label+'</span>'+controls+'</div>'
+      + edToolbarHtml(prefix, i, b);
+    var ed = document.createElement('div');
+    ed.id = prefix+'-ed-'+i;
+    ed.className = 'ed-content';
+    ed.contentEditable = 'true';
+    ed.style.fontSize  = (b.size||15)+'px';
+    ed.style.textAlign = (b.align||'left');
+    ed.style.color     = (b.color||'#374151');
+    if(b.fontFamily) ed.style.fontFamily = b.fontFamily;
+    ed.innerHTML = b.html || '';
+    ed.addEventListener('input', function(){
+      b.html = ed.innerHTML;
+      edTriggerAutosave(prefix);
+    });
+    ed.addEventListener('paste', function(e){
+      e.preventDefault();
+      var text = (e.clipboardData || window.clipboardData).getData('text/plain');
+      document.execCommand('insertText', false, text);
+    });
+    if(b.tipo==='citazione'){
+      ed.style.borderLeft='4px solid #5B5FEF';
+      ed.style.paddingLeft='14px';
+      ed.style.fontStyle='italic';
+      ed.style.color='#4B5563';
     }
-    if(b.tipo==='alert'){
-      var ac = b.color||'#F59E0B'; var abg = b.bg||'#FFF7ED'; var atc = b.textColor||'#92400E';
-      var at = rv(b.titolo||''); var atxt = rv(b.testo||'');
-      if(!atxt.trim()) return '';
-      return '<div style="border-left:4px solid '+ac+';background:'+abg+';border-radius:0 8px 8px 0;padding:12px 18px;margin:16px 0;">'
-        +(at?'<p style="margin:0 0 5px;font-size:11px;font-weight:700;color:'+atc+';text-transform:uppercase;letter-spacing:.06em;font-family:Inter,Arial,sans-serif;">'+at+'</p>':'')
-        +'<p style="margin:0;font-size:14px;color:'+atc+';line-height:1.6;font-family:Inter,Arial,sans-serif;white-space:pre-wrap;">'+atxt+'</p>'
+    wrap.appendChild(ed);
+  } else {
+    wrap.innerHTML = edBloccoStaticHtml(prefix, i, b);
+  }
+  return wrap;
+}
+
+/* ── RENDER COMPLETO (solo al caricamento o riordino) */
+function edRender(prefix) {
+  var arr  = prefix==='com' ? comBlocchi : solBlocchi;
+  var cont = G(prefix+'-blocchi');
+  var hint = G(prefix+'-empty-hint');
+  if(!cont) return;
+
+  // Svuota e ricostruisce
+  cont.innerHTML = '';
+  arr.forEach(function(b, i){
+    cont.appendChild(edCreateBloccoEl(prefix, i, b));
+  });
+
+  if(hint) hint.style.display = arr.length ? 'none' : 'block';
+}
+function comRenderBlocchi(){ edRender('com'); setTimeout(comRefreshPreview, 80); }
+function solRenderBlocchi(){ edRender('sol'); setTimeout(solRefreshPreview, 80); }
+
+/* ── Aggiungi blocco (aggiunge in fondo e appende nel DOM) */
+function edAddBlocco(prefix, tipo) {
+  edSyncDOM(prefix);
+  var arr = prefix==='com' ? comBlocchi : solBlocchi;
+  var b = edDeepCopy(BLOCCO_DEFAULTS[tipo]||{tipo:tipo, html:''});
+  arr.push(b);
+  var i = arr.length - 1;
+  var cont = G(prefix+'-blocchi');
+  if(cont) cont.appendChild(edCreateBloccoEl(prefix, i, b));
+  var hint = G(prefix+'-empty-hint');
+  if(hint) hint.style.display = 'none';
+  // Focus sul contenteditable se è testo
+  if(b.tipo==='titolo'||b.tipo==='testo'||b.tipo==='citazione') {
+    setTimeout(function(){
+      var el = G(prefix+'-ed-'+i);
+      if(el){ el.focus(); var r=document.createRange(),s=window.getSelection();r.selectNodeContents(el);r.collapse(false);s.removeAllRanges();s.addRange(r); }
+    }, 60);
+  }
+  edTriggerAutosave(prefix);
+}
+function comAddBlocco(t){ edAddBlocco('com',t); }
+function solAddBlocco(t){ edAddBlocco('sol',t); }
+
+/* ── Sposta blocco ───────────────────────────────── */
+function edMove(prefix, i, dir) {
+  edSyncDOM(prefix);
+  var arr = prefix==='com' ? comBlocchi : solBlocchi;
+  var j = i + dir;
+  if(j < 0 || j >= arr.length) return;
+  var tmp = arr[i]; arr[i] = arr[j]; arr[j] = tmp;
+  edRender(prefix);  // riordino completo — necessario
+  edTriggerAutosave(prefix);
+  setTimeout(function(){ if(prefix==='com') comRefreshPreview(); else solRefreshPreview(); }, 80);
+}
+
+/* ── Elimina blocco ──────────────────────────────── */
+function edDelete(prefix, i) {
+  edSyncDOM(prefix);
+  var arr = prefix==='com' ? comBlocchi : solBlocchi;
+  arr.splice(i, 1);
+  edRender(prefix);
+  edTriggerAutosave(prefix);
+  setTimeout(function(){ if(prefix==='com') comRefreshPreview(); else solRefreshPreview(); }, 80);
+}
+function comDeleteBlocco(i){ edDelete('com',i); }
+function comMoveBlocco(i,d){ edMove('com',i,d); }
+function solDeleteBlocco(i){ edDelete('sol',i); }
+function solMoveBlocco(i,d){ edMove('sol',i,d); }
+
+/* ── Inserisci variabile nel blocco attivo ─────────── */
+function edInserisciVar(prefix, varStr) {
+  // trova il contenteditable con focus (o l'ultimo usato)
+  var el = document.activeElement;
+  if(!el || !el.classList.contains('ed-content')) {
+    // fallback: cerca il primo contenteditable del prefix
+    el = document.querySelector('#'+prefix+'-blocchi .ed-content');
+  }
+  if(!el) return;
+  el.focus();
+  var sel = window.getSelection();
+  if(sel.rangeCount === 0){
+    var r = document.createRange();
+    r.selectNodeContents(el);
+    r.collapse(false);
+    sel.addRange(r);
+  }
+  document.execCommand('insertText', false, varStr);
+  edTriggerAutosave(prefix);
+}
+function comInserisciVar(v){ edInserisciVar('com',v); }
+function solInserisciVar(v){ edInserisciVar('sol',v); }
+
+/* ── Update helpers per blocchi statici ─────────── */
+function edUpdateSep(prefix, i, color) {
+  var arr = prefix==='com' ? comBlocchi : solBlocchi;
+  if(arr[i]) arr[i].color = color;
+  // aggiorna la HR in-place
+  var block = G(prefix+'-block-'+i);
+  if(block){ var hr=block.querySelector('hr'); if(hr) hr.style.borderTopColor=color; }
+  edTriggerAutosave(prefix);
+  setTimeout(function(){ if(prefix==='com') comRefreshPreview(); else solRefreshPreview(); },200);
+}
+function edUpdateBtn(prefix, i, key, val) {
+  var arr = prefix==='com' ? comBlocchi : solBlocchi;
+  if(arr[i]) arr[i][key] = val;
+  // aggiorna anteprima bottone in-place
+  var block = G(prefix+'-block-'+i);
+  if(block) {
+    var sp = block.querySelector('span[style*="display:inline-block"]');
+    if(sp) {
+      if(key==='testo') sp.textContent = val;
+      if(key==='color') sp.style.background = val;
+      if(key==='textColor') sp.style.color = val;
+      if(key==='radius') sp.style.borderRadius = val+'px';
+    }
+    var container = sp ? sp.parentElement : null;
+    if(container && key==='align') container.style.textAlign = val;
+  }
+  edTriggerAutosave(prefix);
+  setTimeout(function(){ if(prefix==='com') comRefreshPreview(); else solRefreshPreview(); },200);
+}
+function edUpdateImg(prefix, i, key, val) {
+  var arr = prefix==='com' ? comBlocchi : solBlocchi;
+  if(arr[i]) arr[i][key] = val;
+  edTriggerAutosave(prefix);
+  setTimeout(function(){ if(prefix==='com') comRefreshPreview(); else solRefreshPreview(); },200);
+}
+function edUpdateTitTab(prefix, i, val) {
+  var arr = prefix==='com' ? comBlocchi : solBlocchi;
+  if(arr[i]) arr[i].titolo = val;
+  edTriggerAutosave(prefix);
+  setTimeout(function(){ if(prefix==='com') comRefreshPreview(); else solRefreshPreview(); },200);
+}
+function edUpdateAlert(prefix, i, key, val) {
+  var arr = prefix==='com' ? comBlocchi : solBlocchi;
+  if(arr[i]) arr[i][key] = val;
+  edTriggerAutosave(prefix);
+  setTimeout(function(){ if(prefix==='com') comRefreshPreview(); else solRefreshPreview(); },200);
+}
+
+/* ── HTML builder per email finale ──────────────── */
+function edBlocchiToHtml(arr, vars) {
+  return arr.map(function(b) {
+    function subst(s) {
+      if(!s) return '';
+      return s.replace(/\{\{(\w+)\}\}/g, function(_,k){ return vars&&vars[k]!==undefined?vars[k]:'{{'+k+'}}'; });
+    }
+    if(b.tipo==='titolo') {
+      var tag = 'h2';
+      var fs  = b.size || 22;
+      var al  = b.align || 'left';
+      var col = b.color || '#0A0A0A';
+      return '<'+tag+' style="margin:0 0 12px;font-size:'+fs+'px;text-align:'+al+';color:'+col+';font-family:Inter,Arial,sans-serif;">'+subst(b.html)+'</'+tag+'>';
+    }
+    if(b.tipo==='testo') {
+      var fs  = b.size || 15;
+      var al  = b.align || 'left';
+      var col = b.color || '#374151';
+      return '<div style="margin:0 0 12px;font-size:'+fs+'px;text-align:'+al+';color:'+col+';font-family:Inter,Arial,sans-serif;line-height:1.6;">'+subst(b.html)+'</div>';
+    }
+    if(b.tipo==='citazione') {
+      return '<blockquote style="border-left:4px solid #5B5FEF;padding:8px 16px;margin:0 0 12px;font-style:italic;color:#4B5563;font-family:Inter,Arial,sans-serif;">'+subst(b.html)+'</blockquote>';
+    }
+    if(b.tipo==='separatore') {
+      return '<hr style="border:none;border-top:1px solid '+(b.color||'#E5E7EB')+';margin:16px 0;">';
+    }
+    if(b.tipo==='bottone') {
+      var url = subst(b.url||'#');
+      var txt = subst(b.testo||'Clicca qui');
+      return '<div style="text-align:'+(b.align||'center')+';margin:12px 0;">'
+        +'<a href="'+url+'" style="display:inline-block;padding:12px 28px;background:'+(b.color||'#5B5FEF')+';color:'+(b.textColor||'#ffffff')+';border-radius:'+(b.radius||12)+'px;font-family:Inter,Arial,sans-serif;font-size:14px;font-weight:700;text-decoration:none;">'+txt+'</a>'
         +'</div>';
     }
-    if(b.tipo==='separatore') return '<hr style="border:none;border-top:1px solid '+(b.color||'#E5E7EB')+';margin:20px 0;"/>';
+    if(b.tipo==='immagine') {
+      var src = subst(b.src||'');
+      if(!src) return '';
+      return '<div style="text-align:'+(b.align||'center')+';margin:12px 0;">'
+        +'<img src="'+src+'" alt="'+(b.alt||'')+'" style="max-width:'+(b.width||'100%')+';height:auto;display:inline-block;">'
+        +'</div>';
+    }
+    if(b.tipo==='tabella_contatto') {
+      var righe = b.righe||['azienda','referente','telefono','email_contatto','fonte','stato'];
+      var labels = {azienda:'Azienda',referente:'Referente',telefono:'Telefono',email_contatto:'Email',fonte:'Fonte',stato:'Stato',assegnato_a:'Assegnato a',data_creazione:'Data'};
+      var rows = righe.map(function(k){
+        var lbl = labels[k]||k;
+        var val = vars&&vars[k] ? vars[k] : '{{'+k+'}}';
+        return '<tr><td style="padding:6px 12px;font-weight:700;color:#374151;font-size:13px;border-bottom:1px solid #E5E7EB;width:35%;">'+lbl+'</td>'
+          +'<td style="padding:6px 12px;color:#1F2937;font-size:13px;border-bottom:1px solid #E5E7EB;">'+val+'</td></tr>';
+      }).join('');
+      return '<table style="width:100%;border-collapse:collapse;margin:12px 0;border:1px solid #E5E7EB;border-radius:8px;overflow:hidden;">'
+        +'<thead><tr><th colspan="2" style="padding:10px 12px;background:#F9FAFB;text-align:left;font-size:11px;font-weight:800;color:#5B5FEF;letter-spacing:.08em;border-bottom:1px solid #E5E7EB;">'+(b.titolo||'DETTAGLI CONTATTO')+'</th></tr></thead>'
+        +'<tbody>'+rows+'</tbody></table>';
+    }
+    if(b.tipo==='alert') {
+      return '<div style="border-left:4px solid '+(b.color||'#F59E0B')+';background:'+(b.bg||'#FFF7ED')+';padding:12px 16px;margin:12px 0;border-radius:0 6px 6px 0;">'
+        +(b.titolo?'<div style="font-weight:800;font-size:12px;color:'+(b.color||'#F59E0B')+';font-family:Inter,Arial,sans-serif;letter-spacing:.06em;margin-bottom:4px;">'+subst(b.titolo)+'</div>':'')
+        +'<div style="font-size:14px;color:'+(b.textColor||'#92400E')+';font-family:Inter,Arial,sans-serif;">'+subst(b.testo||'')+'</div>'
+        +'</div>';
+    }
     return '';
   }).join('\n');
 }
