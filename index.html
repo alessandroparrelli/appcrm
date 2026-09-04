@@ -2169,6 +2169,18 @@ function startApp(){
   G('chip-avatar3') && (G('chip-avatar3').textContent = initials);
   updateChipAvatar();
   showView('search');
+  // Carica template COM in memoria all'avvio (senza render DOM, solo comBlocchi + variabili globali)
+  try {
+    var _startTpl = {};
+    var _startRaw = localStorage.getItem('crm_com_template');
+    if (_startRaw) _startTpl = JSON.parse(_startRaw);
+    if (_startTpl.blocchi && _startTpl.blocchi.length) {
+      comBlocchi = _startTpl.blocchi;
+    }
+    if (_startTpl.header_color) _comHeaderColor = _startTpl.header_color;
+    if (_startTpl.logo_url)     _comLogoUrl     = _startTpl.logo_url;
+    if (_startTpl.logo_height)  _comLogoHeight  = String(_startTpl.logo_height);
+  } catch(_e) {}
   // inizializza sistema notifiche (polling + Notification API)
   setTimeout(notifInit, 1500);
   // mostra tab admin e bottone seleziona solo se admin
