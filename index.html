@@ -3153,12 +3153,14 @@ async function creaContattoCRM(){
     };
     var r = await fetch(SB+'/rest/v1/crm_contacts', {
       method:'POST',
-      headers:H({'Prefer':'return=representation','Content-Type':'application/json'}),
+      headers:H({'Prefer':'return=minimal','Content-Type':'application/json'}),
       body:JSON.stringify(body)
     });
     if(!r.ok){ var err=await r.text(); throw new Error(err); }
-    var rows = await r.json();
-    var newId = rows[0].id;
+    var rGet = await fetch(SB+'/rest/v1/crm_contacts?company_source=eq.anagrafiche&company_ref=eq.'+encodeURIComponent(crmCurrentAna.codiceanagrafica)+'&creator_id=eq.'+session.id+'&order=created_at.desc&limit=1&select=id',{headers:H()});
+    if(!rGet.ok) throw new Error('Errore lettura contatto');
+    var newId = ((await rGet.json())[0]||{}).id;
+    if(!newId) throw new Error('Contatto creato ma non trovato');
     await insertActivityLog(newId,'contatto_creato','Contatto CRM creato da '+session.nome+' '+session.cognome);
     toast('Contatto CRM creato!','success');
     await openCrmContatto(newId);
@@ -4117,7 +4119,12 @@ async function wizSalva(){
       });
       if(!rNew.ok) throw new Error(await rNew.text());
       var newRows = await rNew.json();
-      wiz.companyRef = String(newRows[0].id);
+      wiz.companyRef = newRows.length ? String(newRows[0].id) : null;
+      if(!wiz.companyRef){
+        // Fallback GET per RLS
+        var rNewGet = await fetch(SB+'/rest/v1/crm_new_companies?created_by=eq.'+session.id+'&order=created_at.desc&limit=1&select=id',{headers:H()});
+        wiz.companyRef = rNewGet.ok ? String(((await rNewGet.json())[0]||{}).id||'') : '';
+      }
     }
 
     // B: controlla se esiste già un contatto CRM per questa impresa
@@ -4140,7 +4147,7 @@ async function wizSalva(){
       var _ctEmail = wiz.companyEmail || _nc.email || '';
       var rC = await fetch(SB+'/rest/v1/crm_contacts',{
         method:'POST',
-        headers:H({'Prefer':'return=representation','Content-Type':'application/json'}),
+        headers:H({'Prefer':'return=minimal','Content-Type':'application/json'}),
         body:JSON.stringify({
           company_source: wiz.companySource,
           company_ref:    wiz.companyRef,
@@ -4154,7 +4161,12 @@ async function wizSalva(){
         })
       });
       if(!rC.ok) throw new Error(await rC.text());
-      contactId = (await rC.json())[0].id;
+      // Legge l'id del contatto appena creato con GET separata (evita RLS SELECT dopo INSERT)
+      var rGet = await fetch(SB+'/rest/v1/crm_contacts?company_source=eq.'+encodeURIComponent(wiz.companySource)+'&company_ref=eq.'+encodeURIComponent(wiz.companyRef)+'&creator_id=eq.'+session.id+'&order=created_at.desc&limit=1&select=id',{headers:H()});
+      if(!rGet.ok) throw new Error('Errore lettura contatto creato');
+      var newRows = await rGet.json();
+      if(!newRows.length) throw new Error('Contatto creato ma non trovato');
+      contactId = newRows[0].id;
     }
 
     // D: log creazione contatto
