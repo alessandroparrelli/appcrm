@@ -389,10 +389,9 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 .crm-tab svg{stroke:#4347D0;transition:stroke .15s;flex-shrink:0;}
 .crm-tab:hover{color:#3730A3;}
 .crm-tab:hover svg{stroke:#3730A3;}
-.crm-tab.active{color:#5B5FEF;}
-.crm-tab.active svg{stroke:#5B5FEF;}
-.crm-tab-dot{width:4px;height:4px;border-radius:50%;background:#5B5FEF;margin-top:2px;opacity:0;transition:opacity .15s;}
-.crm-tab.active .crm-tab-dot{opacity:1;}
+.crm-tab.active{color:#fff;background:var(--grad-primary);border-radius:12px;padding:8px 4px 6px;}
+.crm-tab.active svg{stroke:#fff;}
+.crm-tab-dot{display:none;}
 
 /* ── PILL STATO contatto ────────────────────────── */
 .stato-pill{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:var(--radius-pill);font-size:11px;font-weight:700;border:1px solid transparent;}
