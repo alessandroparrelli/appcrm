@@ -154,10 +154,10 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 .result-card:hover{border-color:var(--primary);box-shadow:0 4px 14px rgba(91,95,239,.12);transform:translateX(3px);}
 .result-card:last-child{margin-bottom:0;}
 .result-main{flex:1;min-width:0;}
-.result-name{font-size:14px;font-weight:700;color:var(--text);margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.result-name{font-size:15px;font-weight:700;color:var(--text);margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .result-meta{display:flex;gap:12px;flex-wrap:wrap;}
-.rmi{font-size:12px;color:var(--text-secondary);font-weight:500;}
-.rmi span{color:var(--text-tertiary);font-size:11px;}
+.rmi{font-size:13px;color:var(--text-secondary);font-weight:500;}
+.rmi span{color:var(--text-tertiary);font-size:12px;}
 .result-arrow{color:var(--primary);font-size:20px;flex-shrink:0;opacity:.5;transition:var(--tr);font-weight:300;}
 .result-card:hover .result-arrow{opacity:1;transform:translateX(3px);}
 
@@ -222,14 +222,14 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 /* Mappa */
 .mappa-wrap{padding:12px 14px;}
 .mappa-iframe{width:100%;height:200px;border:1px solid var(--border);border-radius:var(--radius-sm);margin-bottom:8px;}
-.mappa-addr{font-size:12px;color:var(--text-secondary);margin-bottom:5px;}
-.mappa-link{font-size:12px;color:var(--primary);font-weight:700;text-decoration:none;}
+.mappa-addr{font-size:13px;color:var(--text-secondary);margin-bottom:5px;}
+.mappa-link{font-size:13px;color:var(--primary);font-weight:700;text-decoration:none;}
 .mappa-link:hover{text-decoration:underline;}
 
 /* Titolare hero strip */
 .titolare-strip{padding:10px 14px;background:rgba(91,95,239,.05);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;}
-.titolare-icon{font-size:16px;}
-.titolare-name{font-size:14px;font-weight:700;color:var(--primary);}
+.titolare-icon{font-size:18px;}
+.titolare-name{font-size:15px;font-weight:700;color:var(--primary);}
 
 /* ── PROFILO MODAL ─────────────────────────── */
 .modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.5);backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center;z-index:10000;padding:16px;}
@@ -292,10 +292,55 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 /* Mobile */
 @media(max-width:580px){
   .search-grid{grid-template-columns:1fr;}
-  .data-table td.dt-label{width:42%;}
   .header-badge{display:none;}
   .user-name{display:none;}
-  .scheda-hero-name{font-size:16px;color:#0A0A0A;}
+
+  /* ── SCHEDA HERO: layout verticale su mobile ── */
+  .scheda-hero{flex-direction:column;gap:10px;padding:16px;}
+  .scheda-hero-name{font-size:18px;font-weight:900;color:#0A0A0A;}
+  .scheda-hero-logo{height:36px;margin-bottom:6px;}
+  .scheda-badges{align-self:stretch;margin-top:2px;}
+  .scheda-badges{display:flex;flex-direction:row;flex-wrap:wrap;gap:6px;}
+  .sbadge{border-radius:8px!important;flex:1;min-width:80px;padding:7px 10px;}
+  .sbadge .slbl{font-size:10px;}
+  .sbadge .sval{font-size:12px;}
+
+  /* ── DATA TABLE: layout stacked su mobile ── */
+  .data-table td{display:block;width:100%;padding:0;}
+  .data-table tr{display:block;padding:10px 14px;border-bottom:1px solid var(--border);}
+  .data-table tr:last-child{border-bottom:none;}
+  .data-table td.dt-label{
+    font-size:10px;font-weight:700;color:var(--text-secondary);
+    text-transform:uppercase;letter-spacing:.4px;
+    background:transparent;white-space:normal;width:100%;
+    padding-bottom:3px;
+  }
+  .data-table td.dt-value{
+    font-size:15px;font-weight:500;color:var(--text);
+    padding-top:0;
+  }
+  .data-table td.dt-value a{font-size:15px;}
+
+  /* ── S-CARD TITLE più leggibile ── */
+  .s-card-title{font-size:12px;padding:12px 14px;}
+
+  /* ── ADDETTI ── */
+  .addetto-val{font-size:22px;}
+  .addetto-lbl{font-size:11px;}
+
+  /* ── SERVIZI ── */
+  .servizio-row{font-size:14px;padding:8px 0;}
+
+  /* ── RISULTATI RICERCA ── */
+  .result-name{font-size:15px;}
+  .rmi{font-size:13px;}
+
+  /* ── CRM HERO ── */
+  .crm-hero-name{font-size:18px;}
+  .crm-hero-sub{font-size:13px;}
+
+  /* ── CRM contatto info-table ── */
+  .crm-contatto-wrap{padding:12px;}
 }
 
 /* ── FOOTER APP ───────────────────────────────── */
@@ -435,8 +480,9 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 @media(max-width:580px){
   .crm-field-row{grid-template-columns:1fr;}
   .stato-grid{grid-template-columns:1fr;}
-  .crm-action-row{gap:6px;}
-  .btn-crm{font-size:11px;padding:8px 12px;}
+  .crm-action-row{gap:6px;display:grid;grid-template-columns:1fr 1fr;}
+  .btn-crm{font-size:13px;padding:11px 14px;justify-content:center;}
+  .btn-crm-primary{grid-column:1 / -1;}
 }
 
 /* ── CRM TOPBAR ─────────────────────────────────── */
