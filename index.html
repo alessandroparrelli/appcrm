@@ -2539,7 +2539,7 @@ async function openScheda(idx){
 async function openSchedaByCode(codiceanagrafica){
   showLoad('Caricamento scheda…');
   try {
-    var r = await fetch(SB+'/rest/v1/anagrafiche?codiceanagrafica=eq.'+encodeURIComponent(codiceanagrafica)+'&select=*',{headers:H()});
+    var r = await fetch(SB+'/rest/v1/Anagrafiche?codiceanagrafica=eq.'+encodeURIComponent(codiceanagrafica)+'&select=*',{headers:H()});
     if(!r.ok) throw new Error('HTTP '+r.status);
     var rows = await r.json();
     if(!rows.length) throw new Error('Anagrafica non trovata');
