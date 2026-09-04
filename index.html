@@ -3609,8 +3609,8 @@ async function salvaAssegnazione(){
     // Email al NUOVO assegnatario (dati aggiornati)
     await sendAssignmentEmail(crmContactData, crmSelectedUserId, session.nome+' '+session.cognome, handoverNote||null);
 
-    // Push al nuovo assegnatario
-    if (crmSelectedUserId && crmSelectedUserId !== session.id) {
+    // Push al nuovo assegnatario (sempre, anche a sé stessi)
+    if (crmSelectedUserId) {
       var pushBody = 'Ti \u00e8 stato assegnato: ' + (crmContactData.company_name || 'un contatto');
       if(handoverNote) pushBody += '\n\nNote: '+handoverNote;
       triggerPush([crmSelectedUserId],
@@ -4211,10 +4211,11 @@ async function wizSalva(){
     };
     await sendAssignmentEmail(wizContactData, wiz.assignedId || session.id, session.nome+' '+session.cognome, wiz.note||null);
 
-    // Push solo se assegnato ad un altro
-    if (wiz.assignedId && wiz.assignedId !== session.id) {
+    // Push sempre (anche se assegnato a sé stessi)
+    var _pushTarget = wiz.assignedId || session.id;
+    if (_pushTarget) {
       triggerPush(
-        [wiz.assignedId],
+        [_pushTarget],
         'Nuovo contatto assegnato',
         'Ti è stato assegnato: ' + (wiz.companyName || 'un contatto'),
         '/'
