@@ -914,7 +914,10 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
         <button class="btn-logout" onclick="doLogout()">Esci</button>
       </div>
     </header>
-    <!-- ── NAV TAB ── -->
+    <!-- ── BARRA TITOLO TAB ── -->
+    <div id="tab-title-bar" style="background:#fff;padding:10px 20px 8px;border-bottom:1px solid var(--border);">
+      <span id="tab-title-text" style="font-family:'Inter',sans-serif;font-size:20px;font-weight:800;color:#111827;letter-spacing:-.04em;"></span>
+    </div>
   </div>
 
   <!-- HEADER SCHEDA (separato, con tasto Indietro) -->
@@ -2619,6 +2622,15 @@ function showView(name){
   }
   var el=G('view-'+name);
   if(el) el.scrollTop=0;
+  // aggiorna titolo tab
+  var tabTitles={'search':'Ricerca imprese','results':'Risultati ricerca','crm':'Flussi CRM','crm-contatto':'Scheda contatto','admin':'Amministrazione','comunicazione':'Comunicazione','scheda':'','log':''};
+  var ttEl=G('tab-title-text');
+  var ttBar=G('tab-title-bar');
+  if(ttEl&&ttBar){
+    var ttTitle=tabTitles[name]!==undefined?tabTitles[name]:'';
+    ttEl.textContent=ttTitle;
+    ttBar.style.display=ttTitle?'block':'none';
+  }
 }
 
 function goBack(){
