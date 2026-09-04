@@ -1295,10 +1295,6 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
                   <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13"/><polyline points="7 3 7 8 15 8"/></svg>
                   Salva
                 </button>
-                <button class="btn-crm btn-crm-outline btn-crm-sm" onclick="comRipristinaDefault()" style="color:var(--text-tertiary);" title="Ripristina template di default">
-                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
-                  Ripristina default
-                </button>
               </div>
               <div id="com-save-msg" style="font-size:11px;text-align:center;color:var(--success);margin-top:6px;display:none;">✓ Template salvato</div>
             </div>
@@ -1406,10 +1402,6 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
               <button class="btn-crm btn-crm-outline btn-crm-sm" onclick="solSalvaTemplate()" style="border-color:#7C3AED;color:#7C3AED;flex:1;justify-content:center;padding:10px;">
                 <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13"/><polyline points="7 3 7 8 15 8"/></svg>
                 Salva
-              </button>
-              <button class="btn-crm btn-crm-outline btn-crm-sm" onclick="solRipristinaDefault()" style="color:var(--text-tertiary);padding:10px;" title="Ripristina template di default">
-                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
-                Ripristina default
               </button>
             </div>
             <div id="sol-save-msg" style="font-size:11px;text-align:center;color:var(--success);margin-top:4px;display:none;">✓ Template sollecito salvato</div>
@@ -4826,7 +4818,8 @@ async function sendAssignmentEmail(contactData, assignedToId, assignedByName, ha
     // Usa comBlocchi in memoria (fonte di verità): aggiornati da autosave in tempo reale
     var blocchi = (typeof comBlocchi !== 'undefined' && Array.isArray(comBlocchi) && comBlocchi.length > 0)
       ? comBlocchi
-      : (comTpl.blocchi && Array.isArray(comTpl.blocchi) && comTpl.blocchi.length > 0 ? comTpl.blocchi : _defaultAssignBlocchi(creatoDa));
+      : (comTpl.blocchi && Array.isArray(comTpl.blocchi) && comTpl.blocchi.length > 0 ? comTpl.blocchi : null);
+    if (!blocchi) { toast('Template email non configurato. Vai in Comunicazione e salva il template.', 'error'); return; }
     var oggetto = (comTpl.oggetto && comTpl.oggetto.trim()) ? comTpl.oggetto : 'Nuovo contatto assegnato: {{nome_azienda}}';
 
     // 6. dest — costruito dai dati passati, come fa inviaSollecito con crmContactData
@@ -4868,34 +4861,7 @@ async function sendAssignmentEmail(contactData, assignedToId, assignedByName, ha
   }
 }
 
-function _defaultAssignBlocchi(creatoDaNome) {
-  var blocchi = [
-    { tipo:'titolo', html:'Nuovo contatto assegnato', livello:1 },
-    { tipo:'testo',  html:'<p>Ciao <strong>{{assegnato_a}}</strong>,<br>{{creato_da}} ti ha assegnato un contatto da gestire nel CRM.</p>' },
-    { tipo:'tabella_contatto',
-      righe: ['azienda','referente','telefono','email_contatto','fonte','stato','creato_da','data_creazione'],
-      titolo: 'DETTAGLI CONTATTO' },
-    { tipo:'alert',
-      titolo: 'NOTE DI PASSAGGIO CONSEGNE',
-      testo:  '{{note}}',
-      color:  '#F59E0B', bg: '#FFF7ED', textColor: '#92400E' },
-    { tipo:'bottone', testo:'Apri CRM CNA Roma',
-      url:'https://associaticna.vercel.app',
-      color:'#5B5FEF', textColor:'#ffffff', align:'center', radius:12 },
-  ];
-  return blocchi;
-}
-
-/* ── EMAIL ADMIN ────────────────────────────────── */
-var _emailLogoUrl = localStorage.getItem('crm_email_logo_url') || '';
-
-function adminInitEmailSection() {
-  var inp = G('email-logo-url');
-  if (inp && _emailLogoUrl) {
-    inp.value = _emailLogoUrl;
-    adminUpdateLogoPreview(_emailLogoUrl);
-  }
-}
+/* _defaultAssignBlocchi rimossa */
 
 function adminUpdateLogoPreview(url) {
   var prev = G('email-logo-preview');
@@ -4934,7 +4900,8 @@ async function adminTestEmail() {
     var testNome    = ((session.nome||'')+ ' ' + (session.cognome||'')).trim();
     var blocchi = (typeof comBlocchi !== 'undefined' && Array.isArray(comBlocchi) && comBlocchi.length > 0)
       ? comBlocchi
-      : (comTpl.blocchi && comTpl.blocchi.length ? comTpl.blocchi : _defaultAssignBlocchi('il sistema (test)'));
+      : (comTpl.blocchi && comTpl.blocchi.length ? comTpl.blocchi : null);
+    if (!blocchi) { toast('Template email non configurato. Vai in Comunicazione e salva il template.', 'error'); return; }
     var oggetto     = comTpl.oggetto || 'Nuovo contatto assegnato: {{nome_azienda}}';
     var dest = [{
       contact_id:      'test',
@@ -4999,26 +4966,10 @@ var COM_STATI_LABEL = {
 var COM_TPL_KEY = 'crm_com_template';
 
 /* ── Template default EMAIL MASSIVA ──────────────────── */
-function comGetDefaultTemplate() {
-  return {
-    oggetto: 'Aggiornamento CRM — {{nome_azienda}}',
-    blocchi: [
-      { tipo: 'titolo', testo: 'Gentile operatore,', livello: 'h2' },
-      { tipo: 'testo', html: 'Ti scriviamo per aggiornarti sullo stato della pratica relativa a {{nome_azienda}}.' },
-      { tipo: 'separatore' },
-      { tipo: 'titolo', testo: 'Dettagli contatto', livello: 'h3' },
-      { tipo: 'testo', html: 'Azienda: {{nome_azienda}}\nReferente: {{referente}}\nTelefono: {{telefono}}\nStato attuale: {{stato}}\nAssegnato a: {{assegnato_a}}\nIn gestione dal: {{data_creazione}}' },
-      { tipo: 'separatore' },
-      { tipo: 'testo', html: 'Ti chiediamo di aggiornare la pratica nel sistema CRM al pi\u00f9 presto e di registrare eventuali contatti o aggiornamenti significativi.\n\nPer qualsiasi chiarimento, rispondi a questa email.\n\nGrazie per la collaborazione,\nCNA Roma' },
-      { tipo: 'bottone', testo: 'Apri CRM CNA Roma', url: 'https://associaticna.vercel.app' },
-    ]
-  };
-}
-
 function comCaricaTemplate() {
   try {
     var raw = localStorage.getItem(COM_TPL_KEY);
-    if (!raw) { comImpostaDefault(); return; }
+    if (!raw) { comRenderBlocchi(); comRefreshPreview(); return; }
     var tpl = JSON.parse(raw);
     comBlocchi = tpl.blocchi || [];
     _comHeaderColor = tpl.header_color || '#5B5FEF';
@@ -5029,15 +4980,7 @@ function comCaricaTemplate() {
     var hc = G('com-header-color'), hct = G('com-header-color-txt');
     if(tpl.header_color){ if(hc) hc.value=tpl.header_color; if(hct) hct.value=tpl.header_color; } else { if(hc) hc.value='#ffffff'; if(hct) hct.value='#ffffff'; }
     var lh = G('com-logo-height'); if(lh && tpl.logo_height) lh.value = tpl.logo_height;
-  } catch(e) { comImpostaDefault(); }
-  comRenderBlocchi();
-  comRefreshPreview();
-}
-
-function comImpostaDefault() {
-  var tpl = comGetDefaultTemplate();
-  comBlocchi = tpl.blocchi;
-  var ogg = G('com-oggetto'); if(ogg) ogg.value = tpl.oggetto;
+  } catch(e) { console.error('comCaricaTemplate:', e); }
   comRenderBlocchi();
   comRefreshPreview();
 }
@@ -5075,15 +5018,7 @@ function comAutosaveHeader() {
 
 
 
-function comRipristinaDefault() {
-  if (!confirm('Ripristinare il template di default? Il template attuale andr\u00e0 perso.')) return;
-  localStorage.removeItem(COM_TPL_KEY);
-  comImpostaDefault();
-  comRenderBlocchi();
-  comRefreshPreview();
-  var ogg = G('com-oggetto'); if(ogg) ogg.value = comGetDefaultTemplate().oggetto;
-  toast('Template ripristinato!', 'success');
-}
+/* comRipristinaDefault rimossa */
 
 /* ── Template default SOLLECITO ──────────────────────── */
 function solGetDefaultTemplate() {
