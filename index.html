@@ -1415,6 +1415,8 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
             <div id="sol-save-msg" style="font-size:11px;text-align:center;color:var(--success);margin-top:4px;display:none;">✓ Template sollecito salvato</div>
           </div>
 
+          <!-- Colonna centrale: test + editor -->
+          <div class="com-editor-col">
           <!-- Test email sollecito -->
           <div class="com-card">
             <div class="com-card-title">Email di test</div>
@@ -1430,7 +1432,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
           </div>
 
           <!-- Editor blocchi sollecito -->
-          <div class="com-editor-col">
+          <div>
             <div class="com-card">
               <div class="com-card-title" style="display:flex;justify-content:space-between;align-items:center;">
                 <span>Corpo sollecito</span>
@@ -1452,6 +1454,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
               </div>
             </div>
           </div>
+          </div><!-- /com-editor-col -->
 
           <!-- COLONNA ANTEPRIMA SOLLECITO -->
           <div class="com-preview-col">
@@ -5417,6 +5420,14 @@ function edWrapSel(el, styleKey, styleVal) {
 
 /* ── execCommand (bold/italic/underline/strikethrough) */
 function edExecCmd(cmd, val) {
+  // Riporta il focus sull'editor attivo prima di execCommand
+  if(_edSavedEl && document.activeElement !== _edSavedEl) {
+    try { _edSavedEl.focus(); } catch(e) {}
+  }
+  if(_edSavedRange) {
+    var sel = window.getSelection();
+    try { sel.removeAllRanges(); sel.addRange(_edSavedRange.cloneRange()); } catch(e) {}
+  }
   document.execCommand(cmd, false, val||null);
 }
 
@@ -5564,6 +5575,17 @@ function edCreateBloccoEl(prefix, i, b) {
       b.html = ed.innerHTML;
       edTriggerAutosave(prefix);
     });
+    // Salva la selezione ogni volta che l'utente interagisce con l'editor
+    var _saveEdRange = function(){
+      var sel = window.getSelection();
+      if(sel && sel.rangeCount > 0){
+        _edSavedRange = sel.getRangeAt(0).cloneRange();
+        _edSavedEl = ed;
+      }
+    };
+    ed.addEventListener('mouseup', _saveEdRange);
+    ed.addEventListener('keyup', _saveEdRange);
+    ed.addEventListener('selectionchange', _saveEdRange);
     ed.addEventListener('paste', function(e){
       e.preventDefault();
       var text = (e.clipboardData || window.clipboardData).getData('text/plain');
@@ -5776,12 +5798,12 @@ function edBlocchiToHtml(arr, vars) {
           valHtml = '<strong style="color:#111827;">'+rawVal+'</strong>';
         }
         return '<tr>'
-          +'<td style="padding:5px 10px;color:#6B7280;font-size:13px;border-bottom:1px solid #F3F4F6;width:38%;vertical-align:middle;">'+lbl+'</td>'
-          +'<td style="padding:5px 10px;font-size:13px;border-bottom:1px solid #F3F4F6;vertical-align:middle;">'+valHtml+'</td>'
+          +'<td style="padding:5px 10px;color:#6B7280;font-size:13px;font-family:Inter,Arial,sans-serif;border-bottom:1px solid #F3F4F6;width:38%;vertical-align:middle;">'+lbl+'</td>'
+          +'<td style="padding:5px 10px;font-size:13px;font-family:Inter,Arial,sans-serif;border-bottom:1px solid #F3F4F6;vertical-align:middle;">'+valHtml+'</td>'
           +'</tr>';
       }).join('');
       return '<table style="width:100%;border-collapse:collapse;margin:12px 0;background:#F8FAFF;border-radius:8px;overflow:hidden;border:1px solid #E0E7FF;">'
-        +'<thead><tr><th colspan="2" style="padding:8px 10px;background:#EEF2FF;text-align:left;font-size:11px;font-weight:800;color:#5B5FEF;letter-spacing:.1em;border-bottom:1px solid #C7D2FE;">'+(b.titolo||'DETTAGLI CONTATTO')+'</th></tr></thead>'
+        +'<thead><tr><th colspan="2" style="padding:8px 10px;background:#EEF2FF;text-align:left;font-size:11px;font-weight:800;color:#5B5FEF;letter-spacing:.1em;border-bottom:1px solid #C7D2FE;font-family:Inter,Arial,sans-serif;">'+(b.titolo||'DETTAGLI CONTATTO')+'</th></tr></thead>'
         +'<tbody>'+rows+'</tbody></table>';
     }
     if(b.tipo==='alert') {
