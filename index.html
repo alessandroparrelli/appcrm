@@ -937,6 +937,28 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
     <div id="tab-title-bar" style="background:#fff;padding:10px 20px 8px;border-bottom:1px solid var(--border);">
       <span id="tab-title-text" style="font-family:'Inter',sans-serif;font-size:20px;font-weight:800;color:#111827;letter-spacing:-.04em;"></span>
     </div>
+    <nav class="crm-nav" id="crm-nav">
+      <button class="crm-tab active" id="tab-crm" onclick="crmTab('crm')">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        Flussi CRM
+        <div class="crm-tab-dot"></div>
+      </button>
+      <button class="crm-tab" id="tab-archivio" onclick="crmTab('archivio')">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        Ricerca
+        <div class="crm-tab-dot"></div>
+      </button>
+      <button class="crm-tab" id="tab-admin" onclick="crmTab('admin')" style="display:none;">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+        Admin
+        <div class="crm-tab-dot"></div>
+      </button>
+      <button class="crm-tab" id="tab-comunicazione" onclick="crmTab('comunicazione')" style="display:none;">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"/><polyline points="2,4 12,13 22,4"/></svg>
+        Comunicazione
+        <div class="crm-tab-dot"></div>
+      </button>
+    </nav>
   </div>
 
   <!-- HEADER SCHEDA (separato, con tasto Indietro) -->
@@ -1662,28 +1684,6 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 
 
   <button class="btn-fab-crm" id="fab-crm" onclick="openWizard()" title="Nuovo contatto"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button>
-<nav class="crm-nav" id="crm-nav">
-      <button class="crm-tab active" id="tab-crm" onclick="crmTab('crm')">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-        Flussi CRM
-        <div class="crm-tab-dot"></div>
-      </button>
-      <button class="crm-tab" id="tab-archivio" onclick="crmTab('archivio')">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-        Ricerca
-        <div class="crm-tab-dot"></div>
-      </button>
-      <button class="crm-tab" id="tab-admin" onclick="crmTab('admin')" style="display:none;">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
-        Admin
-        <div class="crm-tab-dot"></div>
-      </button>
-      <button class="crm-tab" id="tab-comunicazione" onclick="crmTab('comunicazione')" style="display:none;">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"/><polyline points="2,4 12,13 22,4"/></svg>
-        Comunicazione
-        <div class="crm-tab-dot"></div>
-      </button>
-  </nav>
 
   <!-- ═══ FOOTER APP ═══ -->
   <footer id="app-footer">
