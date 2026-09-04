@@ -4792,16 +4792,17 @@ async function sendAssignmentEmail(contactData, assignedToId, assignedByName, ha
     var noteText = handoverNote || '';
 
     // 4. Header config + blocchi dal template COM
-    // Flush immediato: sincronizza DOM → comBlocchi → localStorage prima di leggere
-    flushComTemplate();
+    // Usa sempre comBlocchi in memoria (già aggiornato da comAutosaveBlocchi/flushComTemplate)
+    // e legge header/logo da localStorage senza richiedere il DOM dell'editor
     var comTpl = {};
     try { comTpl = JSON.parse(localStorage.getItem('crm_com_template')||'{}'); } catch(e){}
-    var logoUrl     = comTpl.logo_url     || localStorage.getItem('crm_email_logo_url') || '';
-    var headerColor = comTpl.header_color || '#ffffff';
-    var logoH       = String(comTpl.logo_height || '44');
-    // Fallback robusto: se blocchi corrotti/vuoti usa il default hardcoded
-    var _rawBlocchi = comTpl.blocchi;
-    var blocchi = (_rawBlocchi && Array.isArray(_rawBlocchi) && _rawBlocchi.length > 0) ? _rawBlocchi : _defaultAssignBlocchi(creatoDa);
+    var logoUrl     = _comLogoUrl || comTpl.logo_url || localStorage.getItem('crm_email_logo_url') || '';
+    var headerColor = _comHeaderColor || comTpl.header_color || '#5B5FEF';
+    var logoH       = _comLogoHeight || String(comTpl.logo_height || '44');
+    // Usa comBlocchi in memoria (fonte di verità): aggiornati da autosave in tempo reale
+    var blocchi = (typeof comBlocchi !== 'undefined' && Array.isArray(comBlocchi) && comBlocchi.length > 0)
+      ? comBlocchi
+      : (comTpl.blocchi && Array.isArray(comTpl.blocchi) && comTpl.blocchi.length > 0 ? comTpl.blocchi : _defaultAssignBlocchi(creatoDa));
     var oggetto = (comTpl.oggetto && comTpl.oggetto.trim()) ? comTpl.oggetto : 'Nuovo contatto assegnato: {{nome_azienda}}';
 
     // 6. dest — costruito dai dati passati, come fa inviaSollecito con crmContactData
@@ -4900,14 +4901,16 @@ async function adminTestEmail() {
   if (btn) btn.disabled = true;
   if (res) res.textContent = 'Invio in corso…';
   try {
-    // Usa lo stesso percorso di sendAssignmentEmail: crm-bulk-email + blocchi editor
+    // Usa comBlocchi in memoria (fonte di verità) come sendAssignmentEmail
     var comTpl = {};
     try { comTpl = JSON.parse(localStorage.getItem('crm_com_template')||'{}'); } catch(e){}
-    var logoUrl     = comTpl.logo_url || _emailLogoUrl || '';
-    var headerColor = comTpl.header_color || '#ffffff';
-    var logoH       = String(comTpl.logo_height || '44');
+    var logoUrl     = _comLogoUrl || comTpl.logo_url || _emailLogoUrl || '';
+    var headerColor = _comHeaderColor || comTpl.header_color || '#5B5FEF';
+    var logoH       = _comLogoHeight || String(comTpl.logo_height || '44');
     var testNome    = ((session.nome||'')+ ' ' + (session.cognome||'')).trim();
-    var blocchi     = (comTpl.blocchi && comTpl.blocchi.length) ? comTpl.blocchi : _defaultAssignBlocchi('il sistema (test)');
+    var blocchi = (typeof comBlocchi !== 'undefined' && Array.isArray(comBlocchi) && comBlocchi.length > 0)
+      ? comBlocchi
+      : (comTpl.blocchi && comTpl.blocchi.length ? comTpl.blocchi : _defaultAssignBlocchi('il sistema (test)'));
     var oggetto     = comTpl.oggetto || 'Nuovo contatto assegnato: {{nome_azienda}}';
     var dest = [{
       contact_id:      'test',
@@ -4952,6 +4955,9 @@ async function adminTestEmail() {
    COMUNICAZIONE — editor blocchi + invio massivo
 ══════════════════════════════════════════════════ */
 var comBlocchi = [];
+var _comHeaderColor = '#5B5FEF';
+var _comLogoUrl = '';
+var _comLogoHeight = '44';
 var comActiveBloccoIdx = null;
 var comDestinatari = [];
 
@@ -4991,6 +4997,9 @@ function comCaricaTemplate() {
     if (!raw) { comImpostaDefault(); return; }
     var tpl = JSON.parse(raw);
     comBlocchi = tpl.blocchi || [];
+    _comHeaderColor = tpl.header_color || '#5B5FEF';
+    _comLogoUrl     = tpl.logo_url     || '';
+    _comLogoHeight  = String(tpl.logo_height || '44');
     var ogg = G('com-oggetto'); if(ogg) ogg.value = tpl.oggetto || '';
     var logo = G('com-logo-url'); if(logo) logo.value = tpl.logo_url || '';
     var hc = G('com-header-color'), hct = G('com-header-color-txt');
@@ -5025,7 +5034,9 @@ function comSalvaTemplate() {
 }
 
 function comAutosaveHeader() {
-  // Salva silenziosamente header senza toast — chiamato da ogni modifica input
+  _comHeaderColor = (G('com-header-color')||{}).value || _comHeaderColor || '#5B5FEF';
+  _comLogoUrl     = (G('com-logo-url')||{}).value    || _comLogoUrl     || '';
+  _comLogoHeight  = (G('com-logo-height')||{}).value  || _comLogoHeight  || '44';
   try {
     var raw = localStorage.getItem(COM_TPL_KEY);
     var tpl = raw ? JSON.parse(raw) : {};
@@ -5186,6 +5197,7 @@ function comPreviewLogo() {
 }
 
 function comSyncHeaderColor(hexVal) {
+  _comHeaderColor = hexVal || '#5B5FEF';
   hexVal = hexVal.trim();
   var cp = G('com-header-color'), txt = G('com-header-color-txt');
   if(/^#[0-9a-fA-F]{6}$/.test(hexVal)){
