@@ -4229,6 +4229,7 @@ async function wizSalva(){
       id:              contactId,
       company_name:    wiz.companyName    || _nc.ragione_sociale || '',
       company_source:  wiz.companySource  || '',
+      company_ref:     wiz.companyRef     || _nc.codice_anagrafica || '',
       contact_name:    wiz.companyTitolare || ((_nc.nome_titolare||'')+' '+(_nc.cognome_titolare||'')).trim() || '',
       contact_phone:   wiz.companyPhone   || _nc.cellulare      || '',
       contact_email:   wiz.companyEmail   || _nc.email          || '',
@@ -4737,7 +4738,7 @@ async function inviaSollecito() {
       operatore_email:  operatore.email,
       creato_da:        creatoreNomeI,
       note:             noteTextI,
-      titolare:         crmContactData.contact_name    || '',
+      titolare:         crmContactData.titolare        || crmContactData.contact_name || '',
       associato:        crmContactData.is_associato    || '',
       pagante:          crmContactData.is_pagante      || '',
       mestiere_settore: crmContactData.mestiere_settore || '',
@@ -4799,10 +4800,12 @@ async function enrichContactData(contactData) {
     // Pagante: ha pagamenti Pandora CNA
     var pandoraRows = pandoraRes.ok ? await pandoraRes.json() : [];
     var isPagante = pandoraRows.length > 0 ? 'Pagante' : 'Non pagante';
+    var nomeCompleto = ((a.nometitolare||'')+' '+(a.cognometitolare||'')).trim();
     return Object.assign({}, contactData, {
-      contact_name:     contactData.contact_name || ((a.nometitolare||'')+' '+(a.cognometitolare||'')).trim(),
+      contact_name:     contactData.contact_name || nomeCompleto,
       contact_phone:    contactData.contact_phone || a.cellulare || a.telefono || '',
       contact_email:    contactData.contact_email || a.email || '',
+      titolare:         nomeCompleto,
       mestiere_settore: mestSett,
       is_associato:     isAssociato,
       is_pagante:       isPagante,
@@ -4861,7 +4864,7 @@ async function sendAssignmentEmail(contactData, assignedToId, assignedByName, ha
       operatore_email:  toEmail,
       creato_da:        creatoDa,
       note:             noteText,
-      titolare:         contactData.contact_name    || '',
+      titolare:         contactData.titolare        || contactData.contact_name || '',
       associato:        contactData.is_associato    || '',
       pagante:          contactData.is_pagante      || '',
       mestiere_settore: contactData.mestiere_settore || '',
