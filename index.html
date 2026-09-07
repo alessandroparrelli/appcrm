@@ -4573,15 +4573,18 @@ function solAddBlocco(tipo) {
 }
 
 // ── Modale invio sollecito dalla scheda ──────────
+// Variabile globale che conserva i blocchi del template al momento dell'apertura del modale
+var _solModalTpl = null;
+
 async function openModalSollecito() {
   if (!crmContactId || !crmContactData) { toast('Nessun contatto aperto','error'); return; }
 
-  // Carica template (usa default se non configurato)
-  var tpl = {};
-  try { var r=localStorage.getItem(SOL_TPL_KEY); if(r) tpl=JSON.parse(r); } catch(e){}
-  if (!tpl.blocchi || !tpl.blocchi.length) { toast('Template sollecito non configurato. Vai in Comunicazione → Template sollecito e salva.', 'error'); return; }
-  // Sincronizza solBlocchi dalla localStorage così solRefreshPreview funziona
-  solBlocchi = tpl.blocchi;
+  // Carica template dal localStorage
+  _solModalTpl = null;
+  try { var r=localStorage.getItem(SOL_TPL_KEY); if(r) _solModalTpl=JSON.parse(r); } catch(e){}
+  if (!_solModalTpl || !_solModalTpl.blocchi || !_solModalTpl.blocchi.length) {
+    toast('Template sollecito non configurato. Vai in Comunicazione → Template sollecito e salva.', 'error'); return;
+  }
 
   // Carica dati operatore assegnato
   var assignedId = crmContactData.assigned_id || crmContactData.creator_id;
@@ -4633,13 +4636,13 @@ async function openModalSollecito() {
 
   // Oggetto
   var vars = solGetVars(operatore, creatoreNome, noteText);
-  var oggetto = tpl.oggetto || 'Sollecito — {{nome_azienda}}';
+  var oggetto = _solModalTpl.oggetto || 'Sollecito — {{nome_azienda}}';
   oggetto = solReplaceVars(oggetto, vars);
   var ogg = G('sol-oggetto'); if(ogg) ogg.value = oggetto;
 
   // Anteprima corpo — usa i dati del template SOL e il colore header del template COM
-  var bodyHtml = edBlocchiToHtml(tpl.blocchi, vars);
-  var logoUrl  = tpl.logo_url || _emailLogoUrl || '';
+  var bodyHtml = edBlocchiToHtml(_solModalTpl.blocchi, vars);
+  var logoUrl  = _solModalTpl.logo_url || _emailLogoUrl || '';
   // Leggi header_color dal template COM (salvato nel localStorage)
   var comTplRaw = localStorage.getItem('crm_com_template');
   var comTpl = comTplRaw ? JSON.parse(comTplRaw) : {};
@@ -4678,10 +4681,11 @@ async function inviaSollecito() {
   var oggetto = (G('sol-oggetto')||{}).value||'';
   if (!oggetto.trim()) { toast('Oggetto mancante','error'); return; }
 
-  // Leggi template direttamente dal localStorage (senza flush che svuoterebbe solBlocchi)
-  var tpl = {};
-  try { var _tr=localStorage.getItem(SOL_TPL_KEY); if(_tr) tpl=JSON.parse(_tr); } catch(e){}
-  if (!tpl.blocchi||!tpl.blocchi.length) { toast('Template sollecito non configurato. Vai in Comunicazione → Template sollecito e salva.', 'error'); return; }
+  // Usa il template caricato all'apertura del modale (evita problemi di flush)
+  if (!_solModalTpl || !_solModalTpl.blocchi || !_solModalTpl.blocchi.length) {
+    toast('Template sollecito non configurato. Vai in Comunicazione → Template sollecito e salva.', 'error'); return;
+  }
+  var tpl = _solModalTpl;
 
   var assignedId = crmContactData.assigned_id || crmContactData.creator_id;
   var operatore = { nome:'', cognome:'', email:'' };
