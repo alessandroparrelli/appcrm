@@ -4678,8 +4678,7 @@ async function inviaSollecito() {
   var oggetto = (G('sol-oggetto')||{}).value||'';
   if (!oggetto.trim()) { toast('Oggetto mancante','error'); return; }
 
-  // Flush immediato: sincronizza DOM → solBlocchi → localStorage prima di leggere
-  flushSolTemplate();
+  // Leggi template direttamente dal localStorage (senza flush che svuoterebbe solBlocchi)
   var tpl = {};
   try { var _tr=localStorage.getItem(SOL_TPL_KEY); if(_tr) tpl=JSON.parse(_tr); } catch(e){}
   if (!tpl.blocchi||!tpl.blocchi.length) { toast('Template sollecito non configurato. Vai in Comunicazione → Template sollecito e salva.', 'error'); return; }
