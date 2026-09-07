@@ -4763,20 +4763,31 @@ async function inviaSollecito() {
 
 /* ── Arricchisci contactData con dati anagrafica se contact_name è null ── */
 async function enrichContactData(contactData) {
-  if (contactData.contact_name || contactData.company_source !== 'anagrafiche' || !contactData.company_ref) {
+  if (contactData.company_source !== 'anagrafiche' || !contactData.company_ref) {
     return contactData;
   }
   try {
     var ar = await fetch(SB+'/rest/v1/anagrafiche?codiceanagrafica=eq.'+encodeURIComponent(contactData.company_ref)
-      +'&select=nometitolare,cognometitolare,telefono,cellulare,email&limit=1', {headers:H()});
+      +'&select=nometitolare,cognometitolare,telefono,cellulare,email,mestiere,settore&limit=1', {headers:H()});
     if (ar.ok) {
       var aa = await ar.json();
       if (aa[0]) {
         var a = aa[0];
+        var mestParts = [a.mestiere, a.settore].filter(Boolean);
+        var mestSett = mestParts.join(' / ');
+        var isAssociato = 'Associato';
+        var isPagante = '';
+        try {
+          var pr = await fetch(SB+'/rest/v1/incassipandora?codice_cliente=eq.'+encodeURIComponent(contactData.company_ref)+'&codice_azienda=eq.G1000001&limit=1',{headers:H()});
+          if (pr.ok) { var pd = await pr.json(); isPagante = pd.length ? 'Pagante' : 'Non pagante'; }
+        } catch(e2) {}
         return Object.assign({}, contactData, {
-          contact_name:  ((a.nometitolare||'')+' '+(a.cognometitolare||'')).trim() || contactData.contact_name,
-          contact_phone: a.cellulare || a.telefono || contactData.contact_phone || '',
-          contact_email: a.email || contactData.contact_email || '',
+          contact_name:     contactData.contact_name || ((a.nometitolare||'')+' '+(a.cognometitolare||'')).trim(),
+          contact_phone:    contactData.contact_phone || a.cellulare || a.telefono || '',
+          contact_email:    contactData.contact_email || a.email || '',
+          mestiere_settore: mestSett,
+          is_associato:     isAssociato,
+          is_pagante:       isPagante,
         });
       }
     }
@@ -4822,18 +4833,22 @@ async function sendAssignmentEmail(contactData, assignedToId, assignedByName, ha
 
     // 6. dest — costruito dai dati passati, come fa inviaSollecito con crmContactData
     var dest = [{
-      contact_id:      String(contactData.id || ''),
-      company_name:    contactData.company_name    || '',
-      contact_name:    contactData.contact_name    || '',
-      contact_phone:   contactData.contact_phone   || '',
-      contact_email:   contactData.contact_email   || '',
-      status:          contactData.status          || '',
-      source:          contactData.company_source  || '',
-      created_at:      contactData.created_at      || new Date().toISOString(),
-      operatore_nome:  toNome,
-      operatore_email: toEmail,
-      creato_da:       creatoDa,
-      note:            noteText,
+      contact_id:       String(contactData.id || ''),
+      company_name:     contactData.company_name    || '',
+      contact_name:     contactData.contact_name    || '',
+      contact_phone:    contactData.contact_phone   || '',
+      contact_email:    contactData.contact_email   || '',
+      status:           contactData.status          || '',
+      source:           contactData.company_source  || '',
+      created_at:       contactData.created_at      || new Date().toISOString(),
+      operatore_nome:   toNome,
+      operatore_email:  toEmail,
+      creato_da:        creatoDa,
+      note:             noteText,
+      titolare:         contactData.contact_name    || '',
+      associato:        contactData.is_associato    || '',
+      pagante:          contactData.is_pagante      || '',
+      mestiere_settore: contactData.mestiere_settore || '',
     }];
 
     console.log('sendAssignmentEmail ->', toEmail, contactData.company_name);
@@ -5162,7 +5177,7 @@ var BLOCCO_DEFAULTS = {
   separatore: { tipo:'separatore', color:'#E5E7EB', spessore:1 },
   citazione:  { tipo:'citazione', html:'Scrivi qui la citazione...' },
   tabella_contatto: { tipo:'tabella_contatto',
-    righe: ['azienda','referente','telefono','email_contatto','fonte','stato'],
+    righe: ['azienda','titolare','telefono','email_contatto','associato','pagante','mestiere_settore','stato'],
     titolo: 'DETTAGLI CONTATTO' },
   alert: { tipo:'alert', testo:'Testo del messaggio in evidenza.', titolo:'NOTA IMPORTANTE',
     color:'#F59E0B', bg:'#FFF7ED', textColor:'#92400E' },
@@ -5727,8 +5742,8 @@ function edBlocchiToHtml(arr, vars) {
         +'</div>';
     }
     if(b.tipo==='tabella_contatto') {
-      var righe = b.righe||['nome_azienda','referente','telefono','email_contatto','fonte','stato'];
-      var labels = {nome_azienda:'Azienda',azienda:'Azienda',referente:'Referente',telefono:'Telefono',email_contatto:'Email',fonte:'Fonte',stato:'Stato',assegnato_a:'Assegnato a',data_creazione:'Data',creato_da:'Creato da',note:'Note'};
+      var righe = b.righe||['azienda','titolare','telefono','email_contatto','associato','pagante','mestiere_settore','stato'];
+      var labels = {nome_azienda:'Azienda',azienda:'Azienda',titolare:'Titolare',referente:'Referente',telefono:'Telefono',email_contatto:'Email',fonte:'Fonte',stato:'Stato',assegnato_a:'Assegnato a',data_creazione:'Data',creato_da:'Creato da',note:'Note',associato:'Associato',pagante:'Pagante',mestiere_settore:'Mestiere / Settore'};
       var rows = righe.map(function(k){
         var lbl = labels[k]||k;
         var rawVal = vars&&(vars[k]!==undefined&&vars[k]!==null) ? vars[k] : '{{'+k+'}}';
@@ -5779,8 +5794,8 @@ function comBuildFullHtml(bodyHtml,logoUrl){
     +'CRM CNA Roma &mdash; Confederazione Nazionale dell&rsquo;Artigianato &middot; <a href="mailto:marketing@cnaroma.it" style="color:#5B5FEF">marketing@cnaroma.it</a></p></div>';
   return '<!DOCTYPE html><html lang="it"><head><meta charset="UTF-8">'
     +'<meta name="viewport" content="width=device-width,initial-scale=1.0">'+css+'</head>'
-    +'<body style="margin:0;padding:0;background:#F0F2F5;">'
-    +'<table class="ew" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#F0F2F5;"><tr>'
+    +'<body style="margin:0;padding:0;background:#ffffff;">'
+    +'<table class="ew" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#ffffff;"><tr>'
     +'<td align="center" style="padding:24px 16px;">'
     +'<table cellpadding="0" cellspacing="0" border="0" style="width:100%;max-width:600px;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 2px 20px rgba(0,0,0,.1);">'
     +'<tr><td>'+hdr+'</td></tr>'
@@ -5796,6 +5811,8 @@ var COM_PREV_VARS = {
   data_creazione:new Date().toLocaleDateString('it-IT'), fonte:'Anagrafiche',
   creato_da:'Alessandro Parrelli',
   note:'01/01/2025: Prima nota di esempio.\n02/01/2025: Seconda nota.',
+,
+  titolare:'Mario Rossi', associato:'Associato', pagante:'Pagante', mestiere_settore:'Commercio / Dettaglio',
 };
 
 function comRefreshPreview(){
@@ -5824,8 +5841,8 @@ function solBuildFullHtml(bodyHtml, logoUrl, headerColor, logoH) {
     +'CRM CNA Roma &mdash; Confederazione Nazionale dell&rsquo;Artigianato &middot; <a href="mailto:marketing@cnaroma.it" style="color:#5B5FEF">marketing@cnaroma.it</a></p></div>';
   return '<!DOCTYPE html><html lang="it"><head><meta charset="UTF-8">'
     +'<meta name="viewport" content="width=device-width,initial-scale=1.0">'+css+'</head>'
-    +'<body style="margin:0;padding:0;background:#F0F2F5;">'
-    +'<table class="ew" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#F0F2F5;"><tr>'
+    +'<body style="margin:0;padding:0;background:#ffffff;">'
+    +'<table class="ew" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#ffffff;"><tr>'
     +'<td align="center" style="padding:24px 16px;">'
     +'<table cellpadding="0" cellspacing="0" border="0" style="width:100%;max-width:600px;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 2px 20px rgba(0,0,0,.1);">'
     +'<tr><td>'+hdr+'</td></tr>'
