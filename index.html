@@ -4718,18 +4718,22 @@ async function inviaSollecito() {
     try { crmContactData = await enrichContactData(crmContactData); } catch(e){}
     var vars = solGetVars(operatore, creatoreNomeI, noteTextI);
     var dest = [{
-      contact_id: String(crmContactId||''),
-      company_name:    crmContactData.company_name||'',
-      contact_name:    crmContactData.contact_name||'',
-      contact_phone:   crmContactData.contact_phone||'',
-      contact_email:   crmContactData.contact_email||'',
-      status:          crmContactData.status||'',
-      source:          crmContactData.company_source||'',
-      created_at:      crmContactData.created_at||'',
-      operatore_nome:  (operatore.nome+' '+operatore.cognome).trim(),
-      operatore_email: operatore.email,
-      creato_da:       creatoreNomeI,
-      note:            noteTextI,
+      contact_id:       String(crmContactId||''),
+      company_name:     crmContactData.company_name    || '',
+      contact_name:     crmContactData.contact_name    || '',
+      contact_phone:    crmContactData.contact_phone   || '',
+      contact_email:    crmContactData.contact_email   || '',
+      status:           crmContactData.status          || '',
+      source:           crmContactData.company_source  || '',
+      created_at:       crmContactData.created_at      || '',
+      operatore_nome:   (operatore.nome+' '+operatore.cognome).trim(),
+      operatore_email:  operatore.email,
+      creato_da:        creatoreNomeI,
+      note:             noteTextI,
+      titolare:         crmContactData.contact_name    || '',
+      associato:        crmContactData.is_associato    || '',
+      pagante:          crmContactData.is_pagante      || '',
+      mestiere_settore: crmContactData.mestiere_settore || '',
     }];
     var _solComTpl = {}; try { _solComTpl = JSON.parse(localStorage.getItem('crm_com_template')||'{}'); } catch(e){}
     var payload = {
