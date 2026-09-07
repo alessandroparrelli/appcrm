@@ -4767,30 +4767,35 @@ async function enrichContactData(contactData) {
     return contactData;
   }
   try {
-    var ar = await fetch(SB+'/rest/v1/anagrafiche?codiceanagrafica=eq.'+encodeURIComponent(contactData.company_ref)
-      +'&select=nometitolare,cognometitolare,telefono,cellulare,email,mestiere,settore&limit=1', {headers:H()});
-    if (ar.ok) {
-      var aa = await ar.json();
-      if (aa[0]) {
-        var a = aa[0];
-        var mestParts = [a.mestiere, a.settore].filter(Boolean);
-        var mestSett = mestParts.join(' / ');
-        var isAssociato = 'Associato';
-        var isPagante = '';
-        try {
-          var pr = await fetch(SB+'/rest/v1/incassipandora?codice_cliente=eq.'+encodeURIComponent(contactData.company_ref)+'&codice_azienda=eq.G1000001&limit=1',{headers:H()});
-          if (pr.ok) { var pd = await pr.json(); isPagante = pd.length ? 'Pagante' : 'Non pagante'; }
-        } catch(e2) {}
-        return Object.assign({}, contactData, {
-          contact_name:     contactData.contact_name || ((a.nometitolare||'')+' '+(a.cognometitolare||'')).trim(),
-          contact_phone:    contactData.contact_phone || a.cellulare || a.telefono || '',
-          contact_email:    contactData.contact_email || a.email || '',
-          mestiere_settore: mestSett,
-          is_associato:     isAssociato,
-          is_pagante:       isPagante,
-        });
-      }
-    }
+    var codice = contactData.company_ref;
+    // Carica anagrafiche + diretti + pandora in parallelo
+    var [anaRes, direttiRes, pandoraRes] = await Promise.all([
+      fetch(SB+'/rest/v1/anagrafiche?codiceanagrafica=eq.'+encodeURIComponent(codice)
+        +'&select=nometitolare,cognometitolare,telefono,cellulare,email,mestiere,settore&limit=1', {headers:H()}),
+      fetch(SB+'/rest/v1/diretti?codiceanagrafica=eq.'+encodeURIComponent(codice)+'&select=servizio', {headers:H()}),
+      fetch(SB+'/rest/v1/incassipandora?codice_cliente=eq.'+encodeURIComponent(codice)+'&codice_azienda=eq.G1000001&limit=1', {headers:H()}),
+    ]);
+    var aa = anaRes.ok ? await anaRes.json() : [];
+    var a = aa[0] || {};
+    // Mestiere / Settore
+    var mestParts = [a.mestiere, a.settore].filter(Boolean);
+    var mestSett = mestParts.join(' / ');
+    // Associato: ha contratti in diretti con servizio valido (stessa logica scheda anagrafica)
+    var direttiRows = direttiRes.ok ? await direttiRes.json() : [];
+    var serviziSet = [];
+    direttiRows.forEach(function(d){ var s=(d.servizio||'').trim(); if(s&&s!=='NON ASSOCIABILE'&&s!=="CONTABILITA'"&&serviziSet.indexOf(s)===-1) serviziSet.push(s); });
+    var isAssociato = serviziSet.length > 0 ? 'Associato' : 'Non associato';
+    // Pagante: ha pagamenti Pandora CNA
+    var pandoraRows = pandoraRes.ok ? await pandoraRes.json() : [];
+    var isPagante = pandoraRows.length > 0 ? 'Pagante' : 'Non pagante';
+    return Object.assign({}, contactData, {
+      contact_name:     contactData.contact_name || ((a.nometitolare||'')+' '+(a.cognometitolare||'')).trim(),
+      contact_phone:    contactData.contact_phone || a.cellulare || a.telefono || '',
+      contact_email:    contactData.contact_email || a.email || '',
+      mestiere_settore: mestSett,
+      is_associato:     isAssociato,
+      is_pagante:       isPagante,
+    });
   } catch(e) {}
   return contactData;
 }
