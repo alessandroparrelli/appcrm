@@ -2173,6 +2173,8 @@ function startApp(){
     if (_startTpl.logo_url)     _comLogoUrl     = _startTpl.logo_url;
     if (_startTpl.logo_height)  _comLogoHeight  = String(_startTpl.logo_height);
   } catch(_e) {}
+  // Carica logo email salvato
+  _emailLogoUrl = localStorage.getItem('crm_email_logo_url') || '';
   // Carica template SOL in memoria all'avvio
   try {
     var _startSolRaw = localStorage.getItem('crm_sol_template');
@@ -4973,6 +4975,7 @@ async function adminTestEmail() {
    COMUNICAZIONE — editor blocchi + invio massivo
 ══════════════════════════════════════════════════ */
 var comBlocchi = [];
+var _emailLogoUrl = '';
 var _comHeaderColor = '#5B5FEF';
 var _comLogoUrl = '';
 var _comLogoHeight = '44';
