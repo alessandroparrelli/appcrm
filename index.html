@@ -4580,6 +4580,8 @@ async function openModalSollecito() {
   var tpl = {};
   try { var r=localStorage.getItem(SOL_TPL_KEY); if(r) tpl=JSON.parse(r); } catch(e){}
   if (!tpl.blocchi || !tpl.blocchi.length) { toast('Template sollecito non configurato. Vai in Comunicazione → Template sollecito e salva.', 'error'); return; }
+  // Sincronizza solBlocchi dalla localStorage così solRefreshPreview funziona
+  solBlocchi = tpl.blocchi;
 
   // Carica dati operatore assegnato
   var assignedId = crmContactData.assigned_id || crmContactData.creator_id;
