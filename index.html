@@ -2167,7 +2167,18 @@ function startApp(){
     var _startRaw = localStorage.getItem('crm_com_template');
     if (_startRaw) _startTpl = JSON.parse(_startRaw);
     if (_startTpl.blocchi && _startTpl.blocchi.length) {
+      // Migrazione automatica: aggiorna le righe del blocco tabella_contatto alle nuove
+      var _newRigheC = ['azienda','titolare','telefono','email_contatto','associato','pagante','mestiere_settore','stato'];
+      var _oldRigheStrC = JSON.stringify(['azienda','referente','telefono','email_contatto','fonte','stato']);
+      _startTpl.blocchi = _startTpl.blocchi.map(function(b) {
+        if (b.tipo === 'tabella_contatto' && JSON.stringify(b.righe) === _oldRigheStrC) {
+          return Object.assign({}, b, { righe: _newRigheC });
+        }
+        return b;
+      });
       comBlocchi = _startTpl.blocchi;
+      // Salva migrazione in localStorage
+      localStorage.setItem('crm_com_template', JSON.stringify(Object.assign({}, _startTpl, { blocchi: comBlocchi })));
     }
     if (_startTpl.header_color) _comHeaderColor = _startTpl.header_color; // mantiene il colore salvato
     if (_startTpl.logo_url)     _comLogoUrl     = _startTpl.logo_url;
@@ -2178,7 +2189,20 @@ function startApp(){
     var _startSolRaw = localStorage.getItem('crm_sol_template');
     if (_startSolRaw) {
       var _startSol = JSON.parse(_startSolRaw);
-      if (Array.isArray(_startSol.blocchi) && _startSol.blocchi.length) solBlocchi = _startSol.blocchi;
+      if (Array.isArray(_startSol.blocchi) && _startSol.blocchi.length) {
+        // Migrazione automatica: aggiorna le righe del blocco tabella_contatto alle nuove
+        var _newRighe = ['azienda','titolare','telefono','email_contatto','associato','pagante','mestiere_settore','stato'];
+        var _oldRigheStr = JSON.stringify(['azienda','referente','telefono','email_contatto','fonte','stato']);
+        _startSol.blocchi = _startSol.blocchi.map(function(b) {
+          if (b.tipo === 'tabella_contatto' && JSON.stringify(b.righe) === _oldRigheStr) {
+            return Object.assign({}, b, { righe: _newRighe });
+          }
+          return b;
+        });
+        solBlocchi = _startSol.blocchi;
+        // Salva migrazione in localStorage
+        localStorage.setItem('crm_sol_template', JSON.stringify(Object.assign({}, _startSol, { blocchi: solBlocchi })));
+      }
     }
   } catch(_e2) {}
   // inizializza sistema notifiche (polling + Notification API)
