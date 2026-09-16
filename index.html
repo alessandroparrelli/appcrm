@@ -170,19 +170,19 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
    occupa tutto lo schermo sotto l'header
 ══════════════════════════════════════════════════ */
 #view-scheda{overflow-y:auto;background:var(--bg);}
-.scheda-wrap{padding:16px;max-width:860px;width:100%;margin:0 auto;padding-bottom:80px;}
+.scheda-wrap{padding:0 0 80px 0;width:100%;margin:0;max-width:none;}
 
 /* Card titolo impresa */
-.scheda-hero{background:#fff;border:1.5px solid var(--border);border-radius:var(--radius-lg);padding:18px 20px;margin-bottom:14px;display:flex;align-items:flex-start;justify-content:space-between;gap:12px;box-shadow:0 1px 4px rgba(0,0,0,.06);}
-.scheda-hero-left{flex:1;min-width:0;}
-.scheda-hero-logo{height:44px;width:auto;margin-bottom:10px;display:block;}
-.scheda-hero-name{font-size:18px;font-weight:900;color:#005ca9;line-height:1.2;margin-bottom:6px;letter-spacing:-.02em;font-family:'Inter',var(--font);}
-.scheda-hero-sub{font-size:12px;color:#6B7280;font-weight:500;}
-.scheda-badges{display:flex;gap:0;flex-shrink:0;align-self:flex-start;margin-top:4px;}
-.sbadge{padding:6px 11px;text-align:center;}
-.sbadge:first-child{border-radius:6px 0 0 6px;}
-.sbadge:last-child{border-radius:0 6px 6px 0;}
-.sbadge:only-child{border-radius:6px;}
+.scheda-hero{background:linear-gradient(160deg,#005ca9 0%,#0176d4 70%,#1789e6 100%);border:none;border-radius:0;box-shadow:none;padding:24px 20px 32px;margin:0;width:100%;position:relative;overflow:hidden;display:block;}
+.scheda-hero-left{display:contents;}
+.scheda-hero-logo{height:36px;width:auto;margin-bottom:14px;display:block;}
+.scheda-hero-name{font-size:22px;font-weight:900;color:#fff;line-height:1.15;margin-bottom:6px;letter-spacing:-.03em;font-family:'Inter',var(--font);}
+.scheda-hero-sub{font-size:13px;color:rgba(255,255,255,.88);font-weight:500;}
+.scheda-badges{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px;}
+.sbadge{padding:5px 12px;text-align:center;border-radius:20px!important;display:inline-block;}
+
+
+
 .sbadge .slbl{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.3px;opacity:.85;margin-bottom:2px;}
 .sbadge .sval{font-size:11px;font-weight:800;}
 
@@ -297,8 +297,8 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
   .user-name{display:none;}
 
   /* ── SCHEDA HERO: layout verticale su mobile ── */
-  .scheda-hero{flex-direction:column;gap:10px;padding:16px;}
-  .scheda-hero-name{font-size:18px;font-weight:900;color:#005ca9;}
+  .scheda-hero{padding:18px 16px 28px;}
+  .scheda-hero-name{font-size:20px;font-weight:900;color:#fff;}
   .scheda-hero-logo{height:36px;margin-bottom:6px;}
   .scheda-badges{align-self:stretch;margin-top:2px;}
   .scheda-badges{display:flex;flex-direction:row;flex-wrap:wrap;gap:6px;}
@@ -815,205 +815,56 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
   .com-layout{grid-template-columns:1fr;}
 }
 
-/* ── RESKIN CNA 2025 — Header overrides ── */
-.app-header {
-  background: var(--primary);
-  box-shadow: 0 4px 16px rgba(0,92,169,.3);
-  border-bottom: 3px solid #00437a;
-}
-.header-title { color: #fff; }
-.user-chip {
-  background: rgba(255,255,255,.18);
-  border: 1px solid rgba(255,255,255,.3);
-}
-.user-chip:hover { background: rgba(255,255,255,.28); }
-.user-avatar {
-  background: rgba(255,255,255,.25);
-  color: #fff;
-  border: 2px solid rgba(255,255,255,.4);
-}
-.user-name { color: rgba(255,255,255,.95); }
-.btn-logout {
-  background: rgba(255,255,255,.18);
-  border: 1px solid rgba(255,255,255,.3);
-  color: rgba(255,255,255,.9);
-}
-.btn-logout:hover { background: rgba(255,255,255,.28); color: #fff; }
-.btn-back {
-  background: rgba(255,255,255,.18);
-  border: 1px solid rgba(255,255,255,.3);
-  color: #fff;
-}
-.btn-back:hover { background: rgba(255,255,255,.28); }
-#tab-title-bar {
-  background: var(--primary) !important;
-  border-bottom: 1px solid rgba(255,255,255,.15) !important;
-}
-#tab-title-text { color: #fff !important; }
-#btn-notif-bell {
-  background: rgba(255,255,255,.18);
-  border: 1px solid rgba(255,255,255,.3);
-  border-radius: 8px;
-}
-
-/* ── RESKIN CNA 2025 — Scheda hero overrides ── */
-.scheda-hero {
-  background: linear-gradient(160deg, #005ca9 0%, #0176d4 70%, #1789e6 100%) !important;
-  border: none !important;
-  border-radius: 0 !important;
-  padding: 20px 20px 26px !important;
-  margin-bottom: 0 !important;
-  position: relative;
-  overflow: hidden;
-}
-.scheda-hero::before {
-  content: '';
-  position: absolute;
-  right: -40px; top: -40px;
-  width: 200px; height: 200px;
-  border-radius: 50%;
-  background: rgba(255,255,255,.07);
-  pointer-events: none;
-}
-.scheda-hero::after {
-  content: '';
-  position: absolute;
-  right: -20px; top: 60px;
-  width: 120px; height: 120px;
-  border-radius: 50%;
-  background: rgba(231,71,56,.22);
-  pointer-events: none;
-}
-.scheda-hero-logo { height: 30px; width: auto; margin-bottom: 14px; display: block; }
-.scheda-hero-name { font-size: 22px; font-weight: 900; color: #fff; line-height: 1.15; letter-spacing: -.03em; }
-.scheda-hero-sub  { font-size: 12px; color: rgba(255,255,255,.88); font-weight: 500; }
-.scheda-badges { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 14px; }
-.sbadge { padding: 5px 12px; border-radius: 20px; font-size: 11px; }
-
-/* ── RESKIN CNA 2025 — CRM KPI row ── */
-.crm-kpi-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
-  gap: 8px;
-  padding: 0 12px;
-  margin-top: -14px;
-  position: relative;
-  z-index: 2;
-  margin-bottom: 12px;
-}
-.crm-kpi-card {
-  background: #fff;
-  border: 1px solid #e6ebf2;
-  border-radius: 12px;
-  padding: 10px 8px;
-  text-align: center;
-  box-shadow: 0 4px 14px -6px rgba(15,23,42,.15);
-}
-.crm-kpi-label {
-  font-size: 9px;
-  font-weight: 600;
-  color: #64748b;
-  text-transform: uppercase;
-  letter-spacing: .08em;
-}
-.crm-kpi-value {
-  font-size: 20px;
-  font-weight: 800;
-  letter-spacing: -.02em;
-  margin-top: 4px;
-}
-.crm-kpi-card.danger  .crm-kpi-value { color: #e74738; }
-.crm-kpi-card.primary .crm-kpi-value { color: #005ca9; }
-.crm-kpi-card.success .crm-kpi-value { color: #16a34a; }
-
-/* ── RESKIN CNA 2025 — Contact card ── */
-.crm-contact-card {
-  background: #fff;
-  border-radius: 14px;
-  border: 1px solid #e6ebf2;
-  padding: 0;
-  margin-bottom: 8px;
-  cursor: pointer;
-  transition: all .18s;
-  box-shadow: 0 2px 6px rgba(15,23,42,.04);
-  display: flex;
-  align-items: stretch;
-  overflow: hidden;
-}
-.crm-contact-card:hover {
-  border-color: #005ca9;
-  box-shadow: 0 4px 14px rgba(0,92,169,.12);
-}
-.crm-contact-card::before {
-  content: '';
-  width: 4px;
-  flex-shrink: 0;
-  align-self: stretch;
-}
-.crm-contact-card[data-macro="lavorazione"]::before { background: #f59e0b; }
-.crm-contact-card[data-macro="positivo"]::before    { background: #16a34a; }
-.crm-contact-card[data-macro="negativo"]::before    { background: #e74738; }
-.crm-cc-inner { flex: 1; padding: 12px 14px; min-width: 0; }
-.crm-cc-top {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 8px;
-  margin-bottom: 4px;
-}
-.crm-cc-name {
-  font-size: 14px;
-  font-weight: 700;
-  color: #0f172a;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.crm-cc-details {
-  display: flex;
-  gap: 12px;
-  font-size: 11px;
-  color: #94a3b8;
-  margin-top: 6px;
-}
-
-/* ── RESKIN CNA 2025 — Bottom nav ── */
-.crm-tab svg { stroke: #005ca9; }
-.crm-tab:hover { color: #005ca9; }
-.crm-tab:hover svg { stroke: #005ca9; }
-
-/* ── RESKIN CNA 2025 — Login page ── */
-#login-page {
-  background: #e8f1f8;
-  background-image:
-    radial-gradient(ellipse at 15% 60%, rgba(0,92,169,.12) 0%, transparent 55%),
-    radial-gradient(ellipse at 85% 15%, rgba(0,92,169,.08) 0%, transparent 55%);
-}
-
-/* ── Scheda tabs ── */
-.scheda-tabs {
-  display: flex;
-  gap: 0;
-  background: #fff;
-  border-bottom: 1px solid #e6ebf2;
-  padding: 0 16px;
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-}
-.scheda-tab {
-  padding: 12px 16px;
-  font-size: 12px;
-  font-weight: 700;
-  color: #94a3b8;
-  background: none;
-  border: none;
-  border-bottom: 2px solid transparent;
-  cursor: pointer;
-  white-space: nowrap;
-}
-.scheda-tab.active {
-  color: #005ca9;
-  border-bottom-color: #005ca9;
+/* ── RESKIN CNA 2025 v2 ── */
+.scheda-hero::before{content:'';position:absolute;right:-40px;top:-40px;width:220px;height:220px;border-radius:50%;background:rgba(255,255,255,.07);pointer-events:none;}
+.scheda-hero::after{content:'';position:absolute;right:-10px;top:50px;width:130px;height:130px;border-radius:50%;background:rgba(231,71,56,.2);pointer-events:none;}
+.scheda-kpi-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;padding:0 16px;margin-top:-18px;position:relative;z-index:10;margin-bottom:16px;}
+.scheda-kpi-card{background:#fff;border:1px solid #e6ebf2;border-radius:12px;padding:12px 8px;text-align:center;box-shadow:0 6px 20px -8px rgba(15,23,42,.2);}
+.scheda-kpi-lbl{font-size:9px;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:.1em;}
+.scheda-kpi-val{font-size:22px;font-weight:800;letter-spacing:-.03em;margin-top:4px;color:#005ca9;}
+.scheda-tab-bar{display:flex;background:#fff;border-bottom:1px solid #e6ebf2;overflow-x:auto;-webkit-overflow-scrolling:touch;padding:0 12px;flex-shrink:0;scrollbar-width:none;}
+.scheda-tab-bar::-webkit-scrollbar{display:none;}
+.scheda-tab-btn{padding:12px 14px;font:700 12px/1 'Inter',sans-serif;color:#94a3b8;background:none;border:none;border-bottom:2px solid transparent;cursor:pointer;white-space:nowrap;transition:color .15s;margin-bottom:-1px;}
+.scheda-tab-btn.active{color:#005ca9;border-bottom-color:#005ca9;}
+.scheda-tab-btn:hover{color:#005ca9;}
+.scheda-wrap .s-card{margin:0 16px 10px;border-radius:14px;}
+.crm-contact-card{display:flex;align-items:stretch;padding:0;overflow:hidden;border-radius:14px;}
+.crm-contact-card-inner{flex:1;padding:12px 14px;min-width:0;}
+.crm-contact-card-stripe{width:4px;flex-shrink:0;align-self:stretch;}
+.crm-contact-card[data-macro="lavorazione"] .crm-contact-card-stripe{background:#f59e0b;}
+.crm-contact-card[data-macro="positivo"]    .crm-contact-card-stripe{background:#16a34a;}
+.crm-contact-card[data-macro="negativo"]    .crm-contact-card-stripe{background:#e74738;}
+.app-header{background:var(--primary);box-shadow:0 4px 16px rgba(0,92,169,.3);border-bottom:3px solid #00437a;}
+.header-title{color:#fff;}
+.user-chip{background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.3);}
+.user-chip:hover{background:rgba(255,255,255,.28);}
+.user-avatar{background:rgba(255,255,255,.25);color:#fff;border:2px solid rgba(255,255,255,.4);}
+.user-name{color:rgba(255,255,255,.95);}
+.btn-logout{background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.9);}
+.btn-logout:hover{background:rgba(255,255,255,.28);color:#fff;}
+.btn-back{background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.3);color:#fff;}
+.btn-back:hover{background:rgba(255,255,255,.28);}
+#tab-title-bar{background:var(--primary)!important;border-bottom:1px solid rgba(255,255,255,.15)!important;}
+#tab-title-text{color:#fff!important;}
+#btn-notif-bell{background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.3);border-radius:8px;}
+.crm-kpi-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;padding:0 12px;margin-top:-14px;position:relative;z-index:2;margin-bottom:12px;}
+.crm-kpi-card{background:#fff;border:1px solid #e6ebf2;border-radius:12px;padding:10px 8px;text-align:center;box-shadow:0 4px 14px -6px rgba(15,23,42,.15);}
+.crm-kpi-label{font-size:9px;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:.08em;}
+.crm-kpi-value{font-size:20px;font-weight:800;letter-spacing:-.02em;margin-top:4px;}
+.crm-kpi-card.danger  .crm-kpi-value{color:#e74738;}
+.crm-kpi-card.primary .crm-kpi-value{color:#005ca9;}
+.crm-kpi-card.success .crm-kpi-value{color:#16a34a;}
+.crm-tab svg{stroke:#005ca9;}
+.crm-tab:hover{color:#005ca9;}
+.crm-tab:hover svg{stroke:#005ca9;}
+#login-page{background:#e8f1f8;background-image:radial-gradient(ellipse at 15% 60%,rgba(0,92,169,.12) 0%,transparent 55%),radial-gradient(ellipse at 85% 15%,rgba(0,92,169,.08) 0%,transparent 55%);}
+.scheda-tabs{display:flex;background:#fff;border-bottom:1px solid #e6ebf2;padding:0 16px;overflow-x:auto;-webkit-overflow-scrolling:touch;}
+.scheda-tab{padding:12px 16px;font-size:12px;font-weight:700;color:#94a3b8;background:none;border:none;border-bottom:2px solid transparent;cursor:pointer;white-space:nowrap;}
+.scheda-tab.active{color:#005ca9;border-bottom-color:#005ca9;}
+@media(max-width:640px){
+  .scheda-hero{padding:18px 16px 28px;}
+  .scheda-kpi-row{margin-top:-14px;}
+  .scheda-wrap .s-card{margin:0 12px 10px;}
 }
 </style>
   <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
@@ -2604,16 +2455,16 @@ async function openScheda(idx){
       return _ay>=_annoNow-2&&_ay<=_annoNow;
     });
 
-    /* ── HERO ── */
+    /* ── HERO v2 full-bleed ── */
     html+='<div class="scheda-hero">'
-      +'<div class="scheda-hero-left">'
-      +'<img class="scheda-hero-logo" src="https://alessandroparrelli.github.io/fileappoggio/Nuovo-logo-CNA-blu-bianco.png" alt="CNA">'
+      +'<img class="scheda-hero-logo" src="https://alessandroparrelli.github.io/fileappoggio/Nuovo-logo-CNA-blu-bianco.png" style="height:36px;width:auto;display:block;margin-bottom:14px;" alt="CNA">'
+      +'<div style="font:500 10px/1 \'Inter\',sans-serif;text-transform:uppercase;letter-spacing:.16em;color:rgba(255,255,255,.8);margin-bottom:6px;">'
+      +  'P.IVA '+esc(ana.partitaiva||'—')
+      +'</div>'
       +'<div class="scheda-hero-name">'+esc(ana.ragionesociale||'—')+'</div>';
     var tit=[ana.nometitolare,ana.cognometitolare].filter(Boolean).join(' ');
     if(tit) html+='<div class="scheda-hero-sub">Titolare: '+esc(tit)+'</div>';
-    html+='</div>';
-
-    // Badges
+    // Badges — pill sotto il nome
     html+='<div class="scheda-badges">';
     if(cciaa&&cciaa.stato_attivita!==null&&cciaa.stato_attivita!==undefined){
       var st=traduciStato(cciaa.stato_attivita);
@@ -2627,12 +2478,33 @@ async function openScheda(idx){
       html+='<div class="sbadge" style="background:#64748B"><div class="slbl" style="color:rgba(255,255,255,.8)">CCIAA</div><div class="sval" style="color:white">Non iscritta</div></div>';
     }
     if(_isPagante){
-      html+='<div class="sbadge" style="background:#D1FAE5;border:1.5px solid #6EE7B7;"><div class="slbl" style="color:#065F46">Tessera</div><div class="sval" style="color:#065F46">✓ Pagante</div></div>';
+      html+='<div class="sbadge" style="background:#D1FAE5;border:1.5px solid #6EE7B7;"><div class="slbl" style="color:#065F46">Tessera</div><div class="sval" style="color:#065F46">\u2713 Pagante</div></div>';
     }
-    html+='</div></div>';
+    html+='</div>';
+    html+='</div>'; // fine scheda-hero
+
+    /* ── KPI TILES overlap ── */
+    var nAddetti=0;
+    if(cciaa){ nAddetti=(parseInt(cciaa.num_addetti_sub)||0)+(parseInt(cciaa.num_addetti_fam_ul)||0); }
+    var nContratti=(diretti?diretti.length:0)+(contratti?contratti.length:0);
+    var nServizi=serviziSet?serviziSet.length:0;
+    html+='<div class="scheda-kpi-row">'
+      +'<div class="scheda-kpi-card"><div class="scheda-kpi-lbl">Addetti</div><div class="scheda-kpi-val">'+(nAddetti||'—')+'</div></div>'
+      +'<div class="scheda-kpi-card"><div class="scheda-kpi-lbl">Contratti</div><div class="scheda-kpi-val">'+(nContratti||'—')+'</div></div>'
+      +'<div class="scheda-kpi-card"><div class="scheda-kpi-lbl">Servizi</div><div class="scheda-kpi-val">'+(nServizi||'—')+'</div></div>'
+      +'</div>';
+
+    /* ── TAB BAR scheda ── */
+    html+='<div class="scheda-tab-bar" id="scheda-tabs">'
+      +'<button class="scheda-tab-btn active" onclick="schedaTab(this,\'anagrafica\')">Anagrafica</button>'
+      +'<button class="scheda-tab-btn" onclick="schedaTab(this,\'addetti\')">Addetti</button>'
+      +'<button class="scheda-tab-btn" onclick="schedaTab(this,\'contratti\')">Contratti</button>'
+      +'<button class="scheda-tab-btn" onclick="schedaTab(this,\'pagamenti\')">Pagamenti</button>'
+      +'<button class="scheda-tab-btn" onclick="schedaTab(this,\'mappa\')">Mappa</button>'
+      +'</div>';
 
     /* ── DATI ANAGRAFICI ── */
-    html+='<div class="s-card">'
+    html+='<div class="s-card" data-tab-section="dati-anagrafici">'
       +'<div class="s-card-title"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle"><rect x="9" y="2" width="6" height="3" rx="1"/><rect x="3" y="5" width="18" height="17" rx="2"/><line x1="9" y1="10" x2="15" y2="10"/><line x1="9" y1="14" x2="15" y2="14"/></svg> Dati Anagrafici</div>'
       +'<table class="data-table">'
       +tr('Codice', ana.codiceanagrafica)
@@ -2653,7 +2525,7 @@ async function openScheda(idx){
     if(cciaa&&(cciaa.num_addetti_sub||cciaa.num_addetti_fam_ul)){
       var addSub=parseInt(cciaa.num_addetti_sub)||0;
       var addFam=parseInt(cciaa.num_addetti_fam_ul)||0;
-      html+='<div class="s-card">'
+      html+='<div class="s-card" data-tab-section="addetti-dipendenti">'
         +'<div class="s-card-title"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg> Addetti e Dipendenti</div>'
         +'<div class="addetti-row">'
         +'<div class="addetto-cell"><div class="addetto-lbl">Subordinati</div><div class="addetto-val">'+addSub+'</div></div>'
@@ -2663,7 +2535,7 @@ async function openScheda(idx){
     }
 
     /* ── STATO ASSOCIATIVO ── */
-    html+='<div class="s-card"><div class="s-card-title"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg> Stato Associativo</div>';
+    html+='<div class="s-card" data-tab-section="dati-anagrafici"><div class="s-card-title"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg> Stato Associativo</div>';
     if(serviziSet.length){
       html+='<div class="servizi-list">';
       serviziSet.forEach(function(s){ html+='<div class="servizio-row"><div class="servizio-dot"></div>'+esc(norm(s))+'</div>'; });
@@ -2676,7 +2548,7 @@ async function openScheda(idx){
     /* ── CATEGORIA PROFESSIONALE ── */
     var hasMest=ana.codiceateco||ana.unione||ana.settore||ana.mestiere||ana.codicemestiere;
     if(hasMest){
-      html+='<div class="s-card"><div class="s-card-title"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle"><rect x="2" y="3" width="20" height="18" rx="2"/><line x1="9" y1="3" x2="9" y2="21"/><path d="M5 7h2m0 4H5m0 4h2M13 7h2m-2 4h2m-2 4h2"/></svg> Categoria Professionale</div>'
+      html+='<div class="s-card" data-tab-section="dati-anagrafici"><div class="s-card-title"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle"><rect x="2" y="3" width="20" height="18" rx="2"/><line x1="9" y1="3" x2="9" y2="21"/><path d="M5 7h2m0 4H5m0 4h2M13 7h2m-2 4h2m-2 4h2"/></svg> Categoria Professionale</div>'
         +'<table class="data-table">'
         +tr('Codice Ateco', ana.codiceateco)
         +tr('Ateco 2025', ana['Ateco 2025'])
@@ -2690,7 +2562,7 @@ async function openScheda(idx){
 
     /* ── DATI CONTRATTO (diretti) ── */
     if(diretti&&diretti.length){
-      html+='<div class="s-card"><div class="s-card-title"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg> Dati Contratto'+(diretti.length>1?' ('+diretti.length+')':'')+'</div>';
+      html+='<div class="s-card" data-tab-section="dati-contratto"><div class="s-card-title"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg> Dati Contratto'+(diretti.length>1?' ('+diretti.length+')':'')+'</div>';
       diretti.forEach(function(d,i){
         html+='<div class="contratto-band">'+esc(norm(d.servizio)||('Contratto '+(i+1)))+'</div>'
           +'<table class="data-table">'
@@ -2707,7 +2579,7 @@ async function openScheda(idx){
 
     /* ── CONTRATTI SERVIZIO ATTIVI ── */
     if(contratti&&contratti.length){
-      html+='<div class="s-card"><div class="s-card-title"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle"><rect x="9" y="2" width="6" height="3" rx="1"/><rect x="3" y="5" width="18" height="17" rx="2"/><line x1="9" y1="10" x2="15" y2="10"/><line x1="9" y1="14" x2="15" y2="14"/></svg> Contratti Servizio Attivi'+(contratti.length>1?' ('+contratti.length+')':'')+'</div>';
+      html+='<div class="s-card" data-tab-section="contratti-servizio"><div class="s-card-title"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle"><rect x="9" y="2" width="6" height="3" rx="1"/><rect x="3" y="5" width="18" height="17" rx="2"/><line x1="9" y1="10" x2="15" y2="10"/><line x1="9" y1="14" x2="15" y2="14"/></svg> Contratti Servizio Attivi'+(contratti.length>1?' ('+contratti.length+')':'')+'</div>';
       contratti.forEach(function(c,i){
         html+='<div class="contratto-band serv">'+esc(norm(c.tipocontratto)||('Contratto Servizio '+(i+1)))+'</div>'
           +'<table class="data-table">'
@@ -2759,7 +2631,7 @@ async function openScheda(idx){
 
     /* \u2500\u2500 PAGAMENTI PANDORA \u2500\u2500 */
     if(pandoraCNA.length||pandoraCAF.length){
-      html+='<div class="s-card">'
+      html+='<div class="s-card" data-tab-section="pagamenti-pandora">'
         +'<div class="s-card-title"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg> Pagamenti Pandora'
         +(_isPagante?' <span style="font-size:11px;font-weight:700;padding:2px 10px;border-radius:20px;background:#D1FAE5;color:#065F46;border:1px solid #6EE7B7;margin-left:8px">\u2713 Pagante</span>':'')
         +'</div>';
@@ -2780,7 +2652,7 @@ async function openScheda(idx){
       html+=renderPandoraBlock(pandoraCAF,'CNA CAF Lazio');
       html+='</div>';
     } else {
-      html+='<div class="s-card">'
+      html+='<div class="s-card" data-tab-section="pagamenti-pandora">'
         +'<div class="s-card-title"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg> Pagamenti</div>'
         +'<div style="padding:20px 16px;text-align:center;color:var(--text-secondary);font-size:13px">Nessun pagamento registrato</div>'
         +'</div>';
@@ -2790,7 +2662,7 @@ async function openScheda(idx){
     if(ana.indirizzo||ana.comune){
       var addr=[ana.indirizzo,ana.cap,ana.comune,ana.provincia?'('+ana.provincia+')':''].filter(Boolean).join(' ');
       var mapUrl='https://maps.google.com/maps?q='+encodeURIComponent(addr);
-      html+='<div class="s-card"><div class="s-card-title"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg> Localizzazione</div>'
+      html+='<div class="s-card" data-tab-section="localizzazione"><div class="s-card-title"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg> Localizzazione</div>'
         +'<div class="mappa-wrap">'
         +'<iframe class="mappa-iframe" src="https://maps.google.com/maps?q='+encodeURIComponent(addr)+'&z=15&output=embed" loading="lazy" allowfullscreen></iframe>'
         +'<div class="mappa-addr">'+esc(addr)+'</div>'
@@ -2800,6 +2672,10 @@ async function openScheda(idx){
 
     /* Render */
     G('scheda-content').innerHTML=html;
+    // Init tab default: mostra solo anagrafica
+    document.querySelectorAll('.s-card[data-tab-section]').forEach(function(el){
+      el.style.display = (el.getAttribute('data-tab-section') === 'dati-anagrafici') ? '' : 'none';
+    });
     G('hdr-scheda-title').textContent=ana.ragionesociale||'—';
     prevView='results';
     showView('scheda');
@@ -3440,8 +3316,9 @@ async function loadMieAttivita(){
       var assignedLabel = uAssigned ? (uAssigned.nome+' '+uAssigned.cognome) : (ct.assigned_id===session.id ? 'Me' : '—');
       var creatorLabel  = uCreator  ? (uCreator.nome+' '+uCreator.cognome)   : (ct.creator_id===session.id  ? 'Me' : '—');
       html += '<div class="crm-contact-card" data-macro="'+getMacro(ct.status)+'" id="card-'+ct.id+'" onclick="_cardClick(event,'+ct.id+')">'
+        + '<div class="crm-contact-card-stripe"></div>'
         +(isAdmin2 ? '<input type="checkbox" class="crm-cc-checkbox" id="chk-'+ct.id+'" onclick="_cardChk(event,'+ct.id+')" data-id="'+ct.id+'">' : '')
-        +'<div class="crm-cc-inner">'
+        +'<div class="crm-contact-card-inner">'
         +'<div class="crm-cc-top">'
         +'<div class="crm-cc-name">'+esc(ct.company_name)+'</div>'
         +macroPill(ct.status)
@@ -7237,6 +7114,28 @@ function updateCrmKpi(contacts) {
   dc.textContent = contacts.filter(function(c){ return c.status === 'da_contattare'; }).length;
   ap.textContent = contacts.filter(function(c){ return c.status === 'appuntamento_fissato'; }).length;
   ch.textContent = contacts.filter(function(c){ return c.status === 'chiuso_positivo'; }).length;
+}
+
+// ── RESKIN v2 — Tab bar scheda ──
+function schedaTab(btn, tab) {
+  document.querySelectorAll('.scheda-tab-btn').forEach(function(b){ b.classList.remove('active'); });
+  btn.classList.add('active');
+  var sectionMap = {
+    anagrafica: ['dati-anagrafici'],
+    addetti:    ['addetti-dipendenti'],
+    contratti:  ['dati-contratto','contratti-servizio'],
+    pagamenti:  ['pagamenti-pandora'],
+    mappa:      ['localizzazione']
+  };
+  document.querySelectorAll('.s-card[data-tab-section]').forEach(function(el){
+    el.style.display = 'none';
+  });
+  var toShow = sectionMap[tab] || [];
+  toShow.forEach(function(id){
+    document.querySelectorAll('.s-card[data-tab-section="'+id+'"]').forEach(function(el){
+      el.style.display = '';
+    });
+  });
 }
 </script>
 </body>
