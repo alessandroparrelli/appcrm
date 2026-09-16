@@ -496,7 +496,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 
 /* ── VIEW LE MIE ATTIVITÀ / FLUSSI CRM ─────────── */
 #view-crm{overflow-y:auto;background:var(--bg);}
-.crm-wrap{padding:16px;max-width:860px;width:100%;margin:0 auto;padding-bottom:80px;}
+.crm-wrap{padding:12px 16px;max-width:none;width:100%;margin:0;padding-bottom:80px;}
 .crm-filter-row{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;align-items:center;}
 .crm-filter-row .crm-select{width:auto;font-size:12px;padding:7px 10px;}
 .crm-section-title{font-size:12px;font-weight:700;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.4px;margin-bottom:8px;padding:0 2px;}
@@ -815,6 +815,13 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
   .com-layout{grid-template-columns:1fr;}
 }
 
+/* ── CRM List Hero ── */
+.crm-list-hero{background:linear-gradient(160deg,#005ca9 0%,#0176d4 70%,#1789e6 100%);padding:16px 20px 32px;position:relative;overflow:hidden;}
+.crm-list-hero::before{content:'';position:absolute;right:-30px;top:-30px;width:160px;height:160px;border-radius:50%;background:rgba(255,255,255,.07);pointer-events:none;}
+.crm-list-hero::after{content:'';position:absolute;right:20px;top:40px;width:90px;height:90px;border-radius:50%;background:rgba(231,71,56,.18);pointer-events:none;}
+.crm-list-hero-name{font-size:22px;font-weight:900;color:#fff;letter-spacing:-.03em;position:relative;z-index:1;}
+#view-crm .crm-kpi-row{margin-top:-18px;}
+
 /* ── RESKIN CNA 2025 v2 ── */
 .scheda-hero::before{content:'';position:absolute;right:-40px;top:-40px;width:220px;height:220px;border-radius:50%;background:rgba(255,255,255,.07);pointer-events:none;}
 .scheda-hero::after{content:'';position:absolute;right:-10px;top:50px;width:130px;height:130px;border-radius:50%;background:rgba(231,71,56,.2);pointer-events:none;}
@@ -986,8 +993,8 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
       </div>
     </header>
     <!-- ── BARRA TITOLO TAB ── -->
-    <div id="tab-title-bar" style="background:#fff;padding:10px 20px 8px;border-bottom:1px solid var(--border);">
-      <span id="tab-title-text" style="font-family:'Inter',sans-serif;font-size:20px;font-weight:800;color:#111827;letter-spacing:-.04em;"></span>
+    <div id="tab-title-bar" style="background:var(--primary);padding:10px 20px 14px;border-bottom:1px solid rgba(255,255,255,.15);">
+      <span id="tab-title-text" style="font-family:'Inter',sans-serif;font-size:20px;font-weight:800;color:#fff;letter-spacing:-.04em;"></span>
     </div>
     <nav class="crm-nav" id="crm-nav">
       <button class="crm-tab active" id="tab-crm" onclick="crmTab('crm')">
@@ -1195,6 +1202,9 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 
   <!-- ── VIEW: LE MIE ATTIVITÀ ── -->
   <div class="view" id="view-crm">
+<div class="crm-list-hero">
+  <div class="crm-list-hero-name">Flussi CRM</div>
+</div>
 <div class="crm-kpi-row">
   <div class="crm-kpi-card danger">
     <div class="crm-kpi-label">Da contattare</div>
@@ -2756,7 +2766,7 @@ function showView(name){
   var el=G('view-'+name);
   if(el) el.scrollTop=0;
   // aggiorna titolo tab
-  var tabTitles={'search':'Ricerca imprese','results':'Risultati ricerca','crm':'Flussi CRM','crm-contatto':'Scheda contatto','admin':'Amministrazione','comunicazione':'Comunicazione','scheda':'','log':''};
+  var tabTitles={'search':'Ricerca imprese','results':'Risultati ricerca','crm':'','crm-contatto':'Scheda contatto','admin':'Amministrazione','comunicazione':'Comunicazione','scheda':'','log':''};
   var ttEl=G('tab-title-text');
   var ttBar=G('tab-title-bar');
   if(ttEl&&ttBar){
