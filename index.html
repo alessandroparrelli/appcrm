@@ -826,8 +826,8 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 #view-crm .crm-kpi-row{margin-top:-18px;}
 
 /* ── RESKIN CNA 2025 v2 ── */
-.scheda-hero::before{content:'';position:absolute;right:-40px;top:-40px;width:220px;height:220px;border-radius:50%;background:rgba(255,255,255,.07);pointer-events:none;}
-.scheda-hero::after{content:'';position:absolute;right:-10px;top:50px;width:130px;height:130px;border-radius:50%;background:rgba(231,71,56,.2);pointer-events:none;}
+.scheda-hero::before{content:none;}
+.scheda-hero::after{content:none;}
 .scheda-kpi-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;padding:0 16px;margin-top:-18px;position:relative;z-index:10;margin-bottom:16px;}
 .scheda-kpi-card{background:#fff;border:1px solid #e6ebf2;border-radius:12px;padding:12px 8px;text-align:center;box-shadow:0 6px 20px -8px rgba(15,23,42,.2);}
 .scheda-kpi-lbl{font-size:9px;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:.1em;}
@@ -2530,6 +2530,13 @@ async function openScheda(idx){
 
     /* ── HERO v2 full-bleed ── */
     html+='<div class="scheda-hero">'
+      +'<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">'
+        +'<button onclick="goBack()" style="display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.3);color:#fff;padding:7px 14px;border-radius:20px;font-family:var(--font);font-size:13px;font-weight:700;cursor:pointer;">'
+          +'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>'
+          +'Indietro'
+        +'</button>'
+        +'<div id="scheda-hero-crm-btn"></div>'
+      +'</div>'
       +'<img class="scheda-hero-logo" src="logo-hero.png" style="height:44px;max-width:180px;width:auto;display:block;margin-bottom:14px;object-fit:contain;" alt="CNA">'
       +'<div style="font:500 10px/1 \'Inter\',sans-serif;text-transform:uppercase;letter-spacing:.16em;color:rgba(255,255,255,.8);margin-bottom:6px;">'
       +  'P.IVA '+esc(ana.partitaiva||'—')
@@ -2754,17 +2761,21 @@ async function openScheda(idx){
     showView('scheda');
     // controlla se esiste già un contatto CRM per questa impresa
     checkCrmContact('anagrafiche', ana.codiceanagrafica).then(function(existing){
-      var btn = G('btn-crea-contatto-header');
-      if(btn){
-        btn.style.display='inline-flex';
+      var heroBtn = G('scheda-hero-crm-btn');
+      if(heroBtn){
+        var style = 'display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.3);color:#fff;padding:7px 14px;border-radius:20px;font-family:var(--font);font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap;';
         if(existing){
-          btn.textContent='Vai al CRM';
-          btn.onclick=function(){ openCrmContatto(existing.id); };
+          heroBtn.innerHTML = '<button onclick="openCrmContatto('+existing.id+')" style="'+style+'">'
+            +'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>'
+            +' Vai al CRM</button>';
         } else {
-          btn.innerHTML='<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg> Nuovo CRM';
-          btn.onclick=creaContattoCRM;
+          heroBtn.innerHTML = '<button onclick="creaContattoCRM()" style="'+style+'">'
+            +'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>'
+            +' Nuovo CRM</button>';
         }
       }
+      var btn = G('btn-crea-contatto-header');
+      if(btn) btn.style.display = 'none';
     });
 
   } catch(e){ console.error(e); toast('Errore caricamento scheda','error'); }
@@ -2801,15 +2812,15 @@ function showView(name){
   var isStandalone = isScheda||isLog||isCrmContatto;
   var mainWrap = G('hdr-main-wrap');
   if(mainWrap) mainWrap.style.display = (!isStandalone) ? 'block' : 'none';
-  G('hdr-scheda').style.display        = isScheda ? 'flex' : 'none';
+  G('hdr-scheda').style.display        = 'none'; // rimpiazzato dall'hero inline
   G('hdr-log').style.display           = isLog    ? 'flex' : 'none';
   G('hdr-crm-contatto').style.display  = isCrmContatto ? 'flex' : 'none';
   // Bottom nav: sempre visibile (eccetto login)
   var nav = G('crm-nav');
   if(nav) nav.classList.add('visible');
-  // bottone Nuovo CRM nella header scheda
+  // bottone CRM ora è nell'hero inline
   var btnCrm = G('btn-crea-contatto-header');
-  if(btnCrm) btnCrm.style.display = (isScheda && crmCurrentAna) ? 'inline-flex' : 'none';
+  if(btnCrm) btnCrm.style.display = 'none';
   var _fab=G('fab-crm');
   if(_fab)_fab.style.display=((name==='crm')&&window.innerWidth<=640)?'flex':'none';
   ['search','results','scheda','log','crm','crm-contatto','admin','comunicazione'].forEach(function(v){
