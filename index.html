@@ -55,7 +55,7 @@
   --radius-md: 14px;
   --radius-lg: 16px;
   --radius-pill: 999px;
-  --header-h: 60px;
+  --header-h: 68px;
   --tr: all .18s cubic-bezier(0.4,0,0.2,1);
 }
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
@@ -102,7 +102,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 /* HEADER */
 .app-header{height:var(--header-h);background:var(--primary);display:flex;align-items:center;justify-content:space-between;padding:0 20px;position:sticky;top:0;z-index:200;box-shadow:0 4px 16px rgba(0,92,169,.3);border-bottom:3px solid #00437a;flex-shrink:0;}
 .header-left{display:flex;align-items:center;gap:10px;}
-.logo-img{height:56px;width:auto;display:block;}
+.logo-img{height:44px;width:auto;max-width:140px;display:block;object-fit:contain;}
 .logo-fallback{background:rgba(255,255,255,.2);color:#fff;font-weight:800;font-size:12px;padding:5px 10px;border-radius:var(--radius-sm);letter-spacing:.02em;align-items:center;justify-content:center;}
 .header-title{font-size:15px;font-weight:800;color:var(--text);letter-spacing:-.01em;}
 .header-badge{font-size:10px;font-weight:700;color:var(--text-secondary);background:var(--surface2);padding:3px 8px;border-radius:var(--radius-pill);border:1px solid var(--border);}
@@ -175,7 +175,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 /* Card titolo impresa */
 .scheda-hero{background:linear-gradient(160deg,#005ca9 0%,#0176d4 70%,#1789e6 100%);border:none;border-radius:0;box-shadow:none;padding:24px 20px 32px;margin:0;width:100%;position:relative;overflow:hidden;display:block;}
 .scheda-hero-left{display:contents;}
-.scheda-hero-logo{height:36px;width:auto;margin-bottom:14px;display:block;}
+.scheda-hero-logo{height:44px;width:auto;max-width:160px;margin-bottom:14px;display:block;object-fit:contain;}
 .scheda-hero-name{font-size:22px;font-weight:900;color:#fff;line-height:1.15;margin-bottom:6px;letter-spacing:-.03em;font-family:'Inter',var(--font);}
 .scheda-hero-sub{font-size:13px;color:rgba(255,255,255,.88);font-weight:500;}
 .scheda-badges{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px;}
@@ -299,7 +299,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
   /* ── SCHEDA HERO: layout verticale su mobile ── */
   .scheda-hero{padding:18px 16px 28px;}
   .scheda-hero-name{font-size:20px;font-weight:900;color:#fff;}
-  .scheda-hero-logo{height:36px;margin-bottom:6px;}
+  .scheda-hero-logo{height:40px;max-width:150px;margin-bottom:8px;}
   .scheda-badges{align-self:stretch;margin-top:2px;}
   .scheda-badges{display:flex;flex-direction:row;flex-wrap:wrap;gap:6px;}
   .sbadge{border-radius:8px!important;flex:1;min-width:80px;padding:7px 10px;}
@@ -2471,7 +2471,7 @@ async function openScheda(idx){
 
     /* ── HERO v2 full-bleed ── */
     html+='<div class="scheda-hero">'
-      +'<img class="scheda-hero-logo" src="https://alessandroparrelli.github.io/fileappoggio/Nuovo-logo-CNA-blu-bianco.png" style="height:36px;width:auto;display:block;margin-bottom:14px;" alt="CNA">'
+      +'<img class="scheda-hero-logo" src="https://alessandroparrelli.github.io/fileappoggio/Nuovo-logo-CNA-blu-bianco.png" style="height:44px;max-width:160px;width:auto;display:block;margin-bottom:14px;object-fit:contain;" alt="CNA">'
       +'<div style="font:500 10px/1 \'Inter\',sans-serif;text-transform:uppercase;letter-spacing:.16em;color:rgba(255,255,255,.8);margin-bottom:6px;">'
       +  'P.IVA '+esc(ana.partitaiva||'—')
       +'</div>'
