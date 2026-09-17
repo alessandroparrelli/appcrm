@@ -418,6 +418,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 /* ── PILL STATO contatto ────────────────────────── */
 .stato-pill{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:var(--radius-pill);font-size:11px;font-weight:700;border:1px solid transparent;}
 /* Macro-stati pill */
+.stato-macro-da_contattare{background:#fef2f1;color:#e74738;border-color:#fecaca;}
 .stato-macro-lavorazione{background:#FFF7ED;color:#D97706;border-color:#FDE68A;}
 .stato-macro-positivo   {background:#F0FDF4;color:#166534;border-color:#86EFAC;}
 .stato-macro-negativo   {background:#FEF2F2;color:#B91C1C;border-color:#FECACA;}
@@ -838,6 +839,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 .crm-contact-card{display:flex;align-items:stretch;padding:0;overflow:hidden;border-radius:14px;}
 .crm-contact-card-inner{flex:1;padding:12px 14px;min-width:0;}
 .crm-contact-card-stripe{width:4px;flex-shrink:0;align-self:stretch;}
+.crm-contact-card[data-macro="da_contattare"] .crm-contact-card-stripe{background:#e74738;}
 .crm-contact-card[data-macro="lavorazione"] .crm-contact-card-stripe{background:#f59e0b;}
 .crm-contact-card[data-macro="positivo"]    .crm-contact-card-stripe{background:#16a34a;}
 .crm-contact-card[data-macro="negativo"]    .crm-contact-card-stripe{background:#e74738;}
@@ -1225,6 +1227,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
         <div class="crm-filter-row" style="margin-bottom:0;flex:1;">
           <select class="crm-select" id="crm-filter-stato" onchange="loadMieAttivita()">
             <option value="">Tutti i contatti</option>
+            <option value="da_contattare">Da contattare</option>
             <option value="lavorazione">In lavorazione</option>
             <option value="chiuso_positivo">Chiuso positivo</option>
             <option value="chiuso_negativo">Chiuso negativo</option>
@@ -1578,6 +1581,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
         <div class="admin-filters">
           <select class="crm-select" id="af-stato" onchange="loadAdminContacts()">
             <option value="">Tutti i contatti</option>
+            <option value="da_contattare">Da contattare</option>
             <option value="lavorazione">In lavorazione</option>
             <option value="chiuso_positivo">Chiuso positivo</option>
             <option value="chiuso_negativo">Chiuso negativo</option>
@@ -3152,7 +3156,7 @@ var STATI_LABEL = {
 
 /* Macro-stato: mappa ogni sotto-stato al suo macro */
 var MACRO_STATO = {
-  'da_contattare':          'lavorazione',
+  'da_contattare':          'da_contattare',
   'assegnato':              'lavorazione',
   'chiamata_effettuata':    'lavorazione',
   'appuntamento_fissato':   'lavorazione',
@@ -3163,6 +3167,7 @@ var MACRO_STATO = {
 };
 
 var MACRO_LABEL = {
+  'da_contattare': 'Da contattare',
   'lavorazione': 'In lavorazione',
   'positivo':    'Chiuso positivo',
   'negativo':    'Chiuso negativo'
@@ -3296,7 +3301,8 @@ async function loadMieAttivita(){
     var data = await sbGet(qs);
 
     // filtro macro-stato lato client (per 'lavorazione' che raggruppa molti stati)
-    if(macroFiltro==='lavorazione') data = data.filter(function(c){ return getMacro(c.status)==='lavorazione'; });
+    if(macroFiltro==='da_contattare') data = data.filter(function(c){ return getMacro(c.status)==='da_contattare'; });
+    else if(macroFiltro==='lavorazione') data = data.filter(function(c){ return getMacro(c.status)==='lavorazione'; });
     if(ruolo==='creator')  data = data.filter(function(c){ return c.creator_id===session.id; });
     if(ruolo==='assigned') data = data.filter(function(c){ return c.assigned_id===session.id; });
 
@@ -4427,7 +4433,7 @@ async function loadAdminDashboard(){
 
     // KPI
     var chiusiPos = contacts.filter(function(c){ return c.status==='chiuso_positivo'; }).length;
-    var nLav = contacts.filter(function(c){ return getMacro(c.status)==='lavorazione'; }).length;
+    var nLav = contacts.filter(function(c){ return getMacro(c.status)==='lavorazione'||getMacro(c.status)==='da_contattare'; }).length;
     var nPos = contacts.filter(function(c){ return c.status==='chiuso_positivo'; }).length;
     var nNeg = contacts.filter(function(c){ return c.status==='chiuso_negativo'; }).length;
     var _e=function(id,v){var el=G(id);if(el)el.textContent=v;};
