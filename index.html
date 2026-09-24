@@ -7201,175 +7201,252 @@ async function mostraSchedaPubblica(id) {
 function renderSchedaPubblica(d, id) {
   var url = 'https://associaticna.vercel.app/?id=' + encodeURIComponent(id);
   var logoUrl = window.location.origin + '/logo-hero.png';
-  var titolare = d.titolare || [d.nometitolare, d.cognometitolare].filter(Boolean).join(' ') || '';
+  var titolare = d.titolare || '';
 
   function e(s){ return s ? String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;') : ''; }
 
   function row(label, val) {
-    if (!val) return '';
-    return '<div style="display:flex;padding:12px 0;border-bottom:1px solid #f0f4f8;">'
-      + '<div style="width:120px;flex-shrink:0;font-size:12px;color:#94a3b8;font-weight:500;padding-top:1px;text-transform:uppercase;letter-spacing:0.4px;">' + e(label) + '</div>'
-      + '<div style="flex:1;font-size:14px;font-weight:600;color:#1e293b;">' + e(String(val)) + '</div>'
+    if (!val && val !== 0) return '';
+    return '<div style="display:flex;align-items:flex-start;padding:10px 0;border-bottom:1px solid #f1f5f9;">'
+      + '<div style="min-width:130px;flex-shrink:0;font-size:11px;color:#94a3b8;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;padding-top:2px;">' + e(label) + '</div>'
+      + '<div style="font-size:13px;font-weight:600;color:#1e293b;flex:1;">' + e(String(val)) + '</div>'
       + '</div>';
   }
 
-  // Contratti
-  var contrattiRows = '';
-  if (d.contratti && d.contratti.length > 0) {
-    contrattiRows = d.contratti.map(function(c) {
-      var st = (c.stato||'').toLowerCase();
-      var dot = (st==='attivo'||st==='active') ? '#10b981' : '#94a3b8';
-      var importo = c.importo ? '\u20ac\u00a0' + Number(c.importo).toLocaleString('it-IT',{minimumFractionDigits:2}) : '';
+  function section(icon, title, body) {
+    return '<div style="background:#fff;border-radius:16px;margin-bottom:14px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,0.06),0 4px 20px rgba(0,43,127,0.06);">'
+      + '<div style="display:flex;align-items:center;gap:10px;padding:14px 18px;border-bottom:2px solid #f1f5f9;">'
+      + '<span style="font-size:16px;">' + icon + '</span>'
+      + '<span style="font-size:13px;font-weight:800;color:#1e293b;text-transform:uppercase;letter-spacing:0.6px;">' + title + '</span>'
+      + '</div>'
+      + '<div style="padding:6px 18px 10px;">' + body + '</div>'
+      + '</div>';
+  }
+
+  // Stato CCIAA
+  var cciaa = d.cciaa || {};
+  var statoAttivita = '';
+  var statoColor = '#16a34a';
+  if (cciaa.stato_attivita !== undefined && cciaa.stato_attivita !== null) {
+    var st = String(cciaa.stato_attivita).toLowerCase();
+    if (st === '1' || st === 'attiva' || st === 'active') { statoAttivita = 'Attiva'; statoColor = '#16a34a'; }
+    else if (st === '0' || st === 'cessata' || st === 'inactive') { statoAttivita = 'Cessata'; statoColor = '#dc2626'; }
+    else { statoAttivita = e(cciaa.stato_attivita); statoColor = '#d97706'; }
+  } else {
+    statoAttivita = e(d.statogiuridico || '');
+    statoColor = '#16a34a';
+  }
+
+  var tipoImpresa = '';
+  if (cciaa.art_com_tur) {
+    var tc = String(cciaa.art_com_tur).toUpperCase();
+    if (tc === 'A') tipoImpresa = 'Artigiana';
+    else if (tc === 'C') tipoImpresa = 'Commerciale';
+    else if (tc === 'T') tipoImpresa = 'Turistica';
+    else tipoImpresa = e(cciaa.art_com_tur);
+  } else {
+    tipoImpresa = e(d.soggettogiuridico || '');
+  }
+
+  var nAddetti = d.nAddetti || 0;
+  var nContratti = d.nContratti || 0;
+  var nServizi = d.nServizi || 0;
+  var isPagante = d.isPagante || false;
+
+  // REA
+  var rea = (cciaa.prov_rea && cciaa.num_iscrizione_rea) ? (cciaa.prov_rea + ' ' + cciaa.num_iscrizione_rea) : '';
+  var dataIscr = cciaa.data_iscrizione_rea ? new Date(cciaa.data_iscrizione_rea).toLocaleDateString('it-IT') : '';
+
+  // Contratti rows
+  var contrattiHtml = '';
+  var allContratti = d.contratti || [];
+  if (allContratti.length > 0) {
+    contrattiHtml = allContratti.map(function(c) {
       var data = c.datastipulacontratto ? new Date(c.datastipulacontratto).toLocaleDateString('it-IT') : '';
-      return '<div style="display:flex;align-items:center;gap:12px;padding:13px 0;border-bottom:1px solid #f0f4f8;">'
-        + '<div style="width:8px;height:8px;border-radius:50%;background:'+dot+';flex-shrink:0;margin-top:2px;"></div>'
-        + '<div style="flex:1;min-width:0;">'
-        + '<div style="font-size:14px;font-weight:600;color:#1e293b;">' + e(c.nomecontratto||'\u2014') + '</div>'
-        + (data?'<div style="font-size:12px;color:#94a3b8;margin-top:2px;">' + data + '</div>':'')
+      return '<div style="display:flex;align-items:flex-start;gap:10px;padding:11px 0;border-bottom:1px solid #f1f5f9;">'
+        + '<div style="width:8px;height:8px;border-radius:50%;background:#10b981;flex-shrink:0;margin-top:4px;"></div>'
+        + '<div style="flex:1;">'
+        + '<div style="font-size:13px;font-weight:700;color:#1e293b;">' + e(c.tipocontratto || c.raggruppamento || '\u2014') + '</div>'
+        + (c.raggruppamento && c.tipocontratto ? '<div style="font-size:11px;color:#64748b;margin-top:2px;">' + e(c.raggruppamento) + '</div>' : '')
+        + (c.nomeconsulente ? '<div style="font-size:11px;color:#94a3b8;">Consulente: ' + e(c.nomeconsulente) + '</div>' : '')
         + '</div>'
-        + (importo?'<div style="font-size:13px;font-weight:700;color:#002B7F;flex-shrink:0;">' + importo + '</div>':'')
+        + (data ? '<div style="font-size:11px;color:#94a3b8;flex-shrink:0;margin-top:2px;">' + data + '</div>' : '')
         + '</div>';
     }).join('');
   } else {
-    contrattiRows = '<div style="padding:16px 0;text-align:center;color:#94a3b8;font-size:14px;">Nessun contratto</div>';
+    contrattiHtml = '<p style="color:#94a3b8;font-size:13px;text-align:center;padding:16px 0;">Nessun contratto attivo</p>';
   }
 
+  // Servizi rows
+  var serviziHtml = '';
+  var servizi = d.servizi || [];
+  if (servizi.length > 0) {
+    serviziHtml = servizi.map(function(s) {
+      return '<div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid #f1f5f9;">'
+        + '<div style="width:6px;height:6px;border-radius:50%;background:#002B7F;flex-shrink:0;"></div>'
+        + '<div style="font-size:13px;font-weight:600;color:#1e293b;">' + e(s) + '</div>'
+        + '</div>';
+    }).join('');
+  }
+
+  // Mappa
   var indir = [d.indirizzo, d.cap, d.comune, d.provincia].filter(Boolean).join(', ');
 
   return '<!DOCTYPE html><html lang="it"><head>'
     + '<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">'
-    + '<title>' + e(d.ragionesociale||'Scheda') + ' \u2014 CNA Roma</title>'
+    + '<title>' + e(d.ragionesociale || 'Scheda') + ' \u2014 CNA Roma</title>'
     + '<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">'
-    + '<style>*{box-sizing:border-box;-webkit-font-smoothing:antialiased;}body{margin:0;font-family:Inter,sans-serif;background:#f0f4f8;}a{text-decoration:none;color:inherit;}</style>'
+    + '<style>*{box-sizing:border-box;-webkit-font-smoothing:antialiased;}body{margin:0;font-family:Inter,sans-serif;background:#eef2f8;}a{text-decoration:none;}</style>'
     + '</head><body>'
 
-    // === HERO ===
-    + '<div style="background:linear-gradient(160deg,#001847 0%,#002B7F 50%,#0038a8 100%);padding:40px 24px 50px;position:relative;overflow:hidden;">'
+    // ═══ HERO ═══
+    + '<div style="background:linear-gradient(155deg,#001540 0%,#002B7F 55%,#0040c0 100%);padding:36px 22px 44px;position:relative;overflow:hidden;">'
     // cerchi decorativi
-    + '<div style="position:absolute;top:-80px;right:-80px;width:300px;height:300px;border-radius:50%;border:1px solid rgba(255,255,255,0.06);"></div>'
-    + '<div style="position:absolute;top:-40px;right:-40px;width:200px;height:200px;border-radius:50%;border:1px solid rgba(255,255,255,0.08);"></div>'
-    + '<div style="position:absolute;bottom:-100px;left:-60px;width:280px;height:280px;border-radius:50%;border:1px solid rgba(255,255,255,0.05);"></div>'
-    // logo
-    + '<div style="text-align:center;margin-bottom:24px;">'
-    + '<img src="' + logoUrl + '" alt="CNA Roma" style="height:56px;width:auto;display:inline-block;">'
+    + '<div style="position:absolute;top:-60px;right:-60px;width:260px;height:260px;border-radius:50%;border:1px solid rgba(255,255,255,0.07);pointer-events:none;"></div>'
+    + '<div style="position:absolute;top:-20px;right:-20px;width:160px;height:160px;border-radius:50%;border:1px solid rgba(255,255,255,0.1);pointer-events:none;"></div>'
+    + '<div style="position:absolute;bottom:-80px;left:-50px;width:240px;height:240px;border-radius:50%;border:1px solid rgba(255,255,255,0.05);pointer-events:none;"></div>'
+
+    // Logo
+    + '<div style="text-align:center;margin-bottom:22px;">'
+    + '<img src="' + logoUrl + '" alt="CNA Roma" style="height:50px;width:auto;">'
     + '</div>'
-    // nome impresa
+
+    // Nome impresa
     + '<div style="text-align:center;">'
-    + '<div style="font-size:11px;color:rgba(255,255,255,0.5);letter-spacing:2.5px;text-transform:uppercase;margin-bottom:8px;">P.IVA\u00a0' + e(d.partitaiva||'\u2014') + '</div>'
-    + '<h1 style="color:#fff;font-size:24px;font-weight:900;line-height:1.15;margin:0 0 8px;letter-spacing:-0.02em;">' + e(d.ragionesociale||'\u2014') + '</h1>'
-    + (titolare ? '<div style="font-size:14px;color:rgba(255,255,255,0.65);font-weight:500;">Titolare:\u00a0' + e(titolare) + '</div>' : '')
+    + '<div style="font-size:10px;color:rgba(255,255,255,0.5);letter-spacing:2.5px;text-transform:uppercase;margin-bottom:7px;">P.IVA\u00a0' + e(d.partitaiva || '\u2014') + '</div>'
+    + '<h1 style="color:#fff;font-size:22px;font-weight:900;line-height:1.15;margin:0 0 6px;letter-spacing:-0.02em;">' + e(d.ragionesociale || '\u2014') + '</h1>'
+    + (titolare ? '<div style="font-size:13px;color:rgba(255,255,255,0.65);">Titolare:\u00a0<strong style="color:rgba(255,255,255,0.85);">' + e(titolare) + '</strong></div>' : '')
     + '</div>'
-    // badge
-    + '<div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:20px;">'
-    + (d.statogiuridico ? '<span style="background:rgba(16,185,129,0.18);color:#6ee7b7;border:1.5px solid rgba(16,185,129,0.35);border-radius:100px;padding:5px 16px;font-size:12px;font-weight:700;">' + e(d.statogiuridico) + '</span>' : '')
-    + (d.soggettogiuridico ? '<span style="background:rgba(255,255,255,0.1);color:rgba(255,255,255,0.8);border:1.5px solid rgba(255,255,255,0.2);border-radius:100px;padding:5px 16px;font-size:12px;font-weight:600;">' + e(d.soggettogiuridico) + '</span>' : '')
+
+    // Badge stato / tipo / tessera
+    + '<div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:18px;">'
+    + (statoAttivita ? '<span style="background:rgba(16,185,129,0.2);color:#6ee7b7;border:1.5px solid rgba(16,185,129,0.4);border-radius:100px;padding:5px 14px;font-size:12px;font-weight:700;">\u25cf\u00a0' + statoAttivita + '</span>' : '')
+    + (tipoImpresa ? '<span style="background:rgba(239,68,68,0.2);color:#fca5a5;border:1.5px solid rgba(239,68,68,0.35);border-radius:100px;padding:5px 14px;font-size:12px;font-weight:700;">' + tipoImpresa + '</span>' : '')
+    + (isPagante ? '<span style="background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.9);border:1.5px solid rgba(255,255,255,0.25);border-radius:100px;padding:5px 14px;font-size:12px;font-weight:700;">\u2713\u00a0Tessera pagante</span>' : '')
     + '</div>'
+
     // KPI
-    + (d.nContratti > 0 ? '<div style="display:flex;gap:12px;justify-content:center;margin-top:24px;">'
-      + '<div style="background:rgba(255,255,255,0.1);border-radius:14px;padding:16px 28px;text-align:center;backdrop-filter:blur(8px);">'
-      + '<div style="font-size:32px;font-weight:900;color:#fff;line-height:1;">' + d.nContratti + '</div>'
-      + '<div style="font-size:11px;color:rgba(255,255,255,0.55);text-transform:uppercase;letter-spacing:1px;margin-top:4px;">contratti</div>'
-      + '</div>'
-      + '</div>' : '')
+    + '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:22px;">'
+    + '<div style="background:rgba(255,255,255,0.1);border-radius:14px;padding:14px 10px;text-align:center;">'
+    + '<div style="font-size:28px;font-weight:900;color:#fff;line-height:1;">' + (nAddetti || '\u2014') + '</div>'
+    + '<div style="font-size:10px;color:rgba(255,255,255,0.55);text-transform:uppercase;letter-spacing:1px;margin-top:5px;">Addetti</div>'
+    + '</div>'
+    + '<div style="background:rgba(255,255,255,0.1);border-radius:14px;padding:14px 10px;text-align:center;">'
+    + '<div style="font-size:28px;font-weight:900;color:#fff;line-height:1;">' + (nContratti || '\u2014') + '</div>'
+    + '<div style="font-size:10px;color:rgba(255,255,255,0.55);text-transform:uppercase;letter-spacing:1px;margin-top:5px;">Contratti</div>'
+    + '</div>'
+    + '<div style="background:rgba(255,255,255,0.1);border-radius:14px;padding:14px 10px;text-align:center;">'
+    + '<div style="font-size:28px;font-weight:900;color:#fff;line-height:1;">' + (nServizi || '\u2014') + '</div>'
+    + '<div style="font-size:10px;color:rgba(255,255,255,0.55);text-transform:uppercase;letter-spacing:1px;margin-top:5px;">Servizi</div>'
+    + '</div>'
+    + '</div>'
     + '</div>'  // fine hero
 
-    // === CARDS ===
-    + '<div style="padding:20px 16px;">'
+    // ═══ CARDS ═══
+    + '<div style="padding:18px 14px 8px;">'
 
-    // card anagrafica
-    + '<div style="background:#fff;border-radius:20px;padding:20px;margin-bottom:16px;box-shadow:0 4px 24px rgba(0,43,127,0.07);">'
-    + '<div style="display:flex;align-items:center;gap:10px;margin-bottom:4px;">'
-    + '<div style="width:36px;height:36px;background:#eff3ff;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;">📋</div>'
-    + '<div style="font-size:15px;font-weight:800;color:#1e293b;">Dati anagrafici</div>'
-    + '</div>'
-    + row('Codice', d.codiceanagrafica)
-    + row('P.IVA', d.partitaiva)
-    + row('C.F.', d.codicefiscale)
-    + row('Indirizzo', d.indirizzo)
-    + row('CAP / Comune', (d.cap && d.comune) ? d.cap + '\u00a0' + d.comune : (d.cap||d.comune||''))
-    + row('Provincia', d.provincia)
-    + row('Telefono', d.telefono)
-    + row('Cellulare', d.cellulare)
-    + row('Email', d.email)
-    + '</div>'
+    // DATI ANAGRAFICI
+    + section('📋', 'Dati anagrafici',
+        row('Codice', d.codiceanagrafica)
+        + row('P.IVA', d.partitaiva)
+        + row('C.F.', d.codicefiscale)
+        + row('Indirizzo', d.indirizzo)
+        + row('CAP', d.cap)
+        + row('Comune', d.comune)
+        + row('Provincia', d.provincia)
+        + row('Telefono', d.telefono)
+        + row('Cellulare', d.cellulare)
+        + row('Email', d.email)
+      )
 
-    // card attività
-    + '<div style="background:#fff;border-radius:20px;padding:20px;margin-bottom:16px;box-shadow:0 4px 24px rgba(0,43,127,0.07);">'
-    + '<div style="display:flex;align-items:center;gap:10px;margin-bottom:4px;">'
-    + '<div style="width:36px;height:36px;background:#eff3ff;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;">🏭</div>'
-    + '<div style="font-size:15px;font-weight:800;color:#1e293b;">Attivit\u00e0</div>'
-    + '</div>'
-    + row('Mestiere', d.mestiere)
-    + row('Cod. ATECO', d.codiceateco)
-    + row('Forma giuridica', d.naturagiuridica)
-    + '</div>'
+    // MESTIERE / ATTIVITÀ
+    + section('🏭', 'Mestiere e attivit\u00e0',
+        row('Mestiere', d.mestiere)
+        + row('Cod. ATECO', d.codiceateco || cciaa.ateco2007)
+        + row('Forma giuridica', d.naturagiuridica || cciaa.natura_giuridica)
+        + row('Tipo impresa', tipoImpresa)
+        + row('Addetti', nAddetti > 0 ? nAddetti + (cciaa.anno_addetti_ul ? ' (anno ' + cciaa.anno_addetti_ul + ')' : '') : '')
+        + row('N. REA', rea)
+        + row('Iscr. REA', dataIscr)
+        + row('N. Reg. Imprese', cciaa.num_registro_imprese)
+      )
 
-    // card contratti
-    + (d.contratti && d.contratti.length > 0
-      ? '<div style="background:#fff;border-radius:20px;padding:20px;margin-bottom:16px;box-shadow:0 4px 24px rgba(0,43,127,0.07);">'
-        + '<div style="display:flex;align-items:center;gap:10px;margin-bottom:4px;">'
-        + '<div style="width:36px;height:36px;background:#eff3ff;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;">📄</div>'
-        + '<div style="font-size:15px;font-weight:800;color:#1e293b;">Contratti</div>'
-        + '</div>'
-        + contrattiRows
-        + '</div>'
-      : '')
+    // CONTRATTI E SERVIZI
+    + section('📄', 'Contratti e servizi',
+        contrattiHtml
+        + (serviziHtml ? '<div style="margin-top:8px;padding-top:4px;">' + serviziHtml + '</div>' : '')
+      )
 
-    // card mappa
+    // SEDE E MAPPA
     + (indir
-      ? '<div style="background:#fff;border-radius:20px;overflow:hidden;margin-bottom:16px;box-shadow:0 4px 24px rgba(0,43,127,0.07);">'
-        + '<div style="padding:20px 20px 14px;">'
-        + '<div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">'
-        + '<div style="width:36px;height:36px;background:#eff3ff;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;">📍</div>'
-        + '<div style="font-size:15px;font-weight:800;color:#1e293b;">Sede</div>'
+      ? '<div style="background:#fff;border-radius:16px;margin-bottom:14px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,0.06),0 4px 20px rgba(0,43,127,0.06);">'
+        + '<div style="display:flex;align-items:center;gap:10px;padding:14px 18px;border-bottom:2px solid #f1f5f9;">'
+        + '<span style="font-size:16px;">📍</span>'
+        + '<span style="font-size:13px;font-weight:800;color:#1e293b;text-transform:uppercase;letter-spacing:0.6px;">Sede e come raggiungerci</span>'
         + '</div>'
-        + '<div style="font-size:13px;color:#64748b;font-weight:500;">' + e(indir) + '</div>'
+        + '<div style="padding:12px 18px 14px;">'
+        + '<div style="font-size:13px;font-weight:600;color:#374151;margin-bottom:12px;">' + e(indir) + '</div>'
         + '</div>'
-        + '<iframe src="https://maps.google.com/maps?q=' + encodeURIComponent(indir) + '&output=embed" width="100%" height="200" frameborder="0" style="border:0;display:block;" loading="lazy" allowfullscreen></iframe>'
+        + '<iframe src="https://maps.google.com/maps?q=' + encodeURIComponent(indir) + '&output=embed" width="100%" height="210" frameborder="0" style="border:0;display:block;" loading="lazy" allowfullscreen></iframe>'
         + '</div>'
       : '')
 
-    // card QR e bottoni
-    + '<div style="background:#fff;border-radius:20px;padding:24px;margin-bottom:16px;box-shadow:0 4px 24px rgba(0,43,127,0.07);">'
-    + '<div style="text-align:center;margin-bottom:20px;">'
-    + '<div id="qr-out" style="display:inline-block;padding:12px;background:#f8fafc;border-radius:16px;border:1px solid #e2e8f0;"></div>'
-    + '<div style="font-size:11px;color:#94a3b8;margin-top:10px;word-break:break-all;">' + e(url) + '</div>'
+    // QR CODE + LINK
+    + '<div style="background:#fff;border-radius:16px;margin-bottom:14px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,0.06),0 4px 20px rgba(0,43,127,0.06);">'
+    + '<div style="display:flex;align-items:center;gap:10px;padding:14px 18px;border-bottom:2px solid #f1f5f9;">'
+    + '<span style="font-size:16px;">🔗</span>'
+    + '<span style="font-size:13px;font-weight:800;color:#1e293b;text-transform:uppercase;letter-spacing:0.6px;">QR Code e link scheda</span>'
     + '</div>'
-    // email
-    + '<a href="mailto:?subject=' + encodeURIComponent('Scheda '+(d.ragionesociale||'')) + '&body=' + encodeURIComponent('Scheda impresa: '+(d.ragionesociale||'')+'\n\n'+url) + '" '
-    + 'style="display:flex;align-items:center;justify-content:center;gap:10px;background:#002B7F;color:#fff;padding:16px;border-radius:14px;font-weight:700;font-size:15px;margin-bottom:10px;">'
-    + '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>'
+    + '<div style="padding:20px;text-align:center;">'
+    + '<div id="qr-out" style="display:inline-block;padding:10px;background:#fff;border-radius:12px;border:2px solid #e2e8f0;margin-bottom:12px;"></div>'
+    + '<div style="font-size:11px;color:#94a3b8;word-break:break-all;">' + e(url) + '</div>'
+    + '</div>'
+    + '</div>'
+
+    // PULSANTI CONDIVISIONE
+    + '<div style="display:flex;flex-direction:column;gap:10px;margin-bottom:24px;">'
+    // Email full-width
+    + '<a href="mailto:?subject=' + encodeURIComponent('Scheda ' + (d.ragionesociale || '')) + '&body=' + encodeURIComponent('Scheda impresa: ' + (d.ragionesociale || '') + '\n\n' + url) + '" '
+    + 'style="display:flex;align-items:center;justify-content:center;gap:10px;background:#002B7F;color:#fff;padding:16px;border-radius:14px;font-weight:700;font-size:15px;">'
+    + '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>'
     + 'Invia per Email</a>'
-    // wa + sms
-    + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">'
-    + '<a href="https://wa.me/?text=' + encodeURIComponent('Scheda *'+(d.ragionesociale||'')+'*\n'+url) + '" '
+    // WhatsApp + SMS
+    + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">'
+    + '<a href="https://wa.me/?text=' + encodeURIComponent('Scheda *' + (d.ragionesociale || '') + '*\n' + url) + '" '
     + 'style="display:flex;align-items:center;justify-content:center;gap:8px;background:#25D366;color:#fff;padding:15px;border-radius:14px;font-weight:700;font-size:14px;">'
-    + '<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413Z"/></svg>'
+    + '<svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413Z"/></svg>'
     + 'WhatsApp</a>'
-    + '<a href="sms:?body=' + encodeURIComponent('Scheda '+(d.ragionesociale||'')+': '+url) + '" '
+    + '<a href="sms:?body=' + encodeURIComponent('Scheda ' + (d.ragionesociale || '') + ': ' + url) + '" '
     + 'style="display:flex;align-items:center;justify-content:center;gap:8px;background:#4b5563;color:#fff;padding:15px;border-radius:14px;font-weight:700;font-size:14px;">'
-    + '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>'
+    + '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>'
     + 'SMS</a>'
     + '</div>'
-    // copia link
-    + '<button id="copy-btn" onclick="navigator.clipboard.writeText(\'' + url.replace(/\\/g,'\\\\').replace(/'/g,"\\'") + '\').then(function(){var b=document.getElementById(\'copy-btn\');b.style.background=\'#002B7F\';b.style.color=\'#fff\';b.textContent=\'\u2713 Link copiato!\';setTimeout(function(){b.style.background=\'\';b.style.color=\'\';b.textContent=\'Copia link\';},2000);})" '
-    + 'style="width:100%;background:#f1f5f9;color:#1e293b;border:1.5px solid #e2e8f0;padding:15px;border-radius:14px;font-weight:700;font-size:14px;cursor:pointer;transition:all 0.2s;">Copia link</button>'
+    // Scarica QR + Copia link
+    + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">'
+    + '<button onclick="(function(){var c=document.querySelector(\'#qr-out img\');if(c){var a=document.createElement(\'a\');a.download=\'qr-' + encodeURIComponent(id) + '.png\';a.href=c.src;a.click();}})()" '
+    + 'style="display:flex;align-items:center;justify-content:center;gap:8px;background:#f1f5f9;color:#374151;border:1.5px solid #e2e8f0;padding:14px;border-radius:14px;font-weight:700;font-size:14px;cursor:pointer;">'
+    + '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>'
+    + 'Scarica QR</button>'
+    + '<button id="copy-btn" onclick="navigator.clipboard.writeText(\'' + url.replace(/\\/g,'\\\\').replace(/'/g,"\\'") + '\').then(function(){var b=document.getElementById(\'copy-btn\');b.textContent=\'\u2713 Copiato!\';b.style.background=\'#002B7F\';b.style.color=\'#fff\';b.style.border=\'1.5px solid #002B7F\';setTimeout(function(){b.innerHTML=\'<svg width=\\"16\\" height=\\"16\\" viewBox=\\"0 0 24 24\\" fill=\\"none\\" stroke=\\"currentColor\\" stroke-width=\\"2\\"><rect x=\\"9\\" y=\\"9\\" width=\\"13\\" height=\\"13\\" rx=\\"2\\"/><path d=\\"M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1\\"/></svg> Copia link\';b.style.background=\'\';b.style.color=\'#374151\';b.style.border=\'1.5px solid #e2e8f0\';},2000);})" '
+    + 'style="display:flex;align-items:center;justify-content:center;gap:8px;background:#f1f5f9;color:#374151;border:1.5px solid #e2e8f0;padding:14px;border-radius:14px;font-weight:700;font-size:14px;cursor:pointer;">'
+    + '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>'
+    + 'Copia link</button>'
+    + '</div>'
     + '</div>'
 
-    + '<div style="text-align:center;padding-bottom:16px;">'
-    + '<img src="' + logoUrl + '" alt="CNA Roma" style="height:28px;opacity:0.35;margin-bottom:8px;">'
+    // Footer
+    + '<div style="text-align:center;padding-bottom:20px;">'
+    + '<img src="' + logoUrl + '" alt="CNA Roma" style="height:24px;opacity:0.3;margin-bottom:6px;">'
     + '<div style="font-size:11px;color:#94a3b8;">Scheda generata da CRM CNA Roma</div>'
     + '</div>'
 
     + '</div>'  // fine padding
     + '</body>'
-
-    // QR code script
     + '<script>(function(){'
     + 'var el=document.getElementById("qr-out");if(!el)return;'
     + 'var s=document.createElement("script");'
     + 's.src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js";'
-    + 's.onload=function(){new QRCode(el,{text:"' + url.replace(/\\/g,'\\\\').replace(/"/g,'\\"') + '",width:160,height:160,colorDark:"#002B7F",colorLight:"#f8fafc"});};'
+    + 's.onload=function(){new QRCode(el,{text:"' + url.replace(/\\/g,'\\\\').replace(/"/g,'\\"') + '",width:160,height:160,colorDark:"#002B7F",colorLight:"#ffffff"});};'
     + 'document.head.appendChild(s);'
     + '})();<\/script>'
     + '</html>';
