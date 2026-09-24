@@ -7202,164 +7202,131 @@ function renderSchedaPubblica(d, id) {
   var url = 'https://associaticna.vercel.app/?id=' + encodeURIComponent(id);
   var logoUrl = 'https://alessandroparrelli.github.io/fileappoggio/Nuovo-logo-CNA-blu-bianco.png';
 
-  // Stato badge
-  var statoBadge = (d.stato||'').toLowerCase();
-  var statoColor = statoBadge === 'attivo' ? '#16a34a' : statoBadge === 'sospeso' ? '#d97706' : '#6b7280';
-  var tipoBadge = d.tipo || '';
-  var tesseraBadge = d.tessera || '';
+  var titolare = d.titolare || [d.nometitolare, d.cognometitolare].filter(Boolean).join(' ') || '';
+
+  function riga(label, val) {
+    if (!val) return '';
+    return '<div style="display:flex;gap:8px;padding:8px 0;border-bottom:1px solid #f9f9f9;">'
+      + '<span style="font-size:13px;color:#6b7280;min-width:130px;flex-shrink:0;">' + label + '</span>'
+      + '<span style="font-size:13px;color:#1f2937;font-weight:500;">' + val + '</span></div>';
+  }
 
   // Contratti
   var contrattiHtml = '';
   if (d.contratti && d.contratti.length > 0) {
     contrattiHtml = d.contratti.map(function(c) {
-      var st = (c.status||'').toLowerCase();
-      var dot = st === 'active' || st === 'attivo' ? '#16a34a' : st === 'expiring' || st === 'in scadenza' ? '#d97706' : '#9ca3af';
-      var importo = c.mrr ? '€ ' + Number(c.mrr).toLocaleString('it-IT',{minimumFractionDigits:2}) : '';
-      var data = c.created_at ? new Date(c.created_at).toLocaleDateString('it-IT') : '';
-      return '<div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid #f0f0f0;">' +
-        '<span style="width:10px;height:10px;border-radius:50%;background:' + dot + ';flex-shrink:0;"></span>' +
-        '<div style="flex:1;"><div style="font-weight:600;color:#1f2937;font-size:14px;">' + (c.name||'—') + '</div>' +
-        (data ? '<div style="font-size:12px;color:#6b7280;">' + data + '</div>' : '') + '</div>' +
-        (importo ? '<div style="font-weight:700;color:#002B7F;font-size:14px;">' + importo + '</div>' : '') +
-        '</div>';
+      var st = (c.stato || '').toLowerCase();
+      var dot = (st === 'attivo' || st === 'active') ? '#16a34a' : st === 'scadenza' ? '#d97706' : '#9ca3af';
+      var importo = c.importo ? '\u20ac ' + Number(c.importo).toLocaleString('it-IT', {minimumFractionDigits: 2}) : '';
+      var data = c.datastipulacontratto ? new Date(c.datastipulacontratto).toLocaleDateString('it-IT') : '';
+      return '<div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid #f0f0f0;">'
+        + '<span style="width:10px;height:10px;border-radius:50%;background:' + dot + ';flex-shrink:0;"></span>'
+        + '<div style="flex:1;"><div style="font-weight:600;color:#1f2937;font-size:14px;">' + (c.nomecontratto || '\u2014') + '</div>'
+        + (data ? '<div style="font-size:12px;color:#6b7280;">' + data + '</div>' : '') + '</div>'
+        + (importo ? '<div style="font-weight:700;color:#002B7F;font-size:14px;">' + importo + '</div>' : '')
+        + '</div>';
     }).join('');
   } else {
     contrattiHtml = '<p style="color:#9ca3af;font-size:14px;text-align:center;padding:20px 0;">Nessun contratto registrato</p>';
   }
 
-  // Riga info
-  function riga(label, val) {
-    if (!val) return '';
-    return '<div style="display:flex;gap:8px;padding:8px 0;border-bottom:1px solid #f9f9f9;">' +
-      '<span style="font-size:13px;color:#6b7280;min-width:130px;flex-shrink:0;">' + label + '</span>' +
-      '<span style="font-size:13px;color:#1f2937;font-weight:500;">' + val + '</span></div>';
-  }
-
   // Mappa
   var indirizzoCompleto = [d.indirizzo, d.cap, d.comune, d.provincia].filter(Boolean).join(', ');
-  var mappaHtml = indirizzoCompleto ? '<div style="margin-top:8px;border-radius:10px;overflow:hidden;height:180px;">' +
-    '<iframe width="100%" height="180" frameborder="0" style="border:0;" allowfullscreen="" loading="lazy" ' +
-    'src="https://maps.google.com/maps?q=' + encodeURIComponent(indirizzoCompleto) + '&output=embed"></iframe></div>' : '';
+  var mappaHtml = indirizzoCompleto
+    ? '<div style="margin-top:8px;border-radius:10px;overflow:hidden;height:180px;">'
+      + '<iframe width="100%" height="180" frameborder="0" style="border:0;" allowfullscreen="" loading="lazy" '
+      + 'src="https://maps.google.com/maps?q=' + encodeURIComponent(indirizzoCompleto) + '&output=embed"></iframe></div>'
+    : '';
 
-  // Condivisione
-  var emailBody = 'Scheda impresa: ' + (d.ragionesociale||'') + '\n' + url;
-  var waMsg = 'Scheda impresa *' + (d.ragionesociale||'') + '*: ' + url;
+  var emailBody = 'Scheda impresa: ' + (d.ragionesociale || '') + '\n' + url;
+  var waMsg = 'Scheda impresa *' + (d.ragionesociale || '') + '*: ' + url;
 
-  return '<div style="max-width:600px;margin:0 auto;padding:16px;">' +
+  return '<div style="max-width:600px;margin:0 auto;padding:16px;">'
 
     // HERO
-    '<div style="background:linear-gradient(135deg,#002B7F 0%,#0041c4 100%);border-radius:16px;padding:28px 24px 24px;margin-bottom:16px;text-align:center;">' +
-      '<img src="' + logoUrl + '" alt="CNA Roma" style="height:40px;margin-bottom:16px;" onerror="this.style.display=\'none\'">' +
-      '<div style="font-size:11px;color:rgba(255,255,255,0.6);letter-spacing:1px;text-transform:uppercase;margin-bottom:4px;">P.IVA ' + (d.piva||'—') + '</div>' +
-      '<h1 style="color:#fff;font-size:20px;font-weight:800;margin:0 0 4px;text-transform:uppercase;letter-spacing:0.5px;">' + (d.ragionesociale||'—') + '</h1>' +
-      (d.titolare ? '<div style="font-size:14px;color:rgba(255,255,255,0.75);">Titolare: ' + d.titolare + '</div>' : '') +
-
-      // Badge
-      '<div style="display:flex;gap:8px;justify-content:center;margin-top:16px;flex-wrap:wrap;">' +
-        (d.stato ? '<span style="background:rgba(255,255,255,0.15);color:#fff;border-radius:20px;padding:4px 14px;font-size:12px;font-weight:600;border:1.5px solid rgba(255,255,255,0.3);">⬤ ' + d.stato + '</span>' : '') +
-        (d.tipo ? '<span style="background:rgba(239,68,68,0.25);color:#fca5a5;border-radius:20px;padding:4px 14px;font-size:12px;font-weight:600;border:1.5px solid rgba(239,68,68,0.3);">' + d.tipo + '</span>' : '') +
-        (d.tessera ? '<span style="background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.85);border-radius:20px;padding:4px 14px;font-size:12px;border:1.5px solid rgba(255,255,255,0.2);">Tessera ' + d.tessera + '</span>' : '') +
-      '</div>' +
-
-      // Contatori
-      '<div style="display:flex;gap:8px;justify-content:center;margin-top:20px;">' +
-        (d.dipendenti ? '<div style="background:rgba(255,255,255,0.12);border-radius:10px;padding:10px 18px;text-align:center;"><div style="font-size:22px;font-weight:800;color:#fff;">' + d.dipendenti + '</div><div style="font-size:11px;color:rgba(255,255,255,0.6);">Addetti</div></div>' : '') +
-        (d.nContratti > 0 ? '<div style="background:rgba(255,255,255,0.12);border-radius:10px;padding:10px 18px;text-align:center;"><div style="font-size:22px;font-weight:800;color:#fff;">' + d.nContratti + '</div><div style="font-size:11px;color:rgba(255,255,255,0.6);">Contratti</div></div>' : '') +
-      '</div>' +
-    '</div>' +
+    + '<div style="background:linear-gradient(135deg,#002B7F 0%,#0041c4 100%);border-radius:16px;padding:28px 24px 24px;margin-bottom:16px;text-align:center;">'
+    + '<img src="' + logoUrl + '" alt="CNA Roma" style="height:40px;margin-bottom:16px;" onerror="this.style.display=\'none\'">'
+    + '<div style="font-size:11px;color:rgba(255,255,255,0.6);letter-spacing:1px;text-transform:uppercase;margin-bottom:4px;">P.IVA ' + (d.partitaiva || '\u2014') + '</div>'
+    + '<h1 style="color:#fff;font-size:20px;font-weight:800;margin:0 0 4px;text-transform:uppercase;">' + (d.ragionesociale || '\u2014') + '</h1>'
+    + (titolare ? '<div style="font-size:14px;color:rgba(255,255,255,0.75);">Titolare: ' + titolare + '</div>' : '')
+    + '<div style="display:flex;gap:8px;justify-content:center;margin-top:16px;flex-wrap:wrap;">'
+    + (d.statogiuridico ? '<span style="background:rgba(255,255,255,0.15);color:#fff;border-radius:20px;padding:4px 14px;font-size:12px;font-weight:600;border:1.5px solid rgba(255,255,255,0.3);">' + d.statogiuridico + '</span>' : '')
+    + (d.soggettogiuridico ? '<span style="background:rgba(239,68,68,0.25);color:#fca5a5;border-radius:20px;padding:4px 14px;font-size:12px;font-weight:600;border:1.5px solid rgba(239,68,68,0.3);">' + d.soggettogiuridico + '</span>' : '')
+    + (d.nContratti > 0 ? '<span style="background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.85);border-radius:20px;padding:4px 14px;font-size:12px;border:1.5px solid rgba(255,255,255,0.2);">' + d.nContratti + ' contratti</span>' : '')
+    + '</div>'
+    + '</div>'
 
     // DATI ANAGRAFICI
-    '<div style="background:#fff;border-radius:10px;margin-bottom:12px;overflow:hidden;">' +
-      '<div style="background:#001f5c;color:#fff;padding:12px 16px;font-size:13px;font-weight:700;letter-spacing:0.5px;">📋 DATI ANAGRAFICI</div>' +
-      '<div style="padding:4px 16px 8px;">' +
-        riga('Codice', d.codiceanagrafica) +
-        riga('P.IVA', d.piva) +
-        riga('C.F.', d.codicefiscale) +
-        riga('Indirizzo', d.indirizzo) +
-        riga('CAP', d.cap) +
-        riga('Comune', d.comune) +
-        riga('Provincia', d.provincia) +
-        riga('Telefono', d.telefono) +
-        riga('Cellulare', d.cellulare) +
-        riga('Email', d.email) +
-      '</div>' +
-    '</div>' +
+    + '<div style="background:#fff;border-radius:10px;margin-bottom:12px;overflow:hidden;">'
+    + '<div style="background:#001f5c;color:#fff;padding:12px 16px;font-size:13px;font-weight:700;">📋 DATI ANAGRAFICI</div>'
+    + '<div style="padding:4px 16px 8px;">'
+    + riga('Codice', d.codiceanagrafica)
+    + riga('P.IVA', d.partitaiva)
+    + riga('C.F.', d.codicefiscale)
+    + riga('Indirizzo', d.indirizzo)
+    + riga('CAP', d.cap)
+    + riga('Comune', d.comune)
+    + riga('Provincia', d.provincia)
+    + riga('Telefono', d.telefono)
+    + riga('Cellulare', d.cellulare)
+    + riga('Email', d.email)
+    + '</div></div>'
 
     // MESTIERE
-    '<div style="background:#fff;border-radius:10px;margin-bottom:12px;overflow:hidden;">' +
-      '<div style="background:#001f5c;color:#fff;padding:12px 16px;font-size:13px;font-weight:700;letter-spacing:0.5px;">🏭 MESTIERE</div>' +
-      '<div style="padding:4px 16px 8px;">' +
-        riga('Categoria', d.categoriaateco) +
-        riga('Tipo attività', d.tipoattivita) +
-        riga('Settore CNA', d.settorecna) +
-        riga('Cod. ATECO', d.codateco) +
-        riga('Qualifica', d.qualifica) +
-        riga('Albo Artigiani', d.alboartigiani) +
-        riga('Forma giuridica', d.formagiuridica) +
-        riga('CCIAA', d.cciaa) +
-        riga('Dipendenti', d.dipendenti) +
-        riga('Unità locali', d.unitalocali) +
-        riga('Inizio attività', d.datainizio ? new Date(d.datainizio).toLocaleDateString('it-IT') : '') +
-      '</div>' +
-    '</div>' +
+    + '<div style="background:#fff;border-radius:10px;margin-bottom:12px;overflow:hidden;">'
+    + '<div style="background:#001f5c;color:#fff;padding:12px 16px;font-size:13px;font-weight:700;">🏭 ATTIVITÀ</div>'
+    + '<div style="padding:4px 16px 8px;">'
+    + riga('Mestiere', d.mestiere)
+    + riga('Cod. ATECO', d.codiceateco)
+    + riga('Forma giuridica', d.naturagiuridica)
+    + '</div></div>'
 
     // CONTRATTI
-    (d.contratti && d.contratti.length > 0 ?
-    '<div style="background:#fff;border-radius:10px;margin-bottom:12px;overflow:hidden;">' +
-      '<div style="background:#001f5c;color:#fff;padding:12px 16px;font-size:13px;font-weight:700;letter-spacing:0.5px;">📄 CONTRATTI E SERVIZI</div>' +
-      '<div style="padding:4px 16px 8px;">' + contrattiHtml + '</div>' +
-    '</div>' : '') +
+    + (d.contratti && d.contratti.length > 0
+      ? '<div style="background:#fff;border-radius:10px;margin-bottom:12px;overflow:hidden;">'
+        + '<div style="background:#001f5c;color:#fff;padding:12px 16px;font-size:13px;font-weight:700;">📄 CONTRATTI E SERVIZI</div>'
+        + '<div style="padding:4px 16px 8px;">' + contrattiHtml + '</div>'
+        + '</div>'
+      : '')
 
     // MAPPA
-    (indirizzoCompleto ?
-    '<div style="background:#fff;border-radius:10px;margin-bottom:12px;overflow:hidden;">' +
-      '<div style="background:#001f5c;color:#fff;padding:12px 16px;font-size:13px;font-weight:700;letter-spacing:0.5px;">📍 SEDE E COME RAGGIUNGERCI</div>' +
-      '<div style="padding:12px 16px;">' +
-        '<p style="font-size:14px;color:#374151;margin:0 0 10px;">' + indirizzoCompleto + '</p>' +
-        mappaHtml +
-      '</div>' +
-    '</div>' : '') +
+    + (indirizzoCompleto
+      ? '<div style="background:#fff;border-radius:10px;margin-bottom:12px;overflow:hidden;">'
+        + '<div style="background:#001f5c;color:#fff;padding:12px 16px;font-size:13px;font-weight:700;">📍 SEDE</div>'
+        + '<div style="padding:12px 16px;">'
+        + '<p style="font-size:14px;color:#374151;margin:0 0 10px;">' + indirizzoCompleto + '</p>'
+        + mappaHtml
+        + '</div></div>'
+      : '')
 
-    // QR + URL
-    '<div style="background:#fff;border-radius:10px;margin-bottom:16px;overflow:hidden;">' +
-      '<div style="background:#001f5c;color:#fff;padding:12px 16px;font-size:13px;font-weight:700;letter-spacing:0.5px;">🔗 LINK SCHEDA</div>' +
-      '<div style="padding:16px;text-align:center;">' +
-        '<div id="qr-container" style="margin:0 auto 12px;width:140px;height:140px;background:#f9f9f9;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:12px;color:#999;">Generazione QR…</div>' +
-        '<p style="font-size:12px;color:#6b7280;word-break:break-all;margin:0;">' + url + '</p>' +
-      '</div>' +
-    '</div>' +
+    // QR + CONDIVISIONE
+    + '<div style="background:#fff;border-radius:10px;margin-bottom:16px;overflow:hidden;">'
+    + '<div style="background:#001f5c;color:#fff;padding:12px 16px;font-size:13px;font-weight:700;">🔗 CONDIVIDI</div>'
+    + '<div style="padding:16px;text-align:center;">'
+    + '<div id="qr-container" style="margin:0 auto 12px;width:140px;height:140px;background:#f9f9f9;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:12px;color:#999;">...</div>'
+    + '<p style="font-size:12px;color:#6b7280;word-break:break-all;margin:0;">' + url + '</p>'
+    + '</div></div>'
 
-    // PULSANTI CONDIVISIONE
-    '<div style="display:flex;flex-direction:column;gap:8px;margin-bottom:32px;">' +
-      '<a href="mailto:?subject=Scheda%20' + encodeURIComponent(d.ragionesociale||'') + '&body=' + encodeURIComponent(emailBody) + '" style="display:block;background:#002B7F;color:#fff;text-align:center;padding:14px;border-radius:10px;text-decoration:none;font-weight:700;font-size:15px;">📧 Invia per Email</a>' +
-      '<div style="display:flex;gap:8px;">' +
-        '<a href="https://wa.me/?text=' + encodeURIComponent(waMsg) + '" style="flex:1;display:block;background:#25D366;color:#fff;text-align:center;padding:14px;border-radius:10px;text-decoration:none;font-weight:700;font-size:15px;">WhatsApp</a>' +
-        '<a href="sms:?body=' + encodeURIComponent(waMsg) + '" style="flex:1;display:block;background:#6b7280;color:#fff;text-align:center;padding:14px;border-radius:10px;text-decoration:none;font-weight:700;font-size:15px;">SMS</a>' +
-      '</div>' +
-      '<div style="display:flex;gap:8px;">' +
-        '<button onclick="(function(){var c=document.getElementById(\'qr-img\');if(c){var a=document.createElement(\'a\');a.download=\'qr-scheda.png\';a.href=c.src;a.click();}})()" style="flex:1;background:#f3f4f6;color:#374151;border:none;padding:14px;border-radius:10px;font-weight:600;font-size:15px;cursor:pointer;">⬇ Scarica QR</button>' +
-        '<button onclick="navigator.clipboard&&navigator.clipboard.writeText(\'' + url.replace(/'/g,"\\'") + '\').then(function(){alert(\'Link copiato!\');})" style="flex:1;background:#f3f4f6;color:#374151;border:none;padding:14px;border-radius:10px;font-weight:600;font-size:15px;cursor:pointer;">🔗 Copia link</button>' +
-      '</div>' +
-    '</div>' +
+    + '<div style="display:flex;flex-direction:column;gap:8px;margin-bottom:32px;">'
+    + '<a href="mailto:?subject=Scheda%20' + encodeURIComponent(d.ragionesociale || '') + '&body=' + encodeURIComponent(emailBody) + '" style="display:block;background:#002B7F;color:#fff;text-align:center;padding:14px;border-radius:10px;text-decoration:none;font-weight:700;font-size:15px;">📧 Invia per Email</a>'
+    + '<div style="display:flex;gap:8px;">'
+    + '<a href="https://wa.me/?text=' + encodeURIComponent(waMsg) + '" style="flex:1;display:block;background:#25D366;color:#fff;text-align:center;padding:14px;border-radius:10px;text-decoration:none;font-weight:700;">WhatsApp</a>'
+    + '<a href="sms:?body=' + encodeURIComponent(waMsg) + '" style="flex:1;display:block;background:#6b7280;color:#fff;text-align:center;padding:14px;border-radius:10px;text-decoration:none;font-weight:700;">SMS</a>'
+    + '</div>'
+    + '<button onclick="navigator.clipboard&&navigator.clipboard.writeText(\'' + url.replace(/\\/g,'\\\\').replace(/'/g,"\\'") + '\').then(function(){alert(\'Link copiato!\');})" style="background:#f3f4f6;color:#374151;border:none;padding:14px;border-radius:10px;font-weight:600;font-size:15px;cursor:pointer;">🔗 Copia link</button>'
+    + '</div>'
 
-    '<p style="text-align:center;font-size:12px;color:#9ca3af;margin-bottom:24px;">Scheda generata da CRM CNA Roma</p>' +
-  '</div>' +
+    + '<p style="text-align:center;font-size:12px;color:#9ca3af;margin-bottom:24px;">Scheda generata da CRM CNA Roma</p>'
+    + '</div>'
 
-  '<script>' +
-  '(function(){' +
-  'var qr=document.getElementById("qr-container");' +
-  'if(!qr)return;' +
-  'var s=document.createElement("script");' +
-  's.src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js";' +
-  's.onload=function(){' +
-  '  var div=document.createElement("div");' +
-  '  qr.innerHTML="";qr.appendChild(div);' +
-  '  new QRCode(div,{text:"' + url.replace(/"/g,'\\"') + '",width:130,height:130,colorDark:"#002B7F",colorLight:"#ffffff"});' +
-  '  setTimeout(function(){var img=div.querySelector("img");if(img)img.id="qr-img";},600);' +
-  '};' +
-  'document.head.appendChild(s);' +
-  '})();' +
-  '<\/script>';
+    + '<script>(function(){'
+    + 'var qr=document.getElementById("qr-container");if(!qr)return;'
+    + 'var s=document.createElement("script");'
+    + 's.src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js";'
+    + 's.onload=function(){var div=document.createElement("div");qr.innerHTML="";qr.appendChild(div);'
+    + 'new QRCode(div,{text:"' + url.replace(/"/g,'\\"') + '",width:130,height:130,colorDark:"#002B7F",colorLight:"#ffffff"});};'
+    + 'document.head.appendChild(s);'
+    + '})();<\/script>';
 }
 
 /* ══════════════════════════════════════════════════
