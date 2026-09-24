@@ -2574,8 +2574,6 @@ async function openScheda(idx){
       +'<div class="scheda-kpi-card"><div class="scheda-kpi-lbl">Servizi</div><div class="scheda-kpi-val">'+(nServizi||'—')+'</div></div>'
       +'</div>';
 
-    /* ── BOTTONE SCHEDA PUBBLICA ── */
-    html+='<div style="padding:0 16px 12px;"><button onclick="apriSchedaPubblica(\''+esc(ana.codiceanagrafica)+'\')\" style="width:100%;display:flex;align-items:center;justify-content:center;gap:8px;background:#fff;border:1.5px solid #002B7F;color:#002B7F;padding:11px 16px;border-radius:10px;font-family:var(--font);font-size:14px;font-weight:700;cursor:pointer;">🔗 Apri scheda pubblica</button></div>';
 
     /* ── TAB BAR scheda ── */
     html+='<div class="scheda-tab-bar" id="scheda-tabs">'
@@ -2755,6 +2753,21 @@ async function openScheda(idx){
 
     /* Render */
     G('scheda-content').innerHTML=html;
+
+    /* ── BOTTONE SCHEDA PUBBLICA (inserito via DOM, no string concat) ── */
+    (function(){
+      var kpiRow = G('scheda-content').querySelector('.scheda-kpi-row');
+      if(!kpiRow) return;
+      var btnDiv = document.createElement('div');
+      btnDiv.style.cssText = 'padding:0 16px 12px;';
+      var btn = document.createElement('button');
+      btn.style.cssText = 'width:100%;display:flex;align-items:center;justify-content:center;gap:8px;background:#fff;border:1.5px solid #002B7F;color:#002B7F;padding:11px 16px;border-radius:10px;font-family:var(--font);font-size:14px;font-weight:700;cursor:pointer;';
+      btn.innerHTML = '🔗 Apri scheda pubblica';
+      btn.onclick = function(){ apriSchedaPubblica(ana.codiceanagrafica); };
+      btnDiv.appendChild(btn);
+      kpiRow.insertAdjacentElement('afterend', btnDiv);
+    })();
+
     // Init tab default: mostra solo anagrafica
     document.querySelectorAll('.s-card[data-tab-section]').forEach(function(el){
       el.style.display = (el.getAttribute('data-tab-section') === 'dati-anagrafici') ? '' : 'none';
