@@ -2574,6 +2574,14 @@ async function openScheda(idx){
       +'<div class="scheda-kpi-card"><div class="scheda-kpi-lbl">Servizi</div><div class="scheda-kpi-val">'+(nServizi||'—')+'</div></div>'
       +'</div>';
 
+    /* ── BOTTONE SCHEDA PUBBLICA ── */
+    html+='<div style="padding:0 16px 12px;">'\
+      +'<button onclick="apriSchedaPubblica(\''+esc(ana.codiceanagrafica)+'\')" style="width:100%;display:flex;align-items:center;justify-content:center;gap:8px;background:#fff;border:1.5px solid #002B7F;color:#002B7F;padding:11px 16px;border-radius:10px;font-family:var(--font);font-size:14px;font-weight:700;cursor:pointer;">'\
+        +'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>'\
+        +'Apri scheda pubblica'\
+      +'</button>'\
+    +'</div>';
+
     /* ── TAB BAR scheda ── */
     html+='<div class="scheda-tab-bar" id="scheda-tabs">'
       +'<button class="scheda-tab-btn active" onclick="schedaTab(this,\'anagrafica\')">Anagrafica</button>'
@@ -7154,6 +7162,11 @@ function goHome(){
 /* ══════════════════════════════════════════════════
    SCHEDA PUBBLICA
 ══════════════════════════════════════════════════ */
+function apriSchedaPubblica(codice) {
+  var url = window.location.origin + window.location.pathname + '?id=' + encodeURIComponent(codice);
+  window.open(url, '_blank');
+}
+
 async function mostraSchedaPubblica(id) {
   // Nascondi login e app, mostra scheda pubblica
   document.getElementById('login-page').style.display = 'none';
