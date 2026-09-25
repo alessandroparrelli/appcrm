@@ -820,8 +820,8 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 
 /* ── CRM List Hero ── */
 .crm-list-hero{background:var(--primary);padding:16px 20px 32px;position:relative;overflow:hidden;}
-.crm-list-hero::before{content:'';position:absolute;right:-30px;top:-30px;width:160px;height:160px;border-radius:50%;background:rgba(255,255,255,.07);pointer-events:none;}
-.crm-list-hero::after{content:'';position:absolute;right:20px;top:40px;width:90px;height:90px;border-radius:50%;background:rgba(231,71,56,.18);pointer-events:none;}
+.crm-list-hero::before{display:none;}
+.crm-list-hero::after{display:none;}
 .crm-list-hero-name{font-size:22px;font-weight:900;color:#fff;letter-spacing:-.03em;position:relative;z-index:1;}
 #view-crm .crm-kpi-row{margin-top:-18px;}
 
@@ -845,7 +845,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 .crm-contact-card[data-macro="lavorazione"] .crm-contact-card-stripe{background:#f59e0b;}
 .crm-contact-card[data-macro="positivo"]    .crm-contact-card-stripe{background:#16a34a;}
 .crm-contact-card[data-macro="negativo"]    .crm-contact-card-stripe{background:#e74738;}
-.app-header{background:var(--primary);box-shadow:0 4px 16px rgba(0,92,169,.3);border-bottom:3px solid #00437a;}
+.app-header{background:var(--primary);box-shadow:none;border-bottom:none;}
 .header-title{color:#fff;}
 .user-chip{background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.3);}
 .user-chip:hover{background:rgba(255,255,255,.28);}
