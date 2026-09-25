@@ -7227,7 +7227,6 @@ function renderSchedaPubblica(d, id) {
   var dataIscr   = cciaa.data_iscrizione_rea ? new Date(cciaa.data_iscrizione_rea).toLocaleDateString('it-IT') : '';
   var indir      = [d.indirizzo, d.cap, d.comune, d.provincia].filter(Boolean).join(', ');
 
-  // Riga dati: sfondo bianco, testo scuro
   function row(label, val) {
     if (!val && val !== 0) return '';
     return '<div style="display:flex;align-items:baseline;padding:11px 0;border-bottom:1px solid #f1f5f9;">'
@@ -7236,10 +7235,9 @@ function renderSchedaPubblica(d, id) {
       + '</div>';
   }
 
-  // Card: sfondo bianco, header colorato sottile
   function card(accentColor, icon, title, body) {
-    return '<div style="background:#fff;border-radius:16px;margin-bottom:14px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,0.07);">'
-      + '<div style="background:' + accentColor + ';padding:12px 18px;display:flex;align-items:center;gap:10px;">'
+    return '<div style="background:#fff;border-radius:16px;margin-bottom:14px;overflow:hidden;box-shadow:0 2px 16px rgba(0,43,127,0.1);">'
+      + '<div style="background:' + accentColor + ';padding:13px 18px;display:flex;align-items:center;gap:10px;">'
       + '<span style="font-size:16px;line-height:1;">' + icon + '</span>'
       + '<span style="font-size:11px;font-weight:800;color:#fff;text-transform:uppercase;letter-spacing:1.2px;">' + title + '</span>'
       + '</div>'
@@ -7247,7 +7245,6 @@ function renderSchedaPubblica(d, id) {
       + '</div>';
   }
 
-  // Contratti
   var contrattiHtml = '';
   if (d.contratti && d.contratti.length > 0) {
     contrattiHtml = d.contratti.map(function(c, i) {
@@ -7281,6 +7278,8 @@ function renderSchedaPubblica(d, id) {
 
   var QR_URL_JSON = JSON.stringify(url);
 
+  // Sfondo header identico in cima: gradient finisce su #001233, stesso colore di html/body sopra
+  // Body pagina: bianco
   return '<!DOCTYPE html><html lang="it"><head>'
     + '<meta charset="UTF-8">'
     + '<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">'
@@ -7288,64 +7287,68 @@ function renderSchedaPubblica(d, id) {
     + '<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">'
     + '<style>'
     + '*{box-sizing:border-box;margin:0;padding:0;-webkit-font-smoothing:antialiased;}'
-    // sfondo uguale al fondo del gradiente header → transizione invisibile
-    + 'html,body{background:#001a5e;}'
+    // html e body hanno lo stesso colore del TOP del gradiente header → continuità assoluta
+    + 'html,body{background:#001233;}'
     + 'body{font-family:Inter,sans-serif;}'
     + 'a{text-decoration:none;color:inherit;}'
     + '.page{max-width:540px;margin:0 auto;}'
+    // Il body content sotto l'header è bianco
+    + '.body-white{background:#f4f7fb;}'
     + '</style>'
     + '</head><body><div class="page">'
 
-    // ══ HEADER ══
-    + '<div style="background:linear-gradient(170deg,#001233 0%,#002B7F 55%,#001a5e 100%);padding-bottom:0;">'
+    // ══ HEADER ══ — inizia con lo stesso colore di html (#001233)
+    + '<div style="background:linear-gradient(170deg,#001233 0%,#001a5e 30%,#002B7F 70%,#0038a8 100%);padding-bottom:0;">'
 
     // Logo
-    + '<div style="text-align:center;padding:28px 24px 22px;">'
+    + '<div style="text-align:center;padding:32px 24px 24px;">'
     + '<img src="' + logoUrl + '" alt="CNA Roma" style="height:52px;width:auto;">'
     + '</div>'
     + '<div style="height:1px;background:rgba(255,255,255,0.12);margin:0 24px;"></div>'
 
-    // Impresa
-    + '<div style="padding:22px 24px 0;text-align:center;">'
+    // Nome impresa
+    + '<div style="padding:24px 24px 0;text-align:center;">'
     + '<div style="font-size:10px;color:rgba(255,255,255,0.4);letter-spacing:2px;text-transform:uppercase;margin-bottom:10px;">'
     + 'Codice\u00a0' + esc(d.codiceanagrafica||'') + '\u00a0\u00b7\u00a0P.IVA\u00a0' + esc(d.partitaiva||'\u2014') + '</div>'
-    + '<h1 style="color:#fff;font-size:24px;font-weight:900;line-height:1.15;letter-spacing:-0.025em;margin-bottom:' + (titolare?'9px':'0') + ';">' + esc(d.ragionesociale||'\u2014') + '</h1>'
+    + '<h1 style="color:#fff;font-size:24px;font-weight:900;line-height:1.15;letter-spacing:-0.025em;margin-bottom:' + (titolare?'9px':'4px') + ';">' + esc(d.ragionesociale||'\u2014') + '</h1>'
     + (titolare ? '<div style="font-size:13px;color:rgba(255,255,255,0.55);">Titolare\u00a0\u00b7\u00a0<strong style="color:rgba(255,255,255,0.85);font-weight:700;">' + esc(titolare) + '</strong></div>' : '')
     + '</div>'
 
-    // Badge
-    + '<div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;padding:18px 24px 0;">'
-    + (statoLabel ? '<span style="display:inline-flex;align-items:center;gap:5px;background:' + (statoIsAttiva?'#dcfce7':'#fee2e2') + ';color:' + (statoIsAttiva?'#166534':'#991b1b') + ';border-radius:100px;padding:6px 16px;font-size:12px;font-weight:700;">'
-      + '<span style="width:7px;height:7px;border-radius:50%;background:' + (statoIsAttiva?'#16a34a':'#dc2626') + ';display:inline-block;flex-shrink:0;"></span>' + statoLabel + '</span>' : '')
-    + (tipoLabel ? '<span style="background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.9);border:1px solid rgba(255,255,255,0.2);border-radius:100px;padding:6px 16px;font-size:12px;font-weight:600;">' + tipoLabel + '</span>' : '')
-    + (isPagante ? '<span style="background:rgba(251,191,36,0.2);color:#fde68a;border:1px solid rgba(251,191,36,0.35);border-radius:100px;padding:6px 16px;font-size:12px;font-weight:700;">\u2713\u00a0Tessera pagante</span>' : '')
+    // Badge — stile pill con sfondo pieno e testo molto contrastato
+    + '<div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;padding:20px 24px 0;">'
+    + (statoLabel
+      ? '<span style="display:inline-flex;align-items:center;gap:6px;background:' + (statoIsAttiva?'#15803d':'#b91c1c') + ';color:#fff;border-radius:100px;padding:7px 18px;font-size:13px;font-weight:800;letter-spacing:0.2px;">'
+        + '<span style="width:7px;height:7px;border-radius:50%;background:' + (statoIsAttiva?'#86efac':'#fca5a5') + ';display:inline-block;flex-shrink:0;"></span>'
+        + statoLabel + '</span>'
+      : '')
+    + (tipoLabel
+      ? '<span style="background:#1e40af;color:#fff;border-radius:100px;padding:7px 18px;font-size:13px;font-weight:700;">' + tipoLabel + '</span>'
+      : '')
+    + (isPagante
+      ? '<span style="background:#b45309;color:#fff;border-radius:100px;padding:7px 18px;font-size:13px;font-weight:700;">\u2713\u00a0Tessera pagante</span>'
+      : '')
     + '</div>'
 
-    // ══ KPI — 3 box colorati ══
-    + '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;padding:20px 16px 0;">'
-
-    + '<div style="background:linear-gradient(135deg,#1d4ed8,#3b82f6);border-radius:14px;padding:18px 10px;text-align:center;">'
-    + '<div style="font-size:34px;font-weight:900;color:#fff;line-height:1;">' + (nAddetti||'\u2014') + '</div>'
-    + '<div style="font-size:9px;font-weight:700;color:rgba(255,255,255,0.6);text-transform:uppercase;letter-spacing:1.5px;margin-top:7px;">Addetti</div>'
+    // KPI — 3 box colorati
+    + '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;padding:22px 16px 28px;">'
+    + '<div style="background:linear-gradient(135deg,#1d4ed8,#3b82f6);border-radius:14px;padding:20px 10px;text-align:center;">'
+    + '<div style="font-size:36px;font-weight:900;color:#fff;line-height:1;">' + (nAddetti||'\u2014') + '</div>'
+    + '<div style="font-size:9px;font-weight:700;color:rgba(255,255,255,0.65);text-transform:uppercase;letter-spacing:1.5px;margin-top:8px;">Addetti</div>'
     + '</div>'
-
-    + '<div style="background:linear-gradient(135deg,#059669,#34d399);border-radius:14px;padding:18px 10px;text-align:center;">'
-    + '<div style="font-size:34px;font-weight:900;color:#fff;line-height:1;">' + (nContratti||'\u2014') + '</div>'
-    + '<div style="font-size:9px;font-weight:700;color:rgba(255,255,255,0.6);text-transform:uppercase;letter-spacing:1.5px;margin-top:7px;">Contratti</div>'
+    + '<div style="background:linear-gradient(135deg,#059669,#34d399);border-radius:14px;padding:20px 10px;text-align:center;">'
+    + '<div style="font-size:36px;font-weight:900;color:#fff;line-height:1;">' + (nContratti||'\u2014') + '</div>'
+    + '<div style="font-size:9px;font-weight:700;color:rgba(255,255,255,0.65);text-transform:uppercase;letter-spacing:1.5px;margin-top:8px;">Contratti</div>'
     + '</div>'
-
-    + '<div style="background:linear-gradient(135deg,#7c3aed,#a78bfa);border-radius:14px;padding:18px 10px;text-align:center;">'
-    + '<div style="font-size:34px;font-weight:900;color:#fff;line-height:1;">' + (nServizi||'\u2014') + '</div>'
-    + '<div style="font-size:9px;font-weight:700;color:rgba(255,255,255,0.6);text-transform:uppercase;letter-spacing:1.5px;margin-top:7px;">Servizi</div>'
+    + '<div style="background:linear-gradient(135deg,#7c3aed,#a78bfa);border-radius:14px;padding:20px 10px;text-align:center;">'
+    + '<div style="font-size:36px;font-weight:900;color:#fff;line-height:1;">' + (nServizi||'\u2014') + '</div>'
+    + '<div style="font-size:9px;font-weight:700;color:rgba(255,255,255,0.65);text-transform:uppercase;letter-spacing:1.5px;margin-top:8px;">Servizi</div>'
     + '</div>'
-
     + '</div>'
     + '</div>' // fine header
 
-    // ══ BODY — stesso blu scuro, poi cards bianche ══
-    + '<div style="background:#001a5e;padding:18px 14px 8px;">'
+    // ══ BODY BIANCO ══
+    + '<div style="background:#f4f7fb;padding:20px 14px 8px;">'
 
-    // Card bianche con header colorato
     + card('linear-gradient(90deg,#1e3a8a,#2563eb)', '📋', 'Dati anagrafici',
         row('Codice', d.codiceanagrafica)
         + row('P.IVA', d.partitaiva)
@@ -7371,12 +7374,11 @@ function renderSchedaPubblica(d, id) {
       )
 
     + card('linear-gradient(90deg,#4c1d95,#7c3aed)', '📄', 'Contratti e servizi',
-        contrattiHtml + serviziHtml
-      )
+        contrattiHtml + serviziHtml)
 
     + (indir
-      ? '<div style="background:#fff;border-radius:16px;margin-bottom:14px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,0.07);">'
-        + '<div style="background:linear-gradient(90deg,#7c2d12,#ea580c);padding:12px 18px;display:flex;align-items:center;gap:10px;">'
+      ? '<div style="background:#fff;border-radius:16px;margin-bottom:14px;overflow:hidden;box-shadow:0 2px 16px rgba(0,43,127,0.1);">'
+        + '<div style="background:linear-gradient(90deg,#7c2d12,#ea580c);padding:13px 18px;display:flex;align-items:center;gap:10px;">'
         + '<span style="font-size:16px;">📍</span>'
         + '<span style="font-size:11px;font-weight:800;color:#fff;text-transform:uppercase;letter-spacing:1.2px;">Sede e come raggiungerci</span>'
         + '</div>'
@@ -7385,8 +7387,8 @@ function renderSchedaPubblica(d, id) {
         + '</div>'
       : '')
 
-    + '<div style="background:#fff;border-radius:16px;margin-bottom:14px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,0.07);">'
-    + '<div style="background:linear-gradient(90deg,#0f172a,#1e3a8a);padding:12px 18px;display:flex;align-items:center;gap:10px;">'
+    + '<div style="background:#fff;border-radius:16px;margin-bottom:14px;overflow:hidden;box-shadow:0 2px 16px rgba(0,43,127,0.1);">'
+    + '<div style="background:linear-gradient(90deg,#0f172a,#1e3a8a);padding:13px 18px;display:flex;align-items:center;gap:10px;">'
     + '<span style="font-size:16px;">🔗</span>'
     + '<span style="font-size:11px;font-weight:800;color:#fff;text-transform:uppercase;letter-spacing:1.2px;">QR Code scheda</span>'
     + '</div>'
@@ -7398,11 +7400,9 @@ function renderSchedaPubblica(d, id) {
 
     // Pulsanti
     + '<div style="display:flex;flex-direction:column;gap:10px;margin-bottom:22px;">'
-
     + '<a href="mailto:?subject=' + encodeURIComponent('Scheda '+(d.ragionesociale||'')) + '&body=' + encodeURIComponent('Scheda impresa '+(d.ragionesociale||'')+':\n'+url) + '" style="display:flex;align-items:center;justify-content:center;gap:10px;background:#002B7F;color:#fff;padding:16px;border-radius:12px;font-weight:700;font-size:15px;font-family:Inter,sans-serif;">'
     + '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>'
     + 'Invia per Email</a>'
-
     + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">'
     + '<a href="https://wa.me/?text=' + encodeURIComponent('Scheda '+(d.ragionesociale||'')+': '+url) + '" style="display:flex;align-items:center;justify-content:center;gap:8px;background:#16a34a;color:#fff;padding:15px;border-radius:12px;font-weight:700;font-size:14px;">'
     + '<svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413Z"/></svg>'
@@ -7411,7 +7411,6 @@ function renderSchedaPubblica(d, id) {
     + '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>'
     + 'SMS</a>'
     + '</div>'
-
     + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">'
     + '<button id="btn-qr" style="display:flex;align-items:center;justify-content:center;gap:8px;background:#1e3a8a;color:#fff;border:none;padding:14px;border-radius:12px;font-weight:700;font-size:14px;cursor:pointer;font-family:Inter,sans-serif;">'
     + '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>'
@@ -7424,11 +7423,11 @@ function renderSchedaPubblica(d, id) {
 
     // Footer
     + '<div style="text-align:center;padding:4px 0 28px;">'
-    + '<img src="' + logoUrl + '" alt="" style="height:20px;opacity:0.3;display:inline-block;margin-bottom:6px;">'
-    + '<div style="font-size:11px;color:rgba(255,255,255,0.3);">Scheda generata da CRM CNA Roma</div>'
+    + '<img src="' + logoUrl + '" alt="" style="height:20px;opacity:0.25;display:inline-block;margin-bottom:6px;">'
+    + '<div style="font-size:11px;color:#94a3b8;">Scheda generata da CRM CNA Roma</div>'
     + '</div>'
 
-    + '</div>' // fine body
+    + '</div>' // fine body bianco
     + '</div>' // fine page
 
     + '<script>'
