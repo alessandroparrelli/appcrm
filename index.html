@@ -1749,14 +1749,16 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
           <table class="admin-table">
             <thead><tr>
               <th>Utente</th>
-              <th>Creati</th>
-              <th>Assegnati</th>
-              <th>Chiamate</th>
-              <th>Appuntamenti</th>
-              <th>Chiusi ✓</th>
+              <th style="text-align:center">Assegnati</th>
+              <th style="text-align:center;color:#e74738">Da cont.</th>
+              <th style="text-align:center;color:#D97706">In lav.</th>
+              <th style="text-align:center">Chiamate</th>
+              <th style="text-align:center">Appunt.</th>
+              <th style="text-align:center;color:#16a34a">Chiusi +</th>
+              <th style="text-align:center;color:#B91C1C">Chiusi −</th>
             </tr></thead>
             <tbody id="admin-users-tbody">
-              <tr><td colspan="6" class="admin-empty">Caricamento…</td></tr>
+              <tr><td colspan="8" class="admin-empty">Caricamento…</td></tr>
             </tbody>
           </table>
         </div>
@@ -4554,7 +4556,7 @@ async function loadAdminDashboard(){
                  + (dateTo   ? '&created_at=lte.'+dateTo  +'T23:59:59' : '');
 
     var [cRes,callRes,aptRes,userRes,ncRes,pushRes] = await Promise.all([
-      fetch(SB+'/rest/v1/crm_contacts?select=id,status'+dateQS,{headers:H()}),
+      fetch(SB+'/rest/v1/crm_contacts?select=id,status,creator_id,assigned_id'+dateQS,{headers:H()}),
       fetch(SB+'/rest/v1/crm_calls?select=id'+dateQS,{headers:H()}),
       fetch(SB+'/rest/v1/crm_appointments?select=id'+dateQS,{headers:H()}),
       fetch(SB+'/rest/v1/cna_users?attivo=eq.true&select=id,nome,cognome,email&order=cognome.asc',{headers:H()}),
@@ -4710,18 +4712,24 @@ async function loadAdminUserReport(contacts, calls, apts, users){
       fetch(SB+'/rest/v1/crm_appointments?select=user_id',{headers:H()}).then(function(r){return r.ok?r.json():[]; })
     ]);
     tbody.innerHTML = users.map(function(u){
-      var creati    = contacts.filter(function(c){ return c.creator_id===u.id; }).length;
-      var assegnati = contacts.filter(function(c){ return c.assigned_id===u.id; }).length;
+      var assigned  = contacts.filter(function(c){ return c.assigned_id===u.id; });
+      var assegnati = assigned.length;
+      var daCont    = assigned.filter(function(c){ return getMacro(c.status)==='da_contattare'; }).length;
+      var inLav     = assigned.filter(function(c){ return getMacro(c.status)==='lavorazione'; }).length;
+      var chiusiPos = assigned.filter(function(c){ return c.status==='chiuso_positivo'; }).length;
+      var chiusiNeg = assigned.filter(function(c){ return c.status==='chiuso_negativo'; }).length;
       var chiami    = callsAll.filter(function(c){ return c.user_id===u.id; }).length;
       var appuntam  = aptsAll.filter(function(a){ return a.user_id===u.id; }).length;
-      var chiusi    = contacts.filter(function(c){ return c.assigned_id===u.id && c.status==='chiuso_positivo'; }).length;
-      return '<tr>'
+      var hasData   = assegnati||chiami||appuntam;
+      return '<tr style="'+(hasData?'':'opacity:.5')+'">'
         +'<td style="font-weight:700">'+esc(u.nome+' '+u.cognome)+'</td>'
-        +'<td style="text-align:center">'+creati+'</td>'
-        +'<td style="text-align:center">'+assegnati+'</td>'
+        +'<td style="text-align:center;font-weight:600">'+assegnati+'</td>'
+        +'<td style="text-align:center;color:'+(daCont?'#e74738':'var(--text-tertiary)')+'">'+daCont+'</td>'
+        +'<td style="text-align:center;color:'+(inLav?'#D97706':'var(--text-tertiary)')+'">'+inLav+'</td>'
         +'<td style="text-align:center">'+chiami+'</td>'
         +'<td style="text-align:center">'+appuntam+'</td>'
-        +'<td style="text-align:center;font-weight:700;color:var(--success)">'+chiusi+'</td>'
+        +'<td style="text-align:center;font-weight:700;color:'+(chiusiPos?'#16a34a':'var(--text-tertiary)')+'">'+chiusiPos+'</td>'
+        +'<td style="text-align:center;font-weight:700;color:'+(chiusiNeg?'#B91C1C':'var(--text-tertiary)')+'">'+chiusiNeg+'</td>'
         +'</tr>';
     }).join('');
   } catch(e){ tbody.innerHTML='<tr><td colspan="6" class="admin-empty">Errore</td></tr>'; }
