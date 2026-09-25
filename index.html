@@ -4545,7 +4545,7 @@ var adminDebounceTimer = null;
 
 async function loadAdminDashboard(){
   if(session.ruolo!=='admin'){ toast('Accesso negato','error'); return; }
-  adminInitEmailSection();
+  if(typeof adminInitEmailSection==='function') adminInitEmailSection();
   // carica tutto in parallelo
   try {
     var dateFrom = G('admin-date-from') ? G('admin-date-from').value : '';
