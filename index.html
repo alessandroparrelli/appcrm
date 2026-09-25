@@ -100,7 +100,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 #app.visible{display:flex;}
 
 /* HEADER */
-.app-header{height:var(--header-h);background:var(--primary);display:flex;align-items:center;justify-content:space-between;padding:0 20px;padding-top:env(safe-area-inset-top);position:sticky;top:0;z-index:200;box-shadow:none;flex-shrink:0;box-sizing:content-box;}
+.app-header{height:var(--header-h);background:var(--primary);display:flex;align-items:center;justify-content:space-between;padding:0 20px;padding-top:env(safe-area-inset-top);position:sticky;top:0;z-index:200;box-shadow:none;flex-shrink:0;box-sizing:content-box;border-bottom:1px solid var(--primary);}
 .header-left{display:flex;align-items:center;gap:10px;}
 .logo-img{height:44px;width:auto;max-width:140px;display:block;object-fit:contain;}
 .logo-fallback{background:rgba(255,255,255,.2);color:#fff;font-weight:800;font-size:12px;padding:5px 10px;border-radius:var(--radius-sm);letter-spacing:.02em;align-items:center;justify-content:center;}
@@ -823,7 +823,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 }
 
 /* ── CRM List Hero ── */
-.crm-list-hero{background:var(--primary);padding:16px 20px 32px;position:relative;overflow:hidden;}
+.crm-list-hero{background:var(--primary);padding:16px 20px 32px;position:relative;overflow:hidden;margin-top:-1px;}
 .crm-list-hero::before{display:none;}
 .crm-list-hero::after{display:none;}
 .crm-list-hero-name{font-size:22px;font-weight:900;color:#fff;letter-spacing:-.03em;position:relative;z-index:1;}
@@ -849,7 +849,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 .crm-contact-card[data-macro="lavorazione"] .crm-contact-card-stripe{background:#f59e0b;}
 .crm-contact-card[data-macro="positivo"]    .crm-contact-card-stripe{background:#16a34a;}
 .crm-contact-card[data-macro="negativo"]    .crm-contact-card-stripe{background:#e74738;}
-.app-header{background:var(--primary);box-shadow:none;border-bottom:none;}
+.app-header{background:var(--primary);box-shadow:none;border-bottom:1px solid var(--primary);}
 .header-title{color:#fff;}
 .user-chip{background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.3);}
 .user-chip:hover{background:rgba(255,255,255,.28);}
@@ -965,7 +965,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
   <div id="sw-update-banner">
     <span style="flex:1;">🔄 Nuova versione disponibile</span>
     <button onclick="swApplyUpdate()">Aggiorna ora</button>
-    <button onclick="this.closest('#sw-update-banner').classList.remove('show')" style="background:transparent;opacity:.7;">✕</button>
+    <button onclick="document.getElementById('sw-update-banner').classList.remove('show')" style="background:transparent;opacity:.7;">✕</button>
   </div>
 
   <!-- In-app notification toast -->
