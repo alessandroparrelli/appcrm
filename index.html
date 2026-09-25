@@ -633,6 +633,10 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 
 /* ── PUSH NOTIFICATION BANNER ───────────────────── */
 .push-banner{display:none;}
+/* Banner aggiornamento SW */
+#sw-update-banner{display:none;position:fixed;bottom:80px;left:16px;right:16px;z-index:9999;background:var(--primary);color:#fff;border-radius:var(--radius-xl);padding:12px 16px;box-shadow:0 4px 20px rgba(0,0,0,.25);font-size:14px;font-weight:600;display:flex;align-items:center;gap:12px;animation:slideUp .3s ease;}
+#sw-update-banner.show{display:flex;}
+#sw-update-banner button{background:rgba(255,255,255,.2);border:none;color:#fff;font-size:13px;font-weight:700;padding:6px 12px;border-radius:20px;cursor:pointer;font-family:var(--font);white-space:nowrap;}
 /* ── MODALE NOTIFICHE ─────────────────────────────── */
 #modal-notif-bg{position:fixed;inset:0;background:rgba(0,0,0,.6);backdrop-filter:blur(6px);display:none;align-items:center;justify-content:center;z-index:20000;padding:20px;}
 #modal-notif-bg.open{display:flex;}
@@ -957,6 +961,12 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 <div id="app">
   <!-- placeholder push banner (nascosto) -->
   <div class="push-banner" id="push-banner"></div>
+  <!-- Banner aggiornamento disponibile -->
+  <div id="sw-update-banner">
+    <span style="flex:1;">🔄 Nuova versione disponibile</span>
+    <button onclick="swApplyUpdate()">Aggiorna ora</button>
+    <button onclick="this.closest('#sw-update-banner').classList.remove('show')" style="background:transparent;opacity:.7;">✕</button>
+  </div>
 
   <!-- In-app notification toast -->
   <div class="crm-notif-toast" id="crm-notif-toast">
@@ -7498,16 +7508,69 @@ function renderSchedaPubblica(d, id) {
   // Registra Service Worker
   if('serviceWorker' in navigator){
     navigator.serviceWorker.register('./sw.js', {scope:'./'}).then(function(reg){
+      // Rileva nuova versione del SW disponibile
       reg.addEventListener('updatefound', function(){
-        var n=reg.installing;
+        var n = reg.installing;
         n.addEventListener('statechange', function(){
-          if(n.state==='installed'&&navigator.serviceWorker.controller) n.postMessage({type:'SKIP_WAITING'});
+          if(n.state === 'installed' && navigator.serviceWorker.controller) {
+            // Mostra banner invece di aggiornare automaticamente
+            var banner = document.getElementById('sw-update-banner');
+            if (banner) banner.classList.add('show');
+            window._swWaiting = n;
+          }
         });
       });
-      navigator.serviceWorker.addEventListener('message', function(e){
-        if(e.data&&e.data.type==='CRM_NAVIGATE'){window.focus&&window.focus();showView('crm');loadMieAttivita();}
+
+      // Controlla aggiornamenti ogni volta che l'app torna in primo piano
+      document.addEventListener('visibilitychange', function(){
+        if (!document.hidden) reg.update();
       });
+
+      navigator.serviceWorker.addEventListener('message', function(e){
+        if (!e.data) return;
+        // Navigazione da notificationclick
+        if (e.data.type === 'CRM_NAVIGATE') {
+          window.focus && window.focus();
+          showView('crm');
+          loadMieAttivita();
+        }
+        // Reload dopo SKIP_WAITING applicato
+        if (e.data.type === 'SW_ACTIVATED') {
+          window.location.reload();
+        }
+        // iOS: subscription scaduta — rinnova silenziosamente
+        if (e.data.type === 'PUSH_SUBSCRIPTION_EXPIRED') {
+          console.log('[CRM] Push subscription scaduta — rinnovo...');
+          _webPushSubscribe();
+        }
+      });
+
+      // iOS: rinnova subscription push ad ogni apertura (scade silenziosamente)
+      reg.pushManager.getSubscription().then(function(sub){
+        if (sub && session && session.id) {
+          // Verifica che la subscription sia ancora valida e aggiornala sul server
+          _savePushSub(sub).catch(function(){});
+        }
+      }).catch(function(){});
+
     }).catch(function(e){console.warn('[CRM] SW:',e);});
+
+    // Ricarica quando il SW nuovo prende controllo
+    var refreshing = false;
+    navigator.serviceWorker.addEventListener('controllerchange', function(){
+      if (!refreshing) { refreshing = true; window.location.reload(); }
+    });
+  }
+
+  // Applica aggiornamento SW su richiesta utente
+  function swApplyUpdate(){
+    var banner = document.getElementById('sw-update-banner');
+    if (banner) banner.classList.remove('show');
+    if (window._swWaiting) {
+      window._swWaiting.postMessage({ type: 'SKIP_WAITING' });
+    } else {
+      window.location.reload();
+    }
   }
 })();
 </script>

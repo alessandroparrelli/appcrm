@@ -1,6 +1,6 @@
 // Service Worker — CRM CNA Roma
-// BUILD: 1784887001
-const CACHE  = 'crm-cna-1784887001';
+// BUILD: 1784887002
+const CACHE  = 'crm-cna-1784887002';
 const ASSETS = ['./', './index.html', './manifest.json', './icon-192.png', './icon-512.png', './apple-touch-icon.png'];
 
 self.addEventListener('install', e => {
@@ -22,7 +22,7 @@ self.addEventListener('fetch', e => {
     e.respondWith(fetch(e.request).catch(() => caches.match(e.request)));
     return;
   }
-  // Network-first per index.html, cache-first per assets statici
+  // Network-first per index.html: aggiornamento immediato
   if (e.request.url.endsWith('/') || e.request.url.includes('index.html')) {
     e.respondWith(
       fetch(e.request).then(resp => {
@@ -48,14 +48,30 @@ self.addEventListener('fetch', e => {
 
 // ── PUSH ──────────────────────────────────────────────────────────────────────
 self.addEventListener('push', e => {
-  let data = { title: 'CRM CNA Roma', body: 'Hai una nuova notifica', url: '/', icon: '/icon-192.png', badge: '/icon-144.png', tag: 'crm' };
+  let data = {
+    title: 'CRM CNA Roma',
+    body: 'Hai una nuova notifica',
+    url: '/',
+    icon: '/icon-192.png',
+    badge: '/icon-144.png',
+    tag: 'crm'
+  };
   if (e.data) {
     try { Object.assign(data, e.data.json()); } catch(err) { data.body = e.data.text() || data.body; }
   }
-  e.waitUntil(self.registration.showNotification(data.title, {
-    body: data.body, icon: data.icon, badge: data.badge, tag: data.tag,
-    data: { url: data.url }, vibrate: [200, 100, 200], requireInteraction: false,
-  }));
+  e.waitUntil(
+    self.registration.showNotification(data.title, {
+      body: data.body,
+      icon: data.icon,
+      badge: data.badge,
+      tag: data.tag,
+      data: { url: data.url },
+      vibrate: [200, 100, 200],
+      requireInteraction: false,
+      // iOS 16.4+: silent: false assicura che la notifica venga mostrata
+      silent: false
+    })
+  );
 });
 
 self.addEventListener('notificationclick', e => {
@@ -74,6 +90,31 @@ self.addEventListener('notificationclick', e => {
   );
 });
 
+// ── MESSAGGI DA INDEX.HTML ────────────────────────────────────────────────────
 self.addEventListener('message', e => {
-  if (e.data && e.data.type === 'SKIP_WAITING') self.skipWaiting();
+  if (!e.data) return;
+
+  // Forza aggiornamento immediato quando richiesto
+  if (e.data.type === 'SKIP_WAITING') {
+    self.skipWaiting();
+    return;
+  }
+
+  // Notifica l'app che c'è una nuova versione disponibile
+  if (e.data.type === 'CHECK_UPDATE') {
+    self.clients.matchAll().then(clients => {
+      clients.forEach(c => c.postMessage({ type: 'SW_VERSION', version: CACHE }));
+    });
+  }
+});
+
+// ── PUSH SUBSCRIPTION REFRESH (iOS: subscription scade silenziosamente) ───────
+self.addEventListener('pushsubscriptionchange', e => {
+  // Evento sparato quando iOS invalida la subscription
+  // Notifica l'app di rinnovare la subscription
+  e.waitUntil(
+    self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then(clients => {
+      clients.forEach(c => c.postMessage({ type: 'PUSH_SUBSCRIPTION_EXPIRED' }));
+    })
+  );
 });
