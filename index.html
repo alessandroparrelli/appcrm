@@ -7269,7 +7269,7 @@ function renderSchedaPubblica(d, id) {
   var serviziHtml = '';
   if (d.servizi && d.servizi.length > 0) {
     serviziHtml = '<div style="margin-top:10px;padding-top:10px;border-top:1px solid #f1f5f9;">'
-      + '<div style="font-size:10px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">Servizi attivi</div>'
+      + '<div style="font-size:10px;font-weight:700;color:#475569;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;">Servizi attivi</div>'
       + d.servizi.map(function(s,i) {
           return '<div style="display:flex;align-items:center;gap:8px;padding:7px 0;' + (i>0?'border-top:1px solid #f8fafc;':'') + '">'
             + '<div style="width:6px;height:6px;border-radius:50%;background:#3b82f6;flex-shrink:0;"></div>'
@@ -7345,19 +7345,19 @@ function renderSchedaPubblica(d, id) {
     // ── 3 KPI bianchi come nel mockup ──
     + '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;">'
 
-    + '<div style="background:#fff;border-radius:14px;padding:16px 10px;text-align:center;">'
-    + '<div style="font-size:10px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">Addetti</div>'
-    + '<div style="font-size:32px;font-weight:900;color:#002B7F;line-height:1;">' + (nAddetti||'\u2014') + '</div>'
+    + '<div style="background:#fff;border-radius:14px;padding:10px 10px;text-align:center;">'
+    + '<div style="font-size:10px;font-weight:700;color:#475569;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;">Addetti</div>'
+    + '<div style="font-size:32px;font-weight:900;color:#001233;line-height:1;">' + (nAddetti||'\u2014') + '</div>'
     + '</div>'
 
-    + '<div style="background:#fff;border-radius:14px;padding:16px 10px;text-align:center;">'
-    + '<div style="font-size:10px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">Contratti</div>'
-    + '<div style="font-size:32px;font-weight:900;color:#002B7F;line-height:1;">' + (nContratti||'\u2014') + '</div>'
+    + '<div style="background:#fff;border-radius:14px;padding:10px 10px;text-align:center;">'
+    + '<div style="font-size:10px;font-weight:700;color:#475569;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;">Contratti</div>'
+    + '<div style="font-size:32px;font-weight:900;color:#001233;line-height:1;">' + (nContratti||'\u2014') + '</div>'
     + '</div>'
 
-    + '<div style="background:#fff;border-radius:14px;padding:16px 10px;text-align:center;">'
-    + '<div style="font-size:10px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">Servizi</div>'
-    + '<div style="font-size:32px;font-weight:900;color:#002B7F;line-height:1;">' + (nServizi||'\u2014') + '</div>'
+    + '<div style="background:#fff;border-radius:14px;padding:10px 10px;text-align:center;">'
+    + '<div style="font-size:10px;font-weight:700;color:#475569;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;">Servizi</div>'
+    + '<div style="font-size:32px;font-weight:900;color:#001233;line-height:1;">' + (nServizi||'\u2014') + '</div>'
     + '</div>'
 
     + '</div>'
