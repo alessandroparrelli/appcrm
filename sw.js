@@ -1,6 +1,6 @@
 // Service Worker — CRM CNA Roma
-// BUILD: 1790349366
-const CACHE  = 'crm-cna-1790349366';
+// BUILD: 1790349526
+const CACHE  = 'crm-cna-1790349526';
 const ASSETS = ['./', './index.html', './manifest.json', './icon-192.png', './icon-512.png', './apple-touch-icon.png'];
 
 self.addEventListener('install', e => {
