@@ -5094,8 +5094,9 @@ async function enrichContactData(contactData) {
 // Stessa logica di inviaSollecito: blocchi dal template COM, dest con tutti i campi
 async function sendAssignmentEmail(contactData, assignedToId, assignedByName, handoverNote) {
   try {
-    // 0. Arricchisci dati contatto da anagrafica se necessario
+    // 0. Arricchisci sempre dati contatto da anagrafica
     contactData = await enrichContactData(contactData);
+
     // 1. Operatore destinatario
     var opR = await fetch(SB+'/rest/v1/cna_users?id=eq.'+assignedToId+'&select=nome,cognome,email', {headers:H()});
     var op  = opR.ok ? (await opR.json())[0] : null;
@@ -5105,58 +5106,80 @@ async function sendAssignmentEmail(contactData, assignedToId, assignedByName, ha
     var toEmail = op.email;
     var toNome  = (op.nome+' '+op.cognome).trim();
 
-    // 2. "Creato da"
+    // 2. Dati accessori
     var creatoDa = assignedByName || session.nome+' '+session.cognome || '';
-
-    // 3. Note
     var noteText = handoverNote || '';
 
-    // 4. Header config + blocchi dal template COM
-    // Usa sempre comBlocchi in memoria (già aggiornato da comAutosaveBlocchi/flushComTemplate)
-    // e legge header/logo da localStorage senza richiedere il DOM dell'editor
+    // 3. Header/logo: legge dal template COM (localStorage) con fallback robusti
+    //    NON dipende da comBlocchi in memoria — usa blocchi fissi sotto
     var comTpl = {};
     try { comTpl = JSON.parse(localStorage.getItem('crm_com_template')||'{}'); } catch(e){}
-    var logoUrl     = _comLogoUrl || comTpl.logo_url || localStorage.getItem('crm_email_logo_url') || '';
-    var headerColor = _comHeaderColor || comTpl.header_color || '#005ca9';
-    var logoH       = _comLogoHeight || String(comTpl.logo_height || '44');
-    // Usa comBlocchi in memoria (fonte di verità): aggiornati da autosave in tempo reale
-    var blocchi = (typeof comBlocchi !== 'undefined' && Array.isArray(comBlocchi) && comBlocchi.length > 0)
-      ? comBlocchi
-      : (comTpl.blocchi && Array.isArray(comTpl.blocchi) && comTpl.blocchi.length > 0 ? comTpl.blocchi : null);
-    if (!blocchi) { toast('Template email non configurato. Vai in Comunicazione e salva il template.', 'error'); return; }
-    var oggetto = (comTpl.oggetto && comTpl.oggetto.trim()) ? comTpl.oggetto : 'Nuovo contatto assegnato: {{nome_azienda}}';
+    var logoUrl     = comTpl.logo_url    || _comLogoUrl    || 'https://raw.githubusercontent.com/alessandroparrelli/fileappoggio/main/NUOVO-LOGO-CNA-ROMA-SOLO-ROMA.png';
+    var headerColor = comTpl.header_color || _comHeaderColor || '#005ca9';
+    var logoH       = String(comTpl.logo_height || _comLogoHeight || '44');
 
-    // 6. dest — costruito dai dati passati, come fa inviaSollecito con crmContactData
+    // 4. Blocchi FISSI per email di assegnazione — indipendenti dal template COM
+    //    Garantisce che il contenuto sia sempre completo e corretto
+    var ASSIGNMENT_BLOCCHI = [
+      {
+        tipo: 'testo',
+        html: 'Ciao {{assegnato_a}}, ti è stato assegnato un nuovo contatto da gestire.'
+      },
+      {
+        tipo: 'tabella_contatto',
+        titolo: 'DETTAGLI CONTATTO',
+        righe: ['azienda','titolare','telefono','email_contatto','associato','pagante','mestiere_settore','stato']
+      },
+      {
+        tipo: 'testo',
+        html: 'Ti preghiamo di aprire il crm e gestirlo entro 24 ore dalla data di assegnazione.'
+      }
+    ];
+
+    // Aggiunge blocco note solo se presenti
+    if (noteText.trim()) {
+      ASSIGNMENT_BLOCCHI.splice(2, 0, {
+        tipo: 'alert',
+        titolo: 'NOTE DI PASSAGGIO',
+        testo: noteText,
+        color: '#005ca9',
+        bg: '#EFF6FF',
+        textColor: '#1e40af'
+      });
+    }
+
+    var oggetto = 'Nuovo contatto CRM: {{nome_azienda}}';
+
+    // 5. Destinatario con tutti i campi
     var dest = [{
       contact_id:       String(contactData.id || ''),
-      company_name:     contactData.company_name    || '',
-      contact_name:     contactData.contact_name    || '',
-      contact_phone:    contactData.contact_phone   || '',
-      contact_email:    contactData.contact_email   || '',
-      status:           contactData.status          || '',
-      source:           contactData.company_source  || '',
-      created_at:       contactData.created_at      || new Date().toISOString(),
+      company_name:     contactData.company_name     || '',
+      contact_name:     contactData.contact_name     || '',
+      contact_phone:    contactData.contact_phone    || '',
+      contact_email:    contactData.contact_email    || '',
+      status:           contactData.status           || '',
+      source:           contactData.company_source   || '',
+      created_at:       contactData.created_at       || new Date().toISOString(),
       operatore_nome:   toNome,
       operatore_email:  toEmail,
       creato_da:        creatoDa,
       note:             noteText,
-      titolare:         contactData.titolare        || contactData.contact_name || '',
-      associato:        contactData.is_associato    || '',
-      pagante:          contactData.is_pagante      || '',
+      titolare:         contactData.titolare         || contactData.contact_name || '',
+      associato:        contactData.is_associato     || '',
+      pagante:          contactData.is_pagante       || '',
       mestiere_settore: contactData.mestiere_settore || '',
     }];
 
-    console.log('sendAssignmentEmail ->', toEmail, contactData.company_name);
-    console.log('sendAssignmentEmail ->', toEmail, 'blocchi:', blocchi.length);
+    console.log('sendAssignmentEmail ->', toEmail, contactData.company_name, '| header:', headerColor);
     var r = await fetch(SB+'/functions/v1/crm-bulk-email', {
       method: 'POST',
       headers: H({'Content-Type':'application/json'}),
       body: JSON.stringify({
         oggetto:      oggetto,
-        blocchi:      blocchi,
+        blocchi:      ASSIGNMENT_BLOCCHI,
         destinatari:  dest,
-        logo_url:     logoUrl     || null,
-        header_color: headerColor || _comHeaderColor || '#005ca9',
+        logo_url:     logoUrl,
+        header_color: headerColor,
         logo_height:  logoH,
       })
     });
