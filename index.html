@@ -100,7 +100,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 #app.visible{display:flex;}
 
 /* HEADER */
-.app-header{height:var(--header-h);background:var(--primary);display:flex;align-items:center;justify-content:space-between;padding:0 20px;padding-top:env(safe-area-inset-top);position:sticky;top:0;z-index:200;box-shadow:0 4px 16px rgba(0,92,169,.3);border-bottom:3px solid #00437a;flex-shrink:0;box-sizing:content-box;}
+.app-header{height:var(--header-h);background:var(--primary);display:flex;align-items:center;justify-content:space-between;padding:0 20px;padding-top:env(safe-area-inset-top);position:sticky;top:0;z-index:200;box-shadow:none;flex-shrink:0;box-sizing:content-box;}
 .header-left{display:flex;align-items:center;gap:10px;}
 .logo-img{height:44px;width:auto;max-width:140px;display:block;object-fit:contain;}
 .logo-fallback{background:rgba(255,255,255,.2);color:#fff;font-weight:800;font-size:12px;padding:5px 10px;border-radius:var(--radius-sm);letter-spacing:.02em;align-items:center;justify-content:center;}
@@ -819,7 +819,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 }
 
 /* ── CRM List Hero ── */
-.crm-list-hero{background:linear-gradient(160deg,#005ca9 0%,#0176d4 70%,#1789e6 100%);padding:16px 20px 32px;position:relative;overflow:hidden;}
+.crm-list-hero{background:var(--primary);padding:16px 20px 32px;position:relative;overflow:hidden;}
 .crm-list-hero::before{content:'';position:absolute;right:-30px;top:-30px;width:160px;height:160px;border-radius:50%;background:rgba(255,255,255,.07);pointer-events:none;}
 .crm-list-hero::after{content:'';position:absolute;right:20px;top:40px;width:90px;height:90px;border-radius:50%;background:rgba(231,71,56,.18);pointer-events:none;}
 .crm-list-hero-name{font-size:22px;font-weight:900;color:#fff;letter-spacing:-.03em;position:relative;z-index:1;}
