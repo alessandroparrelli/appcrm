@@ -578,7 +578,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 /* ── ADMIN TAB ──────────────────────────────────── */
 #view-admin{overflow-y:auto;background:var(--bg);}
 .admin-wrap{padding:16px;max-width:1000px;width:100%;margin:0 auto;padding-bottom:80px;}
-.admin-kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:18px;}
+.admin-kpi-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:18px;}
 .admin-kpi{background:var(--surface);border-radius:var(--radius-lg);border:1px solid var(--border);padding:16px 12px;text-align:center;box-shadow:var(--shadow-sm);}
 .admin-kpi-val{font-size:26px;font-weight:800;margin-bottom:3px;}
 .admin-kpi-lbl{font-size:10px;font-weight:700;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.4px;}
@@ -1558,7 +1558,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
     <div class="admin-wrap">
 
       <!-- KPI -->
-      <div class="admin-kpi-grid" id="admin-kpi-grid" style="grid-template-columns:repeat(6,1fr);">
+      <div class="admin-kpi-grid" id="admin-kpi-grid">
         <div class="admin-kpi"><div class="admin-kpi-val" id="akpi-contatti" style="color:var(--primary)">–</div><div class="admin-kpi-lbl">Totali</div></div>
         <div class="admin-kpi"><div class="admin-kpi-val kpi-lavorazione" id="akpi-lavorazione">–</div><div class="admin-kpi-lbl">In lavorazione</div></div>
         <div class="admin-kpi"><div class="admin-kpi-val kpi-positivo" id="akpi-positivo">–</div><div class="admin-kpi-lbl">Chiusi positivi</div></div>
