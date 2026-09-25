@@ -7300,18 +7300,13 @@ function renderSchedaPubblica(d, id) {
     // ══ HEADER ══ — inizia con lo stesso colore di html (#001233)
     + '<div style="background:linear-gradient(170deg,#001233 0%,#001a5e 30%,#002B7F 70%,#0038a8 100%);padding-bottom:0;">'
 
-    // Logo
-    + '<div style="text-align:center;padding:32px 24px 24px;">'
-    + '<img src="' + logoUrl + '" alt="CNA Roma" style="height:52px;width:auto;">'
-    + '</div>'
-    + '<div style="height:1px;background:rgba(255,255,255,0.12);margin:0 24px;"></div>'
-
-    // Nome impresa
-    + '<div style="padding:24px 24px 0;text-align:center;">'
-    + '<div style="font-size:10px;color:rgba(255,255,255,0.4);letter-spacing:2px;text-transform:uppercase;margin-bottom:10px;">'
+    // Logo + Nome subito sotto
+    + '<div style="text-align:center;padding:32px 24px 18px;">'
+    + '<img src="' + logoUrl + '" alt="CNA Roma" style="height:48px;width:auto;">'
+    + '<h1 style="color:#fff;font-size:22px;font-weight:900;line-height:1.15;letter-spacing:-0.02em;margin-top:16px;margin-bottom:' + (titolare?'7px':'0') + ';">' + esc(d.ragionesociale||'\u2014') + '</h1>'
+    + (titolare ? '<div style="font-size:13px;color:rgba(255,255,255,0.6);">Titolare\u00a0\u00b7\u00a0<strong style="color:rgba(255,255,255,0.85);font-weight:700;">' + esc(titolare) + '</strong></div>' : '')
+    + '<div style="font-size:10px;color:rgba(255,255,255,0.35);letter-spacing:1.8px;text-transform:uppercase;margin-top:10px;">'
     + 'Codice\u00a0' + esc(d.codiceanagrafica||'') + '\u00a0\u00b7\u00a0P.IVA\u00a0' + esc(d.partitaiva||'\u2014') + '</div>'
-    + '<h1 style="color:#fff;font-size:24px;font-weight:900;line-height:1.15;letter-spacing:-0.025em;margin-bottom:' + (titolare?'9px':'4px') + ';">' + esc(d.ragionesociale||'\u2014') + '</h1>'
-    + (titolare ? '<div style="font-size:13px;color:rgba(255,255,255,0.55);">Titolare\u00a0\u00b7\u00a0<strong style="color:rgba(255,255,255,0.85);font-weight:700;">' + esc(titolare) + '</strong></div>' : '')
     + '</div>'
 
     // Badge — stile pill con sfondo pieno e testo molto contrastato
@@ -7345,6 +7340,9 @@ function renderSchedaPubblica(d, id) {
     + '</div>'
     + '</div>'
     + '</div>' // fine header
+
+    // Linea di separazione tra header e body
+    + '<div style="height:2px;background:rgba(255,255,255,0.08);"></div>'
 
     // ══ BODY BIANCO ══
     + '<div style="background:#f4f7fb;padding:20px 14px 8px;">'
