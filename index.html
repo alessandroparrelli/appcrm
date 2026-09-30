@@ -59,8 +59,8 @@
   --tr: all .18s cubic-bezier(0.4,0,0.2,1);
 }
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
-html{background:var(--primary);}
-body{font-family:var(--font);background:#f0f2f5;color:var(--text);min-height:100vh;-webkit-font-smoothing:antialiased;}
+html{background:var(--primary);height:100%;overscroll-behavior:none;}
+body{font-family:var(--font);background:#f0f2f5;color:var(--text);height:100%;overscroll-behavior:none;-webkit-font-smoothing:antialiased;}
 
 /* LOADING */
 #loading-overlay{position:fixed;inset:0;background:rgba(255,255,255,.92);display:none;align-items:center;justify-content:center;flex-direction:column;gap:12px;z-index:9999;backdrop-filter:blur(4px);}
@@ -97,7 +97,7 @@ body{font-family:var(--font);background:#f0f2f5;color:var(--text);min-height:100
    tre viste: #view-search, #view-results, #view-scheda
    si mostrano/nascondono via .active
 ══════════════════════════════════════════════════ */
-#app{display:none;min-height:100vh;flex-direction:column;padding-bottom:0;}
+#app{display:none;height:100%;flex-direction:column;padding-bottom:0;overscroll-behavior:none;}
 #app.visible{display:flex;}
 
 /* HEADER */
