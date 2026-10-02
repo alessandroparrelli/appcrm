@@ -902,7 +902,8 @@ html.ios-fullbleed,html.ios-fullbleed body{height:calc(100% + var(--ios-gap,0px)
 }
 /* ── BOTTOM NAV MOBILE: pillola flottante stile Facebook ── */
 @media(max-width:640px){
-  .crm-nav{background:#fff!important;border-top:none!important;margin:8px 14px;margin-bottom:max(env(safe-area-inset-bottom,0px),10px);border-radius:32px;padding:6px!important;gap:4px;box-shadow:0 6px 24px rgba(0,0,0,.18);}
+  .crm-nav{background:rgba(255,255,255,.72)!important;-webkit-backdrop-filter:blur(18px) saturate(180%);backdrop-filter:blur(18px) saturate(180%);border:1px solid rgba(255,255,255,.6)!important;border-top:1px solid rgba(255,255,255,.6)!important;margin:8px 14px;margin-bottom:max(env(safe-area-inset-bottom,0px),10px);border-radius:32px;padding:6px!important;gap:4px;box-shadow:0 6px 24px rgba(0,0,0,.14),inset 0 1px 0 rgba(255,255,255,.7);}
+  .crm-nav .crm-tab.active{background:rgba(0,92,169,.12)!important;}
   html.is-standalone .crm-nav{margin-bottom:6px;}
   html.ios-fullbleed .crm-nav{margin-bottom:22px;}
   /* Menu flottante sopra la pagina, senza footer */
