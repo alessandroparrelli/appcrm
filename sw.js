@@ -1,7 +1,7 @@
 // Service Worker — CRM CNA Roma
-// BUILD: 1790971202
-const CACHE  = 'crm-cna-1790971202';
-const ASSETS = ['./', './index.html', './manifest.json', './blue-institutional.css?v=20261002-3', './NUOVO-LOGO-CNA-ROMA-SOLO-ROMA.png', './icon-192.png', './icon-512.png', './apple-touch-icon.png'];
+// BUILD: 20261002-pwa-5
+const CACHE  = 'crm-cna-20261002-pwa-5';
+const ASSETS = ['./', './index.html', './manifest.json', './blue-institutional.css?v=20261002-5', './NUOVO-LOGO-CNA-ROMA-SOLO-ROMA.png', './CNARoma_NEGATIVO_COLORE_SOLO_ROMA.png', './icon-192.png', './icon-512.png', './apple-touch-icon.png'];
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(ASSETS)));
