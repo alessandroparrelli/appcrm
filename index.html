@@ -880,7 +880,7 @@ body{font-family:var(--font);background:#f0f2f5;color:var(--text);height:100%;ov
   .scheda-wrap .s-card{margin:0 12px 10px;}
 }
 </style>
-<link rel="stylesheet" href="blue-institutional.css?v=20261002-6">
+<link rel="stylesheet" href="blue-institutional.css?v=20261002-7">
   <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
 </head>
 <body>
@@ -979,7 +979,7 @@ body{font-family:var(--font);background:#f0f2f5;color:var(--text);height:100%;ov
     <header class="app-header" id="hdr-main">
       <div class="header-left">
         <div class="logo-link" onclick="goHome()" title="Home" style="display:flex;align-items:center;gap:10px;cursor:pointer;">
-          <img class="logo-img" src="CNARoma_NEGATIVO_COLORE_SOLO_ROMA.png" alt="CNA Roma" onerror="this.style.display='none';document.getElementById('logo-fb').style.display='flex';">
+          <img class="logo-img" src="NUOVO-LOGO-CNA-ROMA-SOLO-ROMA.png" alt="CNA Roma" onerror="this.style.display='none';document.getElementById('logo-fb').style.display='flex';">
           <div id="logo-fb" class="logo-fallback" style="display:none">CNA Roma</div>
         </div>
         <span class="header-title">CRM</span>
@@ -2544,7 +2544,7 @@ async function openScheda(idx){
         +'<div id="scheda-hero-crm-btn"></div>'
       +'</div>'
       +'<div class="scheda-hero">'
-      +'<img class="scheda-hero-logo" src="CNARoma_NEGATIVO_COLORE_SOLO_ROMA.png" alt="CNA Roma">'
+      +'<img class="scheda-hero-logo" src="NUOVO-LOGO-CNA-ROMA-SOLO-ROMA.png" alt="CNA Roma">'
       +'<div class="scheda-eyebrow">'
       +  'P.IVA '+esc(ana.partitaiva||'—')
       +'</div>'
@@ -7676,10 +7676,24 @@ function renderSchedaPubblica(d, id) {
   var anchor=document.createComment('posizione menu desktop');
   nav.parentNode.insertBefore(anchor,nav);
   var mobile=window.matchMedia('(max-width:640px)');
+  var standalone=window.matchMedia('(display-mode: standalone)').matches||navigator.standalone===true;
+  function syncViewport(){
+    // iOS standalone può esporre una viewport CSS più corta dello schermo.
+    // L'app e il menu condividono l'intera altezza fisica disponibile.
+    var portrait=window.matchMedia('(orientation: portrait)').matches;
+    var fullHeight=portrait?Math.max(screen.width,screen.height):Math.min(screen.width,screen.height);
+    if(mobile.matches&&standalone) app.style.height=fullHeight+'px';
+    else app.style.removeProperty('height');
+    app.style.setProperty('--nav-height',nav.classList.contains('visible')?nav.getBoundingClientRect().height+'px':'0px');
+  }
   function placeNav(){
     if(mobile.matches) app.appendChild(nav);
     else anchor.parentNode.insertBefore(nav,anchor.nextSibling);
+    syncViewport();
   }
+  new ResizeObserver(syncViewport).observe(nav);
+  window.addEventListener('resize',syncViewport);
+  window.addEventListener('pageshow',syncViewport);
   placeNav();
   if(mobile.addEventListener) mobile.addEventListener('change',placeNav);
   else mobile.addListener(placeNav);

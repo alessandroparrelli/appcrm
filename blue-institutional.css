@@ -229,3 +229,16 @@ body{position:fixed;inset:0;height:auto;overflow:hidden;background:#005CA9;}
   .scheda-tab-btn{padding:13px 12px;min-height:44px;}
   .crm-wrap,.scheda-wrap{padding-bottom:24px;}
 }
+
+/* Logo originale ad alta risoluzione e azioni compatte. */
+.logo-img,.scheda-hero-logo{background:#fff;border-radius:6px;padding:6px;filter:none;opacity:1;}
+.scheda-toolbar .scheda-action{background:transparent;border:1px solid rgba(255,255,255,.65);color:#fff;border-radius:8px;min-height:40px;padding:9px 12px;font-weight:600;box-shadow:none;}
+.scheda-toolbar .scheda-action:hover{background:rgba(255,255,255,.12);border-color:#fff;}
+.scheda-toolbar #scheda-hero-crm-btn .scheda-action{background:#E5F1FF;border-color:#E5F1FF;color:#00437A;}
+#view-search,#view-results{background:var(--bg);}
+@media(max-width:640px){
+  #app{bottom:auto;height:100%;padding-bottom:var(--nav-height,calc(67px + var(--safe-bottom)));}
+  #crm-nav.visible{position:absolute;top:auto;bottom:0;left:0;right:0;z-index:500;order:initial;}
+  .logo-img{width:190px;}
+  .scheda-hero-logo{width:205px;}
+}
