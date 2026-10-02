@@ -926,6 +926,46 @@ html.ios-fullbleed,html.ios-fullbleed body{height:calc(100% + var(--ios-gap,0px)
   .crm-nav .crm-tab.active{background:rgba(255,255,255,.35)!important;box-shadow:inset 0 1px 1px rgba(255,255,255,.9),0 2px 8px rgba(0,0,0,.08);}
   .crm-nav .crm-tab.active svg{stroke:var(--primary)!important;}
 }
+/* ── IMPOSTAZIONI / PROFILO / GESTIONE UTENTI ── */
+.imp-wrap{padding:16px;max-width:760px;width:100%;margin:0 auto;}
+.imp-card{background:#fff;border:1px solid var(--border);border-radius:16px;box-shadow:var(--shadow-sm);overflow:hidden;margin-bottom:16px;}
+.imp-hero{background:linear-gradient(160deg,#005ca9,#0176d4);padding:22px 18px;display:flex;align-items:center;gap:16px;color:#fff;}
+.imp-av{width:72px;height:72px;border-radius:50%;background:rgba(255,255,255,.2);border:3px solid rgba(255,255,255,.5);display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:800;overflow:hidden;flex-shrink:0;cursor:pointer;position:relative;}
+.imp-av img{width:100%;height:100%;object-fit:cover;}
+.imp-av-edit{position:absolute;bottom:0;left:0;right:0;background:rgba(0,0,0,.45);font-size:8px;font-weight:700;text-align:center;padding:3px 0;letter-spacing:.05em;}
+.imp-hero-name{font-size:19px;font-weight:800;letter-spacing:-.02em;}
+.imp-hero-sub{font-size:12px;opacity:.85;margin-top:3px;}
+.imp-badges{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;}
+.imp-badge{font-size:10px;font-weight:700;padding:3px 9px;border-radius:999px;background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.35);text-transform:uppercase;letter-spacing:.06em;}
+.imp-body{padding:16px;}
+.imp-sec-title{font-size:11px;font-weight:800;color:var(--primary);text-transform:uppercase;letter-spacing:.08em;margin:4px 0 12px;}
+.imp-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.imp-f{margin-bottom:10px;}
+.imp-f label{font-size:10px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.08em;display:block;margin-bottom:4px;}
+.imp-f input,.imp-f select{width:100%;font-size:15px;}
+.imp-hint{font-size:11px;color:#94a3b8;margin-top:3px;}
+.imp-info{display:grid;grid-template-columns:1fr 1fr;gap:10px;background:#f8fafc;border:1px solid var(--border);border-radius:12px;padding:12px;margin-bottom:14px;}
+.imp-info div{font-size:13px;font-weight:600;color:var(--text);}
+.imp-info span{display:block;font-size:10px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.06em;margin-bottom:2px;}
+.imp-btn{width:100%;padding:13px;border-radius:12px;font-family:var(--font);font-size:14px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:10px;border:1.5px solid transparent;}
+.imp-btn.primary{background:var(--primary);color:#fff;}
+.imp-btn.soft{background:#e8f0fa;color:var(--primary);border-color:#c7d9ef;}
+.imp-btn.danger{background:#fff;color:#e74738;border-color:#f5c2bc;}
+.imp-toggle{display:flex;align-items:center;justify-content:space-between;background:#f8fafc;border:1px solid var(--border);border-radius:12px;padding:12px;margin-bottom:10px;font-size:14px;font-weight:600;}
+.imp-toggle input{width:22px;height:22px;accent-color:var(--primary);}
+.imp-search{width:100%;font-size:15px;margin-bottom:12px;}
+.imp-user{display:flex;align-items:center;gap:12px;padding:12px;border:1px solid var(--border);border-radius:12px;margin-bottom:8px;cursor:pointer;background:#fff;transition:var(--tr);}
+.imp-user:active{background:#f1f5f9;}
+.imp-user-av{width:40px;height:40px;border-radius:50%;background:var(--primary-glow);color:var(--primary);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;overflow:hidden;flex-shrink:0;}
+.imp-user-av img{width:100%;height:100%;object-fit:cover;}
+.imp-user-main{flex:1;min-width:0;}
+.imp-user-name{font-size:14px;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.imp-user-meta{font-size:12px;color:#64748b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.imp-pill{font-size:10px;font-weight:700;padding:3px 8px;border-radius:999px;text-transform:uppercase;letter-spacing:.05em;flex-shrink:0;}
+.imp-pill.on{background:#f0fdf4;color:#166534;border:1px solid #86efac;}
+.imp-pill.off{background:#fef2f2;color:#b91c1c;border:1px solid #fecaca;}
+.imp-back{display:inline-flex;align-items:center;gap:6px;background:none;border:none;color:var(--primary);font-family:var(--font);font-size:14px;font-weight:700;cursor:pointer;padding:4px 0 12px;}
+@media(max-width:480px){.imp-grid,.imp-info{grid-template-columns:1fr;}}
 </style>
   <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
 </head>
@@ -1810,6 +1850,7 @@ html.ios-fullbleed,html.ios-fullbleed body{height:calc(100% + var(--ios-gap,0px)
     </div>
   </footer>
 
+  <div class="view" id="view-impostazioni"><input type="file" id="imp-avatar-input" accept="image/*" style="display:none" onchange="uploadAvatar(this.files[0]);this.value='';"><div class="imp-wrap" id="imp-wrap"></div></div>
     <nav class="crm-nav" id="crm-nav">
       <button class="crm-tab active" id="tab-crm" onclick="crmTab('crm')">
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
@@ -1831,7 +1872,7 @@ html.ios-fullbleed,html.ios-fullbleed body{height:calc(100% + var(--ios-gap,0px)
         Comunicazione
         <div class="crm-tab-dot"></div>
       </button>
-      <button class="crm-tab" id="tab-impostazioni" onclick="openProfilo()">
+      <button class="crm-tab" id="tab-impostazioni" onclick="crmTab('impostazioni')">
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
         Impostazioni
         <div class="crm-tab-dot"></div>
@@ -2891,7 +2932,7 @@ function showView(name){
   if(btnCrm) btnCrm.style.display = 'none';
   var _fab=G('fab-crm');
   if(_fab)_fab.style.display=((name==='crm')&&window.innerWidth<=640)?'flex':'none';
-  ['search','results','scheda','log','crm','crm-contatto','admin','comunicazione'].forEach(function(v){
+  ['search','results','scheda','log','crm','crm-contatto','admin','comunicazione','impostazioni'].forEach(function(v){
     var el = G('view-'+v);
     if(el) el.classList.toggle('active', v===name);
   });
@@ -2905,10 +2946,12 @@ function showView(name){
   } else if(name==='comunicazione'){
     ['crm','archivio','admin','comunicazione'].forEach(function(t){ var e=G('tab-'+t); if(e) e.classList.toggle('active',t==='comunicazione'); });
   }
+  var _ti=G('tab-impostazioni'); if(_ti) _ti.classList.toggle('active',name==='impostazioni');
+  if(name==='impostazioni'){ ['crm','archivio','admin','comunicazione'].forEach(function(t){ var e=G('tab-'+t); if(e) e.classList.remove('active'); }); }
   var el=G('view-'+name);
   if(el) el.scrollTop=0;
   // aggiorna titolo tab
-  var tabTitles={'search':'Ricerca imprese','results':'Risultati ricerca','crm':'Flussi CRM','crm-contatto':'Scheda contatto','admin':'Amministrazione','comunicazione':'Comunicazione','scheda':'','log':''};
+  var tabTitles={'search':'Ricerca imprese','results':'Risultati ricerca','crm':'Flussi CRM','crm-contatto':'Scheda contatto','admin':'Amministrazione','comunicazione':'Comunicazione','impostazioni':'Impostazioni','scheda':'','log':''};
   var ttEl=G('tab-title-text');
   var ttBar=G('tab-title-bar');
   if(ttEl&&ttBar){
@@ -2926,6 +2969,147 @@ function goBack(){
   }
 }
 function goBackFromLog(){ showView('search'); }
+
+
+/* ══════════════════════════════════════════════════
+   IMPOSTAZIONI — profilo personale + gestione utenti (admin)
+══════════════════════════════════════════════════ */
+var IMP_FIELDS='id,nome,cognome,email,username,cellulare,ruolo,attivo,created_at,last_login,avatar_base64';
+var impUsers=[];
+function impDT(v){ if(!v) return 'Mai'; var d=new Date(v); if(isNaN(d)) return '–'; return d.toLocaleDateString('it-IT')+' '+d.toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'}); }
+function impD(v){ if(!v) return '–'; var d=new Date(v); return isNaN(d)?'–':d.toLocaleDateString('it-IT'); }
+function impIni(u){ return (((u.nome||'').charAt(0))+((u.cognome||'').charAt(0))).toUpperCase()||'–'; }
+function impAv(u,cls){ return u.avatar_base64?'<img src="'+escHtml(u.avatar_base64)+'" alt="">':escHtml(impIni(u)); }
+function impIsAdmin(){ return session && session.ruolo==='admin'; }
+
+async function loadImpostazioni(){
+  var w=G('imp-wrap'); if(!w) return;
+  w.innerHTML='<div style="padding:30px;text-align:center;color:#64748b;">Caricamento…</div>';
+  try{
+    var r=await fetch(SB+'/rest/v1/cna_users?id=eq.'+encodeURIComponent(session.id)+'&select='+IMP_FIELDS,{headers:H()});
+    var me=r.ok?(await r.json())[0]:null;
+    if(!me) throw new Error('utente non trovato');
+    if(impIsAdmin()){
+      var ra=await fetch(SB+'/rest/v1/cna_users?select='+IMP_FIELDS+'&order=cognome.asc,nome.asc',{headers:H()});
+      impUsers=ra.ok?await ra.json():[];
+    }
+    impRenderHome(me);
+  }catch(e){ console.error(e); w.innerHTML='<div style="padding:30px;text-align:center;color:#e74738;">Errore nel caricamento del profilo.</div>'; }
+}
+
+function impUserForm(u,isSelf){
+  var admin=impIsAdmin();
+  var lockSelf=isSelf; // l'admin non può cambiare ruolo/stato a se stesso
+  var h='';
+  h+='<div class="imp-info"><div><span>Ruolo</span>'+escHtml(u.ruolo||'–')+'</div><div><span>Stato</span>'+(u.attivo?'Attivo':'Disattivato')+'</div>'
+    +'<div><span>Ultimo accesso</span>'+escHtml(impDT(u.last_login))+'</div><div><span>Creato il</span>'+escHtml(impD(u.created_at))+'</div></div>';
+  h+='<div class="imp-sec-title">Dati personali</div>';
+  h+='<div class="imp-grid"><div class="imp-f"><label>Nome</label><input class="crm-input" id="imp-nome" value="'+escHtml(u.nome)+'"></div>'
+    +'<div class="imp-f"><label>Cognome</label><input class="crm-input" id="imp-cognome" value="'+escHtml(u.cognome)+'"></div></div>';
+  h+='<div class="imp-f"><label>Nome utente</label><input class="crm-input" id="imp-username" value="'+escHtml(u.username)+'" autocapitalize="none" autocorrect="off" spellcheck="false" placeholder="es. alessandro"><div class="imp-hint">Si usa per accedere al posto dell\'email. Minuscole, numeri, punto, trattino, underscore.</div></div>';
+  h+='<div class="imp-f"><label>Email</label><input class="crm-input" id="imp-email" type="email" value="'+escHtml(u.email)+'" autocapitalize="none"></div>';
+  h+='<div class="imp-f"><label>Cellulare</label><input class="crm-input" id="imp-cell" type="tel" value="'+escHtml(u.cellulare)+'"></div>';
+  if(admin){
+    h+='<div class="imp-sec-title" style="margin-top:6px;">Accesso</div>';
+    h+='<div class="imp-f"><label>Ruolo</label><select class="crm-input" id="imp-ruolo"'+(lockSelf?' disabled':'')+'>'
+      +['utente','supervisore','admin'].map(function(r){return '<option value="'+r+'"'+(u.ruolo===r?' selected':'')+'>'+r+'</option>';}).join('')
+      +'</select>'+(lockSelf?'<div class="imp-hint">Non puoi cambiare il tuo ruolo.</div>':'')+'</div>';
+    h+='<label class="imp-toggle">Utente attivo<input type="checkbox" id="imp-attivo"'+(u.attivo?' checked':'')+(lockSelf?' disabled':'')+'></label>';
+  }
+  h+='<div class="imp-sec-title" style="margin-top:6px;">'+(isSelf?'Cambia password':'Imposta nuova password')+'</div>';
+  h+='<div class="imp-grid"><div class="imp-f"><label>Nuova password</label><input class="crm-input" id="imp-pwd1" type="password" autocomplete="new-password" placeholder="Lascia vuoto per non cambiarla"></div>'
+    +'<div class="imp-f"><label>Conferma</label><input class="crm-input" id="imp-pwd2" type="password" autocomplete="new-password"></div></div>';
+  h+='<button class="imp-btn primary" onclick="impSave(\''+escHtml(u.id)+'\')"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>Salva modifiche</button>';
+  return h;
+}
+
+function impRenderHome(me){
+  var w=G('imp-wrap'); var h='';
+  h+='<div class="imp-card"><div class="imp-hero">'
+    +'<div class="imp-av" onclick="G(\'imp-avatar-input\').click()">'+impAv(me)+'<div class="imp-av-edit">CAMBIA</div></div>'
+    +'<div><div class="imp-hero-name">'+escHtml((me.nome||'')+' '+(me.cognome||''))+'</div>'
+    +'<div class="imp-hero-sub">'+(me.username?'@'+escHtml(me.username)+' · ':'')+escHtml(me.email||'')+'</div>'
+    +'<div class="imp-badges"><span class="imp-badge">'+escHtml(me.ruolo||'')+'</span></div></div></div>'
+    +'<div class="imp-body">'+impUserForm(me,true);
+  if(impIsAdmin()) h+='<button class="imp-btn soft" onclick="openLog()"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>Visualizza log accessi</button>';
+  if(me.avatar_base64) h+='<button class="imp-btn danger" onclick="rimuoviAvatar()">Rimuovi foto profilo</button>';
+  h+='<button class="imp-btn danger" onclick="doLogout()"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>Esci dall\'app</button>';
+  h+='</div></div>';
+  if(impIsAdmin()){
+    h+='<div class="imp-card"><div class="imp-body"><div class="imp-sec-title">Gestione utenti · '+impUsers.length+'</div>'
+      +'<input class="crm-input imp-search" id="imp-search" placeholder="Cerca per nome, email o nome utente" oninput="impRenderList()">'
+      +'<div id="imp-list"></div></div></div>';
+  }
+  w.innerHTML=h;
+  if(impIsAdmin()) impRenderList();
+}
+
+function impRenderList(){
+  var box=G('imp-list'); if(!box) return;
+  var q=((G('imp-search')||{}).value||'').trim().toLowerCase();
+  var list=impUsers.filter(function(u){
+    if(!q) return true;
+    return [u.nome,u.cognome,u.email,u.username].some(function(x){return (x||'').toLowerCase().indexOf(q)>-1;});
+  });
+  if(!list.length){ box.innerHTML='<div style="padding:16px;text-align:center;color:#94a3b8;font-size:13px;">Nessun utente trovato</div>'; return; }
+  box.innerHTML=list.map(function(u){
+    return '<div class="imp-user" onclick="impOpenUser(\''+escHtml(u.id)+'\')">'
+      +'<div class="imp-user-av">'+impAv(u)+'</div>'
+      +'<div class="imp-user-main"><div class="imp-user-name">'+escHtml((u.nome||'')+' '+(u.cognome||''))+(u.id===session.id?' (tu)':'')+'</div>'
+      +'<div class="imp-user-meta">'+escHtml(u.ruolo||'')+' · '+(u.username?'@'+escHtml(u.username):'senza nome utente')+'</div></div>'
+      +'<span class="imp-pill '+(u.attivo?'on':'off')+'">'+(u.attivo?'Attivo':'Off')+'</span></div>';
+  }).join('');
+}
+
+function impOpenUser(id){
+  if(id===session.id){ G('view-impostazioni').scrollTop=0; return; }
+  var u=impUsers.find(function(x){return x.id===id;}); if(!u) return;
+  var w=G('imp-wrap');
+  w.innerHTML='<button class="imp-back" onclick="loadImpostazioni()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>Tutti gli utenti</button>'
+    +'<div class="imp-card"><div class="imp-hero"><div class="imp-av" style="cursor:default">'+impAv(u)+'</div>'
+    +'<div><div class="imp-hero-name">'+escHtml((u.nome||'')+' '+(u.cognome||''))+'</div><div class="imp-hero-sub">'+escHtml(u.email||'')+'</div></div></div>'
+    +'<div class="imp-body">'+impUserForm(u,false)+'</div></div>';
+  G('view-impostazioni').scrollTop=0;
+}
+
+async function impSave(id){
+  var isSelf=(id===session.id);
+  var v=function(x){ var e=G(x); return e?(e.value||'').trim():''; };
+  var nome=v('imp-nome'), cognome=v('imp-cognome'), email=v('imp-email').toLowerCase(), cell=v('imp-cell');
+  var username=v('imp-username').toLowerCase(), p1=v('imp-pwd1'), p2=v('imp-pwd2');
+  if(!nome||!cognome){ toast('Inserisci nome e cognome','error'); return; }
+  if(!email||email.indexOf('@')<1){ toast('Email non valida','error'); return; }
+  if(username && !/^[a-z0-9._-]{3,30}$/.test(username)){ toast('Nome utente non valido (3-30 caratteri: lettere minuscole, numeri, . _ -)','error'); return; }
+  if(p1||p2){ if(p1.length<6){ toast('Password minimo 6 caratteri','error'); return; } if(p1!==p2){ toast('Le password non coincidono','error'); return; } }
+  showLoad('Salvataggio…');
+  try{
+    // unicità email e nome utente
+    var or='(email.ilike.'+encodeURIComponent(email)+(username?',username.ilike.'+encodeURIComponent(username):'')+')';
+    var rc=await fetch(SB+'/rest/v1/cna_users?select=id,email,username&id=neq.'+encodeURIComponent(id)+'&or='+or,{headers:H()});
+    var dup=rc.ok?await rc.json():[];
+    if(dup.some(function(d){return (d.email||'').toLowerCase()===email;})){ toast('Email già usata da un altro utente','error'); return; }
+    if(username && dup.some(function(d){return (d.username||'').toLowerCase()===username;})){ toast('Nome utente già in uso','error'); return; }
+    var body={nome:nome,cognome:cognome,email:email,username:username||null,cellulare:cell||null};
+    if(impIsAdmin() && !isSelf){
+      var rs=G('imp-ruolo'), at=G('imp-attivo');
+      if(rs) body.ruolo=rs.value;
+      if(at) body.attivo=!!at.checked;
+    }
+    if(p1) body.password_sha256=await sha256hex(p1);
+    var r=await fetch(SB+'/rest/v1/cna_users?id=eq.'+encodeURIComponent(id),{method:'PATCH',headers:H({'Content-Type':'application/json','Prefer':'return=representation'}),body:JSON.stringify(body)});
+    var out=r.ok?await r.json():[];
+    if(!r.ok||!out.length) throw new Error('HTTP '+r.status+' righe '+out.length);
+    if(isSelf){
+      session.nome=nome; session.cognome=cognome; session.email=email; session.username=username||null; session.cellulare=cell||null;
+      saveSession(session);
+      if(G('chip-name')) G('chip-name').textContent=nome+' '+cognome;
+      try{ updateChipAvatar(); }catch(e){}
+    }
+    toast(isSelf?'Profilo aggiornato':'Utente aggiornato','success');
+    await loadImpostazioni();
+  }catch(e){ console.error('impSave',e); toast('Errore nel salvataggio','error'); }
+  finally{ hideLoad(); }
+}
 
 /* ══════════════════════════════════════════════════
    PROFILO
@@ -2948,7 +3132,8 @@ function updateChipAvatar(){
   }
 }
 
-function openProfilo(){
+function openProfilo(){ crmTab('impostazioni'); }
+function _openProfiloModalOld(){
   var initials = getInitials();
   G('profilo-initials').textContent = initials;
   // Popola i campi input
@@ -3317,7 +3502,7 @@ async function insertActivityLog(contactId, activityType, description, metadata)
    CRM — NAV TABS
 ══════════════════════════════════════════════════ */
 function crmTab(tab){
-  ['crm','archivio','admin','comunicazione'].forEach(function(t){
+  ['crm','archivio','admin','comunicazione','impostazioni'].forEach(function(t){
     var el = G('tab-'+t);
     if(el) el.classList.toggle('active', t===tab);
   });
@@ -3329,6 +3514,9 @@ function crmTab(tab){
   } else if(tab==='comunicazione'){
     showView('comunicazione');
     loadComunicazione();
+  } else if(tab==='impostazioni'){
+    showView('impostazioni');
+    loadImpostazioni();
   } else {
     crmPrevView = 'crm';
     showView('crm');
