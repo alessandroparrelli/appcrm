@@ -902,7 +902,7 @@ html.ios-fullbleed,html.ios-fullbleed body{height:calc(100% + var(--ios-gap,0px)
 }
 /* ── BOTTOM NAV MOBILE: pillola flottante stile Facebook ── */
 @media(max-width:640px){
-  .crm-nav{background:linear-gradient(180deg,rgba(255,255,255,.18),rgba(255,255,255,.06))!important;-webkit-backdrop-filter:blur(8px) saturate(190%) contrast(.9) brightness(1.08);backdrop-filter:blur(8px) saturate(190%) contrast(.9) brightness(1.08);border:1px solid rgba(255,255,255,.45)!important;border-top:1px solid rgba(255,255,255,.9)!important;margin:8px 14px;margin-bottom:max(env(safe-area-inset-bottom,0px),10px);border-radius:32px;padding:6px!important;gap:4px;box-shadow:0 10px 30px rgba(0,0,0,.18),inset 0 1.5px 2px rgba(255,255,255,1),inset 0 -3px 8px rgba(255,255,255,.35),inset 3px 0 8px rgba(255,255,255,.22),inset -3px 0 8px rgba(255,255,255,.22),inset 0 0 0 .5px rgba(0,0,0,.08);}
+  .crm-nav{background:linear-gradient(180deg,rgba(255,255,255,.08),rgba(255,255,255,0))!important;-webkit-backdrop-filter:blur(4px) saturate(180%) brightness(1.05);backdrop-filter:blur(4px) saturate(180%) brightness(1.05);border:1px solid rgba(255,255,255,.45)!important;border-top:1px solid rgba(255,255,255,.9)!important;margin:8px 14px;margin-bottom:max(env(safe-area-inset-bottom,0px),10px);border-radius:32px;padding:6px!important;gap:4px;box-shadow:0 10px 30px rgba(0,0,0,.18),inset 0 1.5px 2px rgba(255,255,255,1),inset 0 -3px 8px rgba(255,255,255,.35),inset 3px 0 8px rgba(255,255,255,.22),inset -3px 0 8px rgba(255,255,255,.22),inset 0 0 0 .5px rgba(0,0,0,.08);}
   html.is-standalone .crm-nav{margin-bottom:6px;}
   html.ios-fullbleed .crm-nav{margin-bottom:22px;}
   /* Menu flottante sopra la pagina, senza footer */
@@ -917,13 +917,13 @@ html.ios-fullbleed,html.ios-fullbleed body{height:calc(100% + var(--ios-gap,0px)
   .crm-nav .crm-tab svg{width:26px!important;height:26px!important;stroke:#1f2937!important;filter:drop-shadow(0 0 3px rgba(255,255,255,.9));}
   .crm-nav::before{content:'';position:absolute;inset:0;border-radius:inherit;pointer-events:none;z-index:0;
     background:
-      linear-gradient(115deg,rgba(255,255,255,.55) 0%,rgba(255,255,255,.12) 22%,rgba(255,255,255,0) 40%,rgba(255,255,255,0) 70%,rgba(255,255,255,.18) 100%),
+      linear-gradient(115deg,rgba(255,255,255,.40) 0%,rgba(255,255,255,.08) 22%,rgba(255,255,255,0) 40%,rgba(255,255,255,0) 70%,rgba(255,255,255,.18) 100%),
       radial-gradient(120% 90% at 50% -30%,rgba(255,255,255,.35),rgba(255,255,255,0) 60%);
     mix-blend-mode:screen;}
   .crm-nav::after{content:'';position:absolute;inset:3px;border-radius:inherit;pointer-events:none;z-index:0;
     border:1px solid rgba(255,255,255,.25);}
   .crm-nav .crm-tab{position:relative;z-index:1;}
-  .crm-nav .crm-tab.active{background:rgba(255,255,255,.45)!important;box-shadow:inset 0 1px 1px rgba(255,255,255,.9),0 2px 8px rgba(0,0,0,.08);}
+  .crm-nav .crm-tab.active{background:rgba(255,255,255,.35)!important;box-shadow:inset 0 1px 1px rgba(255,255,255,.9),0 2px 8px rgba(0,0,0,.08);}
   .crm-nav .crm-tab.active svg{stroke:var(--primary)!important;}
 }
 </style>
