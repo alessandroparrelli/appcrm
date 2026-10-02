@@ -1,0 +1,108 @@
+/* Blu istituzionale — CNA Roma, desktop e mobile. */
+:root{--bg:#F7F9FC;--text:#152238;--text-secondary:#526581;--text-tertiary:#667992;--border:#DFE7F1;--shadow-sm:0 2px 8px rgba(21,34,56,.025);--shadow-md:0 6px 24px rgba(21,34,56,.05);--header-h:80px;--radius-lg:12px;--radius-md:10px;}
+html,body{background:var(--bg);}
+.app-header{background:#fff;border-bottom:1px solid var(--border);padding-left:28px;padding-right:28px;}
+.logo-img{height:62px;max-width:220px;width:auto;}
+.header-title{color:var(--primary);font-size:14px;}
+.logo-fallback{background:var(--primary-glow);color:var(--primary);}
+.user-chip,.btn-logout,.btn-back{background:#fff;color:var(--text-secondary);border:1px solid var(--border);}
+.user-chip:hover,.btn-logout:hover,.btn-back:hover{background:#EDF5FF;color:var(--primary);}
+.user-name{color:var(--text);}
+.user-avatar{background:#EDF5FF;color:var(--primary);border:0;}
+#btn-notif-bell{color:var(--primary)!important;background:#fff;border:1px solid var(--border);border-radius:10px;}
+#tab-title-bar{background:#EDF5FF!important;border-bottom:1px solid var(--border)!important;}
+#tab-title-text{color:var(--text)!important;}
+.crm-nav{background:#fff;}
+.crm-tab{font-size:12px;font-weight:600;color:var(--text-secondary);min-height:52px;}
+.crm-tab.active{background:#EDF5FF;color:var(--primary);border-radius:8px;}
+.crm-tab.active svg{stroke:var(--primary);}
+.crm-tab:focus-visible,button:focus-visible,.logo-link:focus-visible{outline:3px solid #76AFE3;outline-offset:3px;}
+#view-crm{background:var(--bg);}
+.crm-list-hero{background:#EDF5FF;padding:30px max(24px,calc((100% - 1180px)/2)) 24px;margin:0;}
+.crm-list-hero-name{font-size:30px;font-weight:800;color:var(--text);letter-spacing:-.025em;}
+.crm-list-hero-sub{font-size:15px;line-height:1.6;color:var(--text-secondary);margin-top:6px;}
+.crm-bg-wrap{background:var(--bg);}
+#view-crm .crm-kpi-row{margin:0;background:#EDF5FF;padding:0 max(24px,calc((100% - 1180px)/2)) 24px;gap:16px;}
+.crm-kpi-card{padding:20px 24px;text-align:left;border-radius:12px;box-shadow:var(--shadow-sm);}
+.crm-kpi-label{font-size:13px;text-transform:none;letter-spacing:0;color:var(--text);}
+.crm-kpi-card .crm-kpi-value{font-size:34px;color:var(--primary)!important;margin-top:8px;}
+.crm-wrap{max-width:1228px;margin:0 auto;padding:24px 24px 80px;}
+.crm-topbar{gap:12px;margin-bottom:20px;}
+.crm-filter-row{gap:10px;}
+.crm-filter-row .crm-select{font-size:14px;padding:12px 14px;background:#fff;min-height:44px;max-width:100%;}
+.btn-crm{font-size:14px;padding:12px 18px;border-radius:10px;min-height:44px;}
+.btn-crm-outline{border:1px solid var(--border);}
+.crm-section-title{font-size:13px;text-transform:none;letter-spacing:0;margin:16px 0 10px;}
+.crm-contact-card{border-radius:12px;margin-bottom:10px;box-shadow:var(--shadow-sm);}
+.crm-contact-card-inner{padding:18px 20px;}
+.crm-contact-card-stripe{width:3px;opacity:.65;}
+.crm-cc-name{font-size:16px;line-height:1.5;overflow-wrap:anywhere;}
+.crm-cc-top{align-items:center;gap:16px;}
+.crm-cc-details{border:0;margin-top:6px;padding:0;display:flex;justify-content:space-between;gap:12px;color:var(--text-secondary);font-size:13px;flex-wrap:wrap;}
+.stato-pill{font-size:12px;padding:6px 12px;line-height:1.4;flex-shrink:0;}
+.stato-macro-da_contattare{background:#FFF4DD;color:#985900;border-color:#F8E4B8;}
+.stato-macro-lavorazione{background:#EAF4FF;color:#005CA9;border-color:#CCE3FA;}
+.stato-macro-positivo{background:#E9F8EF;color:#166534;border-color:#C8EBD5;}
+.stato-macro-negativo{background:#FFF0F0;color:#B42332;border-color:#F5D1D6;}
+.search-wrap,.results-wrap{max-width:1228px;padding:28px 24px;}
+.search-card-header{background:#EDF5FF;border-bottom:1px solid var(--border);}
+.search-card-header h2{color:var(--text);font-size:18px;}
+.search-icon{color:var(--primary);background:#DDEEFF;}
+.field-label,.form-group label,.crm-field label{font-size:12px;letter-spacing:.02em;}
+.search-input,.form-input,.crm-input,.crm-textarea{background:#fff;min-height:44px;}
+.scheda-hero,.crm-hero{background:#EDF5FF;}
+.scheda-hero-name,.crm-hero-name{color:var(--text);}
+.scheda-hero-sub,.crm-hero-sub{color:var(--text-secondary);}
+.s-card-title{background:#EDF5FF;color:var(--primary);font-size:12px;border-bottom:1px solid var(--border);}
+.s-card-title svg{stroke:var(--primary)!important;}
+.scheda-kpi-lbl,.addetto-lbl{font-size:11px;}
+.s-card{box-shadow:var(--shadow-sm);}
+.login-card{border:1px solid var(--border);box-shadow:var(--shadow-md);}
+.select-mode .crm-contact-card-inner{padding-left:28px;}
+@media(min-width:1200px){
+  #hdr-main-wrap{background:#fff;border-bottom:1px solid var(--border);}
+  #hdr-main{grid-column:1 / -1;grid-row:1;}
+  #hdr-main .header-title{display:none;}
+  #hdr-main .header-right{position:relative;z-index:2;}
+  #crm-nav.visible{position:absolute;top:12px;bottom:auto;left:260px;right:300px;margin:0;z-index:201;border:0;padding:0;background:transparent;gap:4px;}
+  #crm-nav .crm-tab{flex:1;flex-direction:row;padding:12px 8px;font-size:12px;white-space:nowrap;border-radius:0;border-bottom:3px solid transparent;}
+  #crm-nav .crm-tab svg{display:none;}
+  #crm-nav .crm-tab.active{background:transparent;border-bottom-color:var(--primary);}
+  #tab-title-bar{grid-column:1 / -1;grid-row:2;}
+}
+@media(min-width:641px) and (max-width:1199px){
+  .crm-nav.visible{background:#fff;padding:6px 24px;border-bottom:1px solid var(--border);gap:8px;}
+  .crm-tab{flex-direction:row;padding:10px 12px;}
+}
+@media(max-width:640px){
+  :root{--header-h:76px;}
+  .app-header{padding-left:16px;padding-right:16px;}
+  .logo-img{height:auto;width:190px;max-width:calc(100vw - 110px);}
+  #hdr-main .header-title{display:none;}
+  .header-right{gap:6px;}
+  .crm-list-hero{padding:22px 16px 18px;}
+  .crm-list-hero-name{font-size:25px;}
+  .crm-list-hero-sub{font-size:14px;}
+  #view-crm .crm-kpi-row{padding:0 12px 20px;gap:8px;}
+  .crm-kpi-card{padding:14px 10px;}
+  .crm-kpi-label{font-size:12px;line-height:1.4;}
+  .crm-kpi-card .crm-kpi-value{font-size:28px;}
+  .crm-wrap{padding:16px 12px 100px;}
+  .crm-topbar{gap:10px;}
+  .crm-topbar{flex-wrap:wrap;}
+  .btn-crm-nuovo-contatto{display:inline-flex!important;}
+  #fab-crm{display:none!important;}
+  .crm-topbar .crm-filter-row{flex-basis:100%!important;display:grid;grid-template-columns:1fr 1fr;}
+  .crm-filter-row .crm-select{width:100%;min-width:0;font-size:12px;padding:12px 8px;}
+  .btn-crm-nuovo-contatto{margin-left:auto;}
+  .crm-contact-card-inner{padding:14px 12px;}
+  .crm-cc-top{gap:8px;align-items:flex-start;}
+  .crm-cc-name{font-size:14px;}
+  .stato-pill{font-size:11px;padding:5px 8px;}
+  .crm-cc-details{font-size:12px;}
+  .crm-nav.visible{padding:4px 8px calc(4px + env(safe-area-inset-bottom));gap:4px;}
+  .crm-tab{font-size:10px;padding:8px 3px;}
+  .crm-tab.active{padding:8px 3px;}
+  .search-wrap,.results-wrap{padding:20px 12px;}
+  .s-card-title{color:var(--primary);}
+}
