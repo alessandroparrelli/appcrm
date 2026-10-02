@@ -98,7 +98,6 @@ body{font-family:var(--font);background:var(--primary);color:var(--text);-webkit
    si mostrano/nascondono via .active
 ══════════════════════════════════════════════════ */
 #app{display:none;position:fixed;inset:0;flex-direction:column;padding-bottom:0;overflow:hidden;}
-html.is-standalone #app{bottom:auto;height:var(--app-h,100%);}
 #app.visible{display:flex;}
 
 /* HEADER */
@@ -880,6 +879,14 @@ html.is-standalone #app{bottom:auto;height:var(--app-h,100%);}
   .scheda-hero{padding:18px 16px 28px;}
   .scheda-kpi-row{margin-top:-14px;}
   .scheda-wrap .s-card{margin:0 12px 10px;}
+}
+/* ── BOTTOM NAV MOBILE BLU (fusa con la fascia di sistema iOS) ── */
+@media(max-width:640px){
+  .crm-nav{background:var(--primary)!important;border-top:none!important;}
+  .crm-nav .crm-tab{color:rgba(255,255,255,.78)!important;}
+  .crm-nav .crm-tab svg{stroke:rgba(255,255,255,.78)!important;}
+  .crm-nav .crm-tab.active{background:#fff!important;color:var(--primary)!important;}
+  .crm-nav .crm-tab.active svg{stroke:var(--primary)!important;}
 }
 </style>
   <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
@@ -7695,22 +7702,6 @@ function schedaTab(btn, tab) {
     });
   });
 }
-</script>
-<script>
-(function(){
-  var standalone = window.navigator.standalone===true || window.matchMedia('(display-mode: standalone)').matches;
-  if(!standalone) return;
-  var root=document.documentElement;
-  root.classList.add('is-standalone');
-  function fit(){
-    var portrait = window.matchMedia('(orientation: portrait)').matches;
-    var h = portrait ? Math.max(screen.width,screen.height) : Math.min(screen.width,screen.height);
-    root.style.setProperty('--app-h', Math.max(h, window.innerHeight)+'px');
-  }
-  fit();
-  window.addEventListener('resize',fit);
-  window.addEventListener('orientationchange',function(){setTimeout(fit,300);});
-})();
 </script>
 </body>
 </html>
