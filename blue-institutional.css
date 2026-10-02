@@ -18,6 +18,8 @@ html,body{background:var(--bg);}
 .crm-tab.active svg{stroke:var(--primary);}
 .crm-tab:focus-visible,button:focus-visible,.logo-link:focus-visible{outline:3px solid #76AFE3;outline-offset:3px;}
 #view-crm{background:var(--bg);}
+/* La lista lunga deve scorrere, senza comprimere il titolo nel contenitore flex. */
+#view-crm > .crm-list-hero,#view-crm > .crm-bg-wrap{flex-shrink:0;}
 .crm-list-hero{background:#EDF5FF;padding:30px max(24px,calc((100% - 1180px)/2)) 24px;margin:0;}
 .crm-list-hero-name{font-size:30px;font-weight:800;color:var(--text);letter-spacing:-.025em;}
 .crm-list-hero-sub{font-size:15px;line-height:1.6;color:var(--text-secondary);margin-top:6px;}
