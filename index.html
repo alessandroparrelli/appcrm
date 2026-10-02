@@ -880,7 +880,7 @@ body{font-family:var(--font);background:#f0f2f5;color:var(--text);height:100%;ov
   .scheda-wrap .s-card{margin:0 12px 10px;}
 }
 </style>
-<link rel="stylesheet" href="blue-institutional.css?v=20261002-5">
+<link rel="stylesheet" href="blue-institutional.css?v=20261002-6">
   <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
 </head>
 <body>
@@ -979,7 +979,7 @@ body{font-family:var(--font);background:#f0f2f5;color:var(--text);height:100%;ov
     <header class="app-header" id="hdr-main">
       <div class="header-left">
         <div class="logo-link" onclick="goHome()" title="Home" style="display:flex;align-items:center;gap:10px;cursor:pointer;">
-          <img class="logo-img" src="NUOVO-LOGO-CNA-ROMA-SOLO-ROMA.png" alt="CNA Roma" onerror="this.style.display='none';document.getElementById('logo-fb').style.display='flex';">
+          <img class="logo-img" src="CNARoma_NEGATIVO_COLORE_SOLO_ROMA.png" alt="CNA Roma" onerror="this.style.display='none';document.getElementById('logo-fb').style.display='flex';">
           <div id="logo-fb" class="logo-fallback" style="display:none">CNA Roma</div>
         </div>
         <span class="header-title">CRM</span>
@@ -7700,6 +7700,8 @@ function updateCrmKpi(contacts) {
 function schedaTab(btn, tab) {
   document.querySelectorAll('.scheda-tab-btn').forEach(function(b){ b.classList.remove('active'); });
   btn.classList.add('active');
+  var bar=btn.parentElement;
+  bar.scrollLeft=Math.max(0,btn.offsetLeft-bar.offsetLeft-4);
   var sectionMap = {
     anagrafica: ['dati-anagrafici'],
     addetti:    ['addetti-dipendenti'],
