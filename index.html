@@ -101,7 +101,7 @@ body{font-family:var(--font);background:var(--primary);color:var(--text);-webkit
 #app.visible{display:flex;}
 
 /* HEADER */
-.app-header{height:calc(var(--header-h) + env(safe-area-inset-top,0px));min-height:0;background:var(--primary);display:flex;align-items:center;justify-content:space-between;padding:0 20px;padding-top:env(safe-area-inset-top,0px);position:sticky;top:0;z-index:200;box-shadow:none;flex-shrink:0;box-sizing:border-box;border-bottom:1px solid var(--primary);}
+.app-header{height:calc(var(--header-h) + env(safe-area-inset-top,0px) + 12px);min-height:0;background:var(--primary);display:flex;align-items:center;justify-content:space-between;padding:0 20px;padding-top:calc(env(safe-area-inset-top,0px) + 12px);position:sticky;top:0;z-index:200;box-shadow:none;flex-shrink:0;box-sizing:border-box;border-bottom:1px solid var(--primary);}
 .header-left{display:flex;align-items:center;gap:10px;}
 .logo-img{height:44px;width:auto;max-width:140px;display:block;object-fit:contain;}
 .logo-fallback{background:rgba(255,255,255,.2);color:#fff;font-weight:800;font-size:12px;padding:5px 10px;border-radius:var(--radius-sm);letter-spacing:.02em;align-items:center;justify-content:center;}
@@ -910,8 +910,8 @@ body{font-family:var(--font);background:var(--primary);color:var(--text);-webkit
     <div class="login-sub">Consulta le imprese associate</div>
     <div class="login-error" id="login-error"></div>
     <div class="form-group">
-      <label>Email</label>
-      <input type="email" class="form-input" id="inp-email" placeholder="email@esempio.com" autocomplete="username">
+      <label>Email o nome utente</label>
+      <input type="text" class="form-input" id="inp-email" placeholder="email o nome utente" autocomplete="username" autocapitalize="none" autocorrect="off" spellcheck="false">
     </div>
     <div class="form-group">
       <label>Password</label>
@@ -2286,14 +2286,14 @@ async function doLogin(){
   var pwd=G('inp-pwd').value;
   var errEl=G('login-error');
   errEl.style.display='none';
-  if(!email||!pwd){ errEl.textContent='Inserisci email e password'; errEl.style.display='block'; return; }
+  if(!email||!pwd){ errEl.textContent='Inserisci email o nome utente e password'; errEl.style.display='block'; return; }
   var btn=G('btn-login'); btn.disabled=true; btn.textContent='Accesso in corso…';
   showLoad('Verifica credenziali…');
   try {
     var hash=await sha256hex(pwd);
-    var resp=await fetch(SB+'/functions/v1/cna-login',{method:'POST',headers:{'Content-Type':'application/json','apikey':KEY},body:JSON.stringify({email:email,password_sha256:hash})});
+    var resp=await fetch(SB+'/functions/v1/cna-login',{method:'POST',headers:{'Content-Type':'application/json','apikey':KEY},body:JSON.stringify(email.indexOf('@')>-1?{email:email,password_sha256:hash}:{username:email,password_sha256:hash})});
     var result=await resp.json();
-    if(!resp.ok||!result.user){ errEl.textContent='Email o password non corretti'; errEl.style.display='block'; return; }
+    if(!resp.ok||!result.user){ errEl.textContent='Credenziali non corrette'; errEl.style.display='block'; return; }
     saveSession(result.user);
     startApp();
   } catch(e){ errEl.textContent='Errore di connessione. Riprova.'; errEl.style.display='block'; }
