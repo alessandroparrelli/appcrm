@@ -880,7 +880,7 @@ body{font-family:var(--font);background:#f0f2f5;color:var(--text);height:100%;ov
   .scheda-wrap .s-card{margin:0 12px 10px;}
 }
 </style>
-<link rel="stylesheet" href="blue-institutional.css?v=20261002-2">
+<link rel="stylesheet" href="blue-institutional.css?v=20261002-3">
   <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
 </head>
 <body>
@@ -2537,15 +2537,15 @@ async function openScheda(idx){
 
     /* ── HERO v2 full-bleed ── */
     html+='<div class="scheda-hero">'
-      +'<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">'
-        +'<button onclick="goBack()" style="display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.3);color:#fff;padding:7px 14px;border-radius:20px;font-family:var(--font);font-size:13px;font-weight:700;cursor:pointer;">'
+      +'<div class="scheda-toolbar">'
+        +'<button onclick="goBack()" class="scheda-action">'
           +'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>'
           +'Indietro'
         +'</button>'
         +'<div id="scheda-hero-crm-btn"></div>'
       +'</div>'
-      +'<img class="scheda-hero-logo" src="logo-hero.png" style="height:44px;max-width:180px;width:auto;display:block;margin-bottom:14px;object-fit:contain;" alt="CNA">'
-      +'<div style="font:500 10px/1 \'Inter\',sans-serif;text-transform:uppercase;letter-spacing:.16em;color:rgba(255,255,255,.8);margin-bottom:6px;">'
+      +'<img class="scheda-hero-logo" src="NUOVO-LOGO-CNA-ROMA-SOLO-ROMA.png" alt="CNA Roma">'
+      +'<div class="scheda-eyebrow">'
       +  'P.IVA '+esc(ana.partitaiva||'—')
       +'</div>'
       +'<div class="scheda-hero-name">'+esc(ana.ragionesociale||'—')+'</div>';
@@ -2555,7 +2555,7 @@ async function openScheda(idx){
     html+='<div class="scheda-badges">';
     if(cciaa&&cciaa.stato_attivita!==null&&cciaa.stato_attivita!==undefined){
       var st=traduciStato(cciaa.stato_attivita);
-      html+='<div class="sbadge" style="background:'+st.col+'"><div class="slbl" style="color:white">Stato</div><div class="sval" style="color:white">'+st.t+'</div></div>';
+      html+='<div class="sbadge sbadge-status" style="--badge-color:'+st.col+'"><div class="slbl" style="color:white">Stato</div><div class="sval" style="color:white">'+st.t+'</div></div>';
     }
     if(cciaa&&cciaa.art_com_tur){
       var ti=traduciTipo(cciaa.art_com_tur);
@@ -2766,10 +2766,10 @@ async function openScheda(idx){
       var kpiRow = G('scheda-content').querySelector('.scheda-kpi-row');
       if(!kpiRow) return;
       var btnDiv = document.createElement('div');
-      btnDiv.style.cssText = 'padding:0 16px 12px;';
+      btnDiv.className = 'scheda-public-action';
       var btn = document.createElement('button');
-      btn.style.cssText = 'width:100%;display:flex;align-items:center;justify-content:center;gap:8px;background:#fff;border:1.5px solid #002B7F;color:#002B7F;padding:11px 16px;border-radius:10px;font-family:var(--font);font-size:14px;font-weight:700;cursor:pointer;';
-      btn.innerHTML = '🔗 Apri scheda pubblica';
+      btn.className = 'scheda-action';
+      btn.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-2 2M14 11a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l2-2"/></svg> Apri scheda pubblica';
       btn.onclick = function(){ apriSchedaPubblica(ana.codiceanagrafica); };
       btnDiv.appendChild(btn);
       kpiRow.insertAdjacentElement('afterend', btnDiv);
@@ -2786,13 +2786,12 @@ async function openScheda(idx){
     checkCrmContact('anagrafiche', ana.codiceanagrafica).then(function(existing){
       var heroBtn = G('scheda-hero-crm-btn');
       if(heroBtn){
-        var style = 'display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.3);color:#fff;padding:7px 14px;border-radius:20px;font-family:var(--font);font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap;';
         if(existing){
-          heroBtn.innerHTML = '<button onclick="openCrmContatto('+existing.id+')" style="'+style+'">'
+          heroBtn.innerHTML = '<button onclick="openCrmContatto('+existing.id+')" class="scheda-action">'
             +'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>'
             +' Vai al CRM</button>';
         } else {
-          heroBtn.innerHTML = '<button onclick="creaContattoCRM()" style="'+style+'">'
+          heroBtn.innerHTML = '<button onclick="creaContattoCRM()" class="scheda-action">'
             +'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>'
             +' Nuovo CRM</button>';
         }
@@ -7525,6 +7524,14 @@ function renderSchedaPubblica(d, id) {
    INIT
 ══════════════════════════════════════════════════ */
 (function(){
+  // Blocca pinch e gesture di zoom nella UI mobile; lo scroll resta disponibile.
+  var mobileZoomLocked = function(){ return window.matchMedia('(max-width: 1199px)').matches; };
+  ['gesturestart','gesturechange'].forEach(function(type){
+    document.addEventListener(type,function(event){ if(mobileZoomLocked()) event.preventDefault(); },{passive:false});
+  });
+  document.addEventListener('touchmove',function(event){
+    if(mobileZoomLocked() && event.touches.length > 1) event.preventDefault();
+  },{passive:false});
   // Scheda pubblica: intercetta ?id=
   var _params = new URLSearchParams(window.location.search);
   var _schedaId = _params.get('id');
