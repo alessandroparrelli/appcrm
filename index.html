@@ -2,7 +2,7 @@
 <html lang="it">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -59,8 +59,8 @@
   --tr: all .18s cubic-bezier(0.4,0,0.2,1);
 }
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
-html{background:var(--primary);overflow:hidden;}
-body{font-family:var(--font);background:#f0f2f5;color:var(--text);overflow:hidden;-webkit-font-smoothing:antialiased;}
+html{background:var(--primary);}
+body{font-family:var(--font);background:#f0f2f5;color:var(--text);-webkit-font-smoothing:antialiased;}
 
 /* LOADING */
 #loading-overlay{position:fixed;inset:0;background:rgba(255,255,255,.92);display:none;align-items:center;justify-content:center;flex-direction:column;gap:12px;z-index:9999;backdrop-filter:blur(4px);}
@@ -97,7 +97,7 @@ body{font-family:var(--font);background:#f0f2f5;color:var(--text);overflow:hidde
    tre viste: #view-search, #view-results, #view-scheda
    si mostrano/nascondono via .active
 ══════════════════════════════════════════════════ */
-#app{display:none;position:fixed;inset:0;flex-direction:column;padding-bottom:0;overscroll-behavior:none;}
+#app{display:none;position:fixed;inset:0;flex-direction:column;padding-bottom:0;overflow:hidden;}
 #app.visible{display:flex;}
 
 /* HEADER */
@@ -125,7 +125,7 @@ body{font-family:var(--font);background:#f0f2f5;color:var(--text);overflow:hidde
 #view-comunicazione.active{flex-direction:column;height:100%;}
 
 /* ── SEARCH VIEW ──────────────────────────────── */
-#view-search{overflow-y:auto;}
+#view-search{overflow-y:auto;-webkit-overflow-scrolling:touch;}
 .search-wrap{padding:20px 16px;max-width:860px;width:100%;margin:0 auto;}
 .search-card{background:var(--surface);border-radius:var(--radius-lg);box-shadow:var(--shadow-md);overflow:hidden;}
 .search-card-header{background:var(--primary);padding:16px 20px;display:flex;align-items:center;gap:10px;border-radius:var(--radius-lg) var(--radius-lg) 0 0;}
@@ -259,7 +259,7 @@ body{font-family:var(--font);background:#f0f2f5;color:var(--text);overflow:hidde
 .btn-modal-close:hover{background:var(--surface3);}
 
 /* ── LOG VIEW ──────────────────────────────── */
-#view-log{overflow-y:auto;background:var(--bg);}
+#view-log{overflow-y:auto;-webkit-overflow-scrolling:touch;background:var(--bg);}
 .log-wrap{padding:16px;max-width:900px;width:100%;margin:0 auto;padding-bottom:80px;}
 .kpi-strip{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px;}
 .kpi-box{background:var(--surface);border-radius:var(--radius-lg);border:1px solid var(--border);padding:16px;text-align:center;box-shadow:var(--shadow-sm);}
@@ -364,9 +364,9 @@ body{font-family:var(--font);background:#f0f2f5;color:var(--text);overflow:hidde
   bottom:0;left:0;right:0;
   background:#fff;
   border-top:1.5px solid var(--border);
-  z-index:500;
-  padding:0;
-  padding-bottom:env(safe-area-inset-bottom,0px);
+  z-index:1000;
+  padding:6px 8px 0;
+  padding-bottom:max(env(safe-area-inset-bottom,0px),6px);
   box-sizing:border-box;
 }
 .crm-nav.visible{display:flex;}
@@ -500,8 +500,8 @@ body{font-family:var(--font);background:#f0f2f5;color:var(--text);overflow:hidde
 .stato-option.selected{border-color:var(--primary);background:var(--primary-glow);}
 
 /* ── VIEW LE MIE ATTIVITÀ / FLUSSI CRM ─────────── */
-#view-crm{overflow-y:auto;background:var(--primary);}
-.crm-wrap{padding:12px 16px;max-width:none;width:100%;margin:0;padding-bottom:80px;}
+#view-crm{overflow-y:auto;-webkit-overflow-scrolling:touch;background:var(--primary);}
+.crm-wrap{padding:12px 16px;max-width:none;width:100%;margin:0;padding-bottom:calc(80px + env(safe-area-inset-bottom,0px));}
 .crm-filter-row{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;align-items:center;}
 .crm-filter-row .crm-select{width:auto;font-size:12px;padding:7px 10px;}
 .crm-section-title{font-size:12px;font-weight:700;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.4px;margin-bottom:8px;padding:0 2px;}
@@ -511,7 +511,7 @@ body{font-family:var(--font);background:#f0f2f5;color:var(--text);overflow:hidde
 .crm-empty-sub{font-size:12px;color:var(--text-secondary);}
 
 /* ── SCHEDA CONTATTO CRM ────────────────────────── */
-#view-crm-contatto{overflow-y:auto;background:var(--bg);}
+#view-crm-contatto{overflow-y:auto;-webkit-overflow-scrolling:touch;background:var(--bg);}
 .crm-contatto-wrap{padding:16px;max-width:860px;width:100%;margin:0 auto;padding-bottom:80px;}
 
 /* ── USER LIST (assegna) ────────────────────────── */
@@ -578,7 +578,7 @@ body{font-family:var(--font);background:#f0f2f5;color:var(--text);overflow:hidde
 .wiz-user-list{display:flex;flex-direction:column;gap:5px;max-height:200px;overflow-y:auto;margin-bottom:12px;}
 
 /* ── ADMIN TAB ──────────────────────────────────── */
-#view-admin{overflow-y:auto;background:var(--bg);}
+#view-admin{overflow-y:auto;-webkit-overflow-scrolling:touch;background:var(--bg);}
 .admin-wrap{padding:16px;max-width:1000px;width:100%;margin:0 auto;padding-bottom:80px;}
 .admin-kpi-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:18px;}
 .admin-kpi{background:var(--surface);border-radius:var(--radius-lg);border:1px solid var(--border);padding:16px 12px;text-align:center;box-shadow:var(--shadow-sm);}
@@ -760,7 +760,7 @@ body{font-family:var(--font);background:#f0f2f5;color:var(--text);overflow:hidde
 /* ══════════════════════════════════════════════
    COMUNICAZIONE
 ══════════════════════════════════════════════ */
-#view-comunicazione{overflow-y:auto;background:var(--bg);}
+#view-comunicazione{overflow-y:auto;-webkit-overflow-scrolling:touch;background:var(--bg);}
 .com-wrap{padding:16px;flex:1;display:flex;flex-direction:column;padding-bottom:40px;}
 .email-tabs{display:flex;gap:0;border-bottom:2px solid var(--border);margin-bottom:16px;}
 .ed-block{border:1px solid var(--border);border-radius:8px;margin-bottom:10px;overflow:hidden;background:#fff;transition:box-shadow .15s;}
