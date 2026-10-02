@@ -98,10 +98,11 @@ body{font-family:var(--font);background:var(--primary);color:var(--text);-webkit
    si mostrano/nascondono via .active
 ══════════════════════════════════════════════════ */
 #app{display:none;position:fixed;inset:0;flex-direction:column;padding-bottom:0;overflow:hidden;}
+html.is-standalone #app{bottom:auto;height:var(--app-h,100%);}
 #app.visible{display:flex;}
 
 /* HEADER */
-.app-header{min-height:var(--header-h);background:var(--primary);display:flex;align-items:center;justify-content:space-between;padding:0 20px;padding-top:env(safe-area-inset-top,0px);position:sticky;top:0;z-index:200;box-shadow:none;flex-shrink:0;box-sizing:border-box;border-bottom:1px solid var(--primary);}
+.app-header{height:calc(var(--header-h) + env(safe-area-inset-top,0px));min-height:0;background:var(--primary);display:flex;align-items:center;justify-content:space-between;padding:0 20px;padding-top:env(safe-area-inset-top,0px);position:sticky;top:0;z-index:200;box-shadow:none;flex-shrink:0;box-sizing:border-box;border-bottom:1px solid var(--primary);}
 .header-left{display:flex;align-items:center;gap:10px;}
 .logo-img{height:44px;width:auto;max-width:140px;display:block;object-fit:contain;}
 .logo-fallback{background:rgba(255,255,255,.2);color:#fff;font-weight:800;font-size:12px;padding:5px 10px;border-radius:var(--radius-sm);letter-spacing:.02em;align-items:center;justify-content:center;}
@@ -7694,6 +7695,22 @@ function schedaTab(btn, tab) {
     });
   });
 }
+</script>
+<script>
+(function(){
+  var standalone = window.navigator.standalone===true || window.matchMedia('(display-mode: standalone)').matches;
+  if(!standalone) return;
+  var root=document.documentElement;
+  root.classList.add('is-standalone');
+  function fit(){
+    var portrait = window.matchMedia('(orientation: portrait)').matches;
+    var h = portrait ? Math.max(screen.width,screen.height) : Math.min(screen.width,screen.height);
+    root.style.setProperty('--app-h', Math.max(h, window.innerHeight)+'px');
+  }
+  fit();
+  window.addEventListener('resize',fit);
+  window.addEventListener('orientationchange',function(){setTimeout(fit,300);});
+})();
 </script>
 </body>
 </html>
