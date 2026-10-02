@@ -20,6 +20,13 @@
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#005ca9">
 <meta name="mobile-web-app-capable" content="yes">
+<script>
+(function(){try{
+  if(window.navigator.standalone===true||window.matchMedia('(display-mode: standalone)').matches){
+    document.documentElement.classList.add('is-standalone');
+  }
+}catch(e){}})();
+</script>
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -887,6 +894,7 @@ body{font-family:var(--font);background:var(--primary);color:var(--text);-webkit
   .crm-nav .crm-tab svg{stroke:rgba(255,255,255,.78)!important;}
   .crm-nav .crm-tab.active{background:#fff!important;color:var(--primary)!important;}
   .crm-nav .crm-tab.active svg{stroke:var(--primary)!important;}
+  html.is-standalone .crm-nav{padding-bottom:6px!important;}
 }
 </style>
   <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
