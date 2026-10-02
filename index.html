@@ -31,8 +31,11 @@
       r.style.setProperty('--ios-gap',gap+'px');
       r.classList.toggle('ios-fullbleed',gap>0);
     };
-    fit(); window.addEventListener('resize',fit);
-    window.addEventListener('orientationchange',function(){setTimeout(fit,300);});
+    fit();
+    window.addEventListener('orientationchange',function(){
+      r.classList.remove('ios-fullbleed'); r.style.setProperty('--ios-gap','0px');
+      setTimeout(fit,400);
+    });
   }
 }catch(e){}})();
 </script>
@@ -114,7 +117,6 @@ body{font-family:var(--font);background:var(--primary);color:var(--text);-webkit
    si mostrano/nascondono via .active
 ══════════════════════════════════════════════════ */
 html.ios-fullbleed,html.ios-fullbleed body{height:calc(100% + var(--ios-gap,0px));overflow:hidden;}
-html.ios-fullbleed #app{bottom:calc(-1 * var(--ios-gap,0px));}
 #app{display:none;position:fixed;inset:0;flex-direction:column;padding-bottom:0;overflow:hidden;}
 #app.visible{display:flex;}
 
