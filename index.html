@@ -1444,6 +1444,7 @@ html.ios-fullbleed,html.ios-fullbleed body{height:calc(100% + var(--ios-gap,0px)
             <div class="com-card">
               <div class="com-card-title">Template email massiva</div>
               <div style="display:flex;gap:6px;">
+                <button class="btn-crm btn-crm-outline btn-crm-sm" onclick="tplOpenVersions('com')" style="justify-content:center;">Versioni</button>
                 <button class="btn-crm btn-crm-outline btn-crm-sm" onclick="comSalvaTemplate()" style="flex:1;justify-content:center;">
                   <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13"/><polyline points="7 3 7 8 15 8"/></svg>
                   Salva
@@ -1552,6 +1553,7 @@ html.ios-fullbleed,html.ios-fullbleed body{height:calc(100% + var(--ios-gap,0px)
             </div>
 
             <div style="display:flex;gap:6px;">
+              <button class="btn-crm btn-crm-outline btn-crm-sm" onclick="tplOpenVersions('sol')" style="border-color:#7C3AED;color:#7C3AED;justify-content:center;padding:10px;">Versioni</button>
               <button class="btn-crm btn-crm-outline btn-crm-sm" onclick="solSalvaTemplate()" style="border-color:#7C3AED;color:#7C3AED;flex:1;justify-content:center;padding:10px;">
                 <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13"/><polyline points="7 3 7 8 15 8"/></svg>
                 Salva
@@ -2419,6 +2421,8 @@ function startApp(){
       if (Array.isArray(_startSol.blocchi) && _startSol.blocchi.length) solBlocchi = _startSol.blocchi;
     }
   } catch(_e2) {}
+  // Template email: sincronizzazione con il database (fonte di verità condivisa tra dispositivi)
+  _tplReady = tplCloudInit();
   // inizializza sistema notifiche (polling + Notification API)
   setTimeout(notifInit, 1500);
   // mostra tab admin e bottone seleziona solo se admin
@@ -5070,9 +5074,10 @@ function solSalvaTemplate() {
   edSyncDOM('sol'); // flush contenteditable → solBlocchi prima di salvare
   var ogg  = (G('sol-tpl-oggetto')||{}).value || '';
   var logo = (G('sol-tpl-logo')||{}).value || '';
-  localStorage.setItem(SOL_TPL_KEY, JSON.stringify({ oggetto: ogg, blocchi: solBlocchi, logo_url: logo }));
+  tplSet(SOL_TPL_KEY, JSON.stringify({ oggetto: ogg, blocchi: solBlocchi, logo_url: logo }));
   var msg = G('sol-save-msg');
   if(msg){ msg.style.display='block'; setTimeout(function(){ msg.style.display='none'; }, 2500); }
+  tplSnapshot('sol','salvataggio');
   toast('Template sollecito salvato!', 'success');
 }
 
@@ -5545,6 +5550,154 @@ var COM_STATI_LABEL = {
 
 var COM_TPL_KEY = 'crm_com_template';
 
+/* ══════════════════════════════════════════════════
+   TEMPLATE EMAIL — persistenza su database + storico versioni
+   localStorage resta solo come cache; la fonte di verità è crm_email_templates
+══════════════════════════════════════════════════ */
+var _tplReady = null, _tplCloudReady = false, _tplCloudTimers = {}, _tplSessionSnap = {};
+function tplKind(key){ return key===COM_TPL_KEY ? 'com' : 'sol'; }
+function tplKey(tipo){ return tipo==='com' ? COM_TPL_KEY : SOL_TPL_KEY; }
+function tplWho(){ try { return ((session.nome||'')+' '+(session.cognome||'')).trim(); } catch(e){ return ''; } }
+function tplDevice(){
+  var ua=navigator.userAgent||'', d=/iPhone/.test(ua)?'iPhone':/iPad/.test(ua)?'iPad':/Android/.test(ua)?'Android':/Mac/.test(ua)?'Mac':/Windows/.test(ua)?'Windows':'altro';
+  var app=(window.navigator.standalone===true||window.matchMedia('(display-mode: standalone)').matches)?'app':'browser';
+  return d+' '+app;
+}
+function tplSig(s){ var h=5381; for(var i=0;i<s.length;i++){ h=((h<<5)+h+s.charCodeAt(i))|0; } return s.length+':'+h; }
+function tplHasContent(o){ return !!(o && Array.isArray(o.blocchi) && o.blocchi.length); }
+
+// Scrittura: cache locale immediata + database (debounce), solo dopo il caricamento iniziale
+function tplSet(key, json){
+  localStorage.setItem(key, json);
+  if(!_tplCloudReady) return;
+  var tipo=tplKind(key);
+  clearTimeout(_tplCloudTimers[tipo]);
+  _tplCloudTimers[tipo]=setTimeout(function(){ tplCloudSave(tipo, json); }, 1200);
+}
+async function tplCloudSave(tipo, json){
+  try{
+    var data=JSON.parse(json);
+    if(!tplHasContent(data)) return; // mai sovrascrivere il database con un template vuoto
+    // prima modifica della sessione: conserva nello storico la versione che sta per essere sostituita
+    if(!_tplSessionSnap[tipo]){ _tplSessionSnap[tipo]=true; await tplSnapshotFromCloud(tipo); }
+    await fetch(SB+'/rest/v1/crm_email_templates?on_conflict=tipo',{method:'POST',
+      headers:H({'Content-Type':'application/json','Prefer':'resolution=merge-duplicates,return=minimal'}),
+      body:JSON.stringify({tipo:tipo,data:data,updated_at:new Date().toISOString(),updated_by:tplWho()+' · '+tplDevice()})});
+  }catch(e){ console.warn('tplCloudSave',tipo,e); }
+}
+async function tplVersionInsert(tipo, data, origine){
+  try{
+    await fetch(SB+'/rest/v1/crm_email_template_versions',{method:'POST',
+      headers:H({'Content-Type':'application/json','Prefer':'return=minimal'}),
+      body:JSON.stringify({tipo:tipo,data:data,origine:origine,created_by:tplWho()+' · '+tplDevice()})});
+  }catch(e){ console.warn('tplVersionInsert',e); }
+}
+async function tplSnapshotFromCloud(tipo){
+  try{
+    var r=await fetch(SB+'/rest/v1/crm_email_templates?tipo=eq.'+tipo+'&select=data',{headers:H()});
+    var row=r.ok?(await r.json())[0]:null;
+    if(row && tplHasContent(row.data)) await tplVersionInsert(tipo,row.data,'prima-della-modifica');
+  }catch(e){}
+}
+// Salvataggio esplicito: versione nello storico + database aggiornato subito
+function tplSnapshot(tipo, origine){
+  try{
+    var raw=localStorage.getItem(tplKey(tipo)); if(!raw) return;
+    var data=JSON.parse(raw); if(!tplHasContent(data)) return;
+    clearTimeout(_tplCloudTimers[tipo]);
+    tplCloudSave(tipo, raw).then(function(){ tplVersionInsert(tipo,data,origine); });
+  }catch(e){}
+}
+// Riapplica i template della cache locale alle variabili usate da invii ed editor
+function tplApplyGlobals(){
+  try{
+    var c=JSON.parse(localStorage.getItem(COM_TPL_KEY)||'{}');
+    if(c.blocchi && c.blocchi.length) comBlocchi=c.blocchi;
+    if(c.header_color) _comHeaderColor=c.header_color;
+    if(c.logo_url) _comLogoUrl=c.logo_url;
+    if(c.logo_height) _comLogoHeight=String(c.logo_height);
+  }catch(e){}
+  try{
+    var s=JSON.parse(localStorage.getItem(SOL_TPL_KEY)||'{}');
+    if(Array.isArray(s.blocchi) && s.blocchi.length) solBlocchi=s.blocchi;
+  }catch(e){}
+}
+// Avvio: backup della copia locale, poi il database diventa la fonte di verità
+async function tplCloudInit(){
+  try{
+    var r=await fetch(SB+'/rest/v1/crm_email_templates?select=tipo,data',{headers:H()});
+    var rows=r.ok?await r.json():[];
+    var cloud={}; rows.forEach(function(x){ cloud[x.tipo]=x.data; });
+    for(var tipo of ['com','sol']){
+      var key=tplKey(tipo), raw=localStorage.getItem(key), local=null;
+      try{ local=raw?JSON.parse(raw):null; }catch(e){}
+      var cloudJson=cloud[tipo]?JSON.stringify(cloud[tipo]):null;
+      // 1. una copia locale diversa dal database viene sempre conservata nello storico (una volta sola)
+      if(tplHasContent(local) && raw!==cloudJson){
+        var sig=tplSig(raw), sk='crm_tpl_backup_sig_'+tipo;
+        if(localStorage.getItem(sk)!==sig){ await tplVersionInsert(tipo,local,'copia-locale'); localStorage.setItem(sk,sig); }
+      }
+      if(tplHasContent(cloud[tipo])){
+        // 2. il database vince: aggiorna la cache locale
+        localStorage.setItem(key, cloudJson);
+      } else if(tplHasContent(local)){
+        // 3. database vuoto: la copia locale diventa il template condiviso
+        await fetch(SB+'/rest/v1/crm_email_templates?on_conflict=tipo',{method:'POST',
+          headers:H({'Content-Type':'application/json','Prefer':'resolution=merge-duplicates,return=minimal'}),
+          body:JSON.stringify({tipo:tipo,data:local,updated_at:new Date().toISOString(),updated_by:tplWho()+' · '+tplDevice()})});
+      }
+    }
+    tplApplyGlobals();
+  }catch(e){ console.warn('tplCloudInit',e); }
+  _tplCloudReady=true;
+}
+
+// ── Storico versioni: elenco e ripristino ──
+async function tplOpenVersions(tipo){
+  var old=G('tpl-ver-bg'); if(old) old.remove();
+  var bg=document.createElement('div'); bg.id='tpl-ver-bg';
+  bg.style.cssText='position:fixed;inset:0;background:rgba(15,23,42,.45);z-index:3000;display:flex;align-items:center;justify-content:center;padding:16px;';
+  bg.onclick=function(e){ if(e.target===bg) bg.remove(); };
+  bg.innerHTML='<div style="background:#fff;border-radius:16px;max-width:520px;width:100%;max-height:80vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 20px 50px rgba(0,0,0,.25);">'
+    +'<div style="padding:16px 18px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;"><b style="font-size:16px;">Versioni salvate · '+(tipo==='com'?'Email massiva':'Sollecito')+'</b>'
+    +'<button onclick="G(\'tpl-ver-bg\').remove()" style="border:none;background:#f1f5f9;border-radius:8px;width:32px;height:32px;font-size:18px;cursor:pointer;">×</button></div>'
+    +'<div id="tpl-ver-list" style="overflow-y:auto;padding:12px 14px;">Caricamento…</div></div>';
+  document.body.appendChild(bg);
+  try{
+    var r=await fetch(SB+'/rest/v1/crm_email_template_versions?tipo=eq.'+tipo+'&select=id,origine,created_by,created_at,data&order=created_at.desc&limit=50',{headers:H()});
+    var list=r.ok?await r.json():[];
+    window._tplVerCache=list;
+    var lab={'salvataggio':'Salvataggio','copia-locale':'Copia trovata su un dispositivo','prima-della-modifica':'Versione prima di una modifica','prima-del-ripristino':'Versione prima di un ripristino'};
+    G('tpl-ver-list').innerHTML=list.length?list.map(function(v,i){
+      var d=new Date(v.created_at), nb=(v.data&&v.data.blocchi)?v.data.blocchi.length:0;
+      return '<div style="border:1px solid var(--border);border-radius:12px;padding:12px;margin-bottom:8px;display:flex;gap:10px;align-items:center;">'
+        +'<div style="flex:1;min-width:0;"><div style="font-weight:700;font-size:14px;">'+escHtml(lab[v.origine]||v.origine||'Versione')+'</div>'
+        +'<div style="font-size:12px;color:#64748b;">'+d.toLocaleDateString('it-IT')+' '+d.toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'})+' · '+nb+' blocchi</div>'
+        +'<div style="font-size:12px;color:#94a3b8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+escHtml(v.created_by||'')+(v.data&&v.data.oggetto?' · '+escHtml(v.data.oggetto):'')+'</div></div>'
+        +'<button class="btn-crm btn-crm-sm" style="background:var(--primary);color:#fff;border:none;" onclick="tplRestore(\''+tipo+'\','+i+')">Ripristina</button></div>';
+    }).join(''):'<div style="padding:20px;text-align:center;color:#94a3b8;">Nessuna versione salvata per ora.</div>';
+  }catch(e){ G('tpl-ver-list').textContent='Errore nel caricamento delle versioni.'; }
+}
+async function tplRestore(tipo, i){
+  var v=(window._tplVerCache||[])[i]; if(!v||!tplHasContent(v.data)) return;
+  if(!confirm('Ripristinare questa versione? Quella attuale resta comunque nello storico.')) return;
+  showLoad('Ripristino…');
+  try{
+    var cur=localStorage.getItem(tplKey(tipo));
+    if(cur){ try{ var cd=JSON.parse(cur); if(tplHasContent(cd)) await tplVersionInsert(tipo,cd,'prima-del-ripristino'); }catch(e){} }
+    var json=JSON.stringify(v.data);
+    localStorage.setItem(tplKey(tipo), json);
+    _tplSessionSnap[tipo]=true;
+    await tplCloudSave(tipo, json);
+    tplApplyGlobals();
+    if(tipo==='com') comCaricaTemplate(); else solCaricaTemplate();
+    var bg=G('tpl-ver-bg'); if(bg) bg.remove();
+    toast('Versione ripristinata','success');
+  }catch(e){ console.error(e); toast('Errore nel ripristino','error'); }
+  finally{ hideLoad(); }
+}
+
+
 /* ── Template default EMAIL MASSIVA ──────────────────── */
 function comCaricaTemplate() {
   try {
@@ -5572,12 +5725,13 @@ function comSalvaTemplate() {
   var logo        = (G('com-logo-url')||{}).value || '';
   var header_color= (G('com-header-color')||{}).value || _comHeaderColor || '#005ca9';
   var logo_height = (G('com-logo-height')||{}).value || '44';
-  localStorage.setItem(COM_TPL_KEY, JSON.stringify({
+  tplSet(COM_TPL_KEY, JSON.stringify({
     oggetto: ogg, blocchi: comBlocchi,
     logo_url: logo, header_color: header_color, logo_height: logo_height
   }));
   var msg = G('com-save-msg');
   if(msg){ msg.style.display='block'; setTimeout(function(){ msg.style.display='none'; }, 2500); }
+  tplSnapshot('com','salvataggio');
   toast('Template salvato!', 'success');
 }
 
@@ -5593,7 +5747,7 @@ function comAutosaveHeader() {
     tpl.logo_height  = (G('com-logo-height')||{}).value || '44';
     if(!tpl.blocchi) tpl.blocchi = comBlocchi;
     if(!tpl.oggetto) tpl.oggetto = (G('com-oggetto')||{}).value || '';
-    localStorage.setItem(COM_TPL_KEY, JSON.stringify(tpl));
+    tplSet(COM_TPL_KEY, JSON.stringify(tpl));
   } catch(e) {}
 }
 
@@ -5621,6 +5775,7 @@ function switchEmailTab(which) {
 }
 
 function loadComunicazione() {
+  if (!_tplCloudReady && _tplReady) { _tplReady.then(function(){ loadComunicazione(); }); return; }
   // carica template comunicazione massiva (popola anche il campo logo)
   comCaricaTemplate();
   // se il campo logo è rimasto vuoto, usa il logo di default
@@ -5799,7 +5954,7 @@ function comAutosaveBlocchi() {
       tpl.logo_url     = (G('com-logo-url')||{}).value || tpl.logo_url || '';
       tpl.header_color = (G('com-header-color')||{}).value || _comHeaderColor || '#005ca9';
       tpl.logo_height  = (G('com-logo-height')||{}).value || tpl.logo_height || '44';
-      localStorage.setItem(COM_TPL_KEY, JSON.stringify(tpl));
+      tplSet(COM_TPL_KEY, JSON.stringify(tpl));
     } catch(e){ console.warn('autosave COM:', e); }
   }, 800);
 }
@@ -5813,7 +5968,7 @@ function solAutosaveBlocchi() {
       tpl.blocchi  = solBlocchi;
       tpl.oggetto  = (G('sol-tpl-oggetto')||{}).value || tpl.oggetto || '';
       tpl.logo_url = (G('sol-tpl-logo')||{}).value || tpl.logo_url || '';
-      localStorage.setItem(SOL_TPL_KEY, JSON.stringify(tpl));
+      tplSet(SOL_TPL_KEY, JSON.stringify(tpl));
     } catch(e){ console.warn('autosave SOL:', e); }
   }, 800);
 }
@@ -5829,7 +5984,7 @@ function flushComTemplate() {
     tpl.logo_url     = (G('com-logo-url')||{}).value || tpl.logo_url || '';
     tpl.header_color = (G('com-header-color')||{}).value || _comHeaderColor || '#005ca9';
     tpl.logo_height  = (G('com-logo-height')||{}).value || tpl.logo_height || '44';
-    localStorage.setItem(COM_TPL_KEY, JSON.stringify(tpl));
+    tplSet(COM_TPL_KEY, JSON.stringify(tpl));
   } catch(e){ console.warn('flushComTemplate:', e); }
 }
 function flushSolTemplate() {
@@ -5840,7 +5995,7 @@ function flushSolTemplate() {
     tpl.blocchi  = solBlocchi;
     tpl.oggetto  = (G('sol-tpl-oggetto')||{}).value || tpl.oggetto || '';
     tpl.logo_url = (G('sol-tpl-logo')||{}).value || tpl.logo_url || '';
-    localStorage.setItem(SOL_TPL_KEY, JSON.stringify(tpl));
+    tplSet(SOL_TPL_KEY, JSON.stringify(tpl));
   } catch(e){ console.warn('flushSolTemplate:', e); }
 }
 
