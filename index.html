@@ -1488,6 +1488,7 @@ html.ios-fullbleed,html.ios-fullbleed body{height:calc(100% + var(--ios-gap,0px)
                   <button class="btn-crm btn-crm-outline btn-crm-sm" onclick="comAddBlocco('bottone')">+ Bottone</button>
                   <button class="btn-crm btn-crm-outline btn-crm-sm" onclick="comAddBlocco('immagine')">+ Immagine</button>
                   <button class="btn-crm btn-crm-outline btn-crm-sm" onclick="comAddBlocco('citazione')">+ Citazione</button>
+                  <button class="btn-crm btn-crm-outline btn-crm-sm" onclick="edAddNoteCitazione('com')">+ Note contatto</button>
                   <button class="btn-crm btn-crm-outline btn-crm-sm" onclick="comAddBlocco('tabella_contatto')">+ Tabella</button>
                   <button class="btn-crm btn-crm-outline btn-crm-sm" onclick="comAddBlocco('alert')">+ Alert</button>
                   <button class="btn-crm btn-crm-outline btn-crm-sm" onclick="comAddBlocco('separatore')">+ Sep.</button>
@@ -1591,6 +1592,7 @@ html.ios-fullbleed,html.ios-fullbleed body{height:calc(100% + var(--ios-gap,0px)
                   <button class="btn-crm btn-crm-outline btn-crm-sm" onclick="solAddBlocco('bottone')">+ Bottone</button>
                   <button class="btn-crm btn-crm-outline btn-crm-sm" onclick="solAddBlocco('immagine')">+ Immagine</button>
                   <button class="btn-crm btn-crm-outline btn-crm-sm" onclick="solAddBlocco('citazione')">+ Citazione</button>
+                  <button class="btn-crm btn-crm-outline btn-crm-sm" onclick="edAddNoteCitazione('sol')">+ Note contatto</button>
                   <button class="btn-crm btn-crm-outline btn-crm-sm" onclick="solAddBlocco('tabella_contatto')">+ Tabella</button>
                   <button class="btn-crm btn-crm-outline btn-crm-sm" onclick="solAddBlocco('alert')">+ Alert</button>
                   <button class="btn-crm btn-crm-outline btn-crm-sm" onclick="solAddBlocco('separatore')">+ Sep.</button>
@@ -4473,7 +4475,7 @@ function wizStep2(){
     +'Aggiungi a Google Calendar</a>'
     +'</div>';
   html += '</div>';
-  html += '<div class="crm-field" style="margin-top:12px;"><label>Note</label>'
+  html += '<div class="crm-field" style="margin-top:12px;"><label>Note <span style="color:#e74738">*</span></label>'
     +'<textarea class="crm-textarea" id="wiz-note" placeholder="Descrivi la richiesta, il motivo del contatto, eventuali dettagli…" style="min-height:90px;">'+esc(wiz.note)+'</textarea>'
     +'</div>';
   return html;
@@ -4602,6 +4604,11 @@ async function wizNext(){
     var nt = G('wiz-note');
     if(nt) wiz.note = nt.value.trim();
     if(!wiz.tipoContatto){ toast('Seleziona il tipo di contatto','error'); return; }
+    if(!wiz.note || wiz.note.length < 3){
+      toast('Le note sono obbligatorie: descrivi la richiesta del contatto','error');
+      if(nt){ nt.focus(); nt.style.borderColor='#e74738'; }
+      return;
+    }
     // salva data/ora appuntamento se presente
     if(wiz.tipoContatto==='appuntamento'){
       var dEl = G('wiz-apt-date'), tEl = G('wiz-apt-time'), lEl = G('wiz-apt-location');
@@ -5391,19 +5398,27 @@ async function sendAssignmentEmail(contactData, assignedToId, assignedByName, ha
       }
     ];
 
-    // Aggiunge blocco note solo se presenti
-    if (noteText.trim()) {
-      ASSIGNMENT_BLOCCHI.splice(2, 0, {
-        tipo: 'alert',
-        titolo: 'NOTE DI PASSAGGIO',
-        testo: noteText,
-        color: '#005ca9',
-        bg: '#EFF6FF',
-        textColor: '#1e40af'
-      });
+    // Template dell'editor (salvato su database): è quello che decide la struttura.
+    // I blocchi fissi restano solo come riserva se il template non esiste.
+    var RIGHE_TABELLA = ['azienda','titolare','telefono','email_contatto','associato','pagante','mestiere_settore','stato'];
+    var tplBlocchi = (comTpl.blocchi && comTpl.blocchi.length) ? JSON.parse(JSON.stringify(comTpl.blocchi)) : ASSIGNMENT_BLOCCHI;
+    tplBlocchi.forEach(function(b){
+      if(b && b.tipo==='tabella_contatto'){
+        var r = Array.isArray(b.righe) ? b.righe.slice() : [];
+        RIGHE_TABELLA.forEach(function(x){ if(r.indexOf(x)<0) r.push(x); });
+        b.righe = r; // tabella sempre completa
+      }
+    });
+    // Se il template non contiene {{note}}, le note non vanno perse: citazione prima del pulsante
+    if (noteText.trim() && JSON.stringify(tplBlocchi).indexOf('{{note}}') < 0) {
+      var posBtn = -1;
+      tplBlocchi.forEach(function(b,i){ if(posBtn<0 && b && b.tipo==='bottone') posBtn=i; });
+      var cit = { tipo:'citazione', html:'{{note}}' };
+      if(posBtn>=0) tplBlocchi.splice(posBtn,0,cit); else tplBlocchi.push(cit);
     }
+    ASSIGNMENT_BLOCCHI = tplBlocchi;
 
-    var oggetto = 'Nuovo contatto CRM: {{nome_azienda}}';
+    var oggetto = (comTpl.oggetto && comTpl.oggetto.trim()) ? comTpl.oggetto : 'Nuovo contatto CRM: {{nome_azienda}}';
 
     // 5. Destinatario con tutti i campi
     var dest = [{
@@ -6326,6 +6341,21 @@ function edAddBlocco(prefix, tipo) {
   edTriggerAutosave(prefix);
 }
 function comAddBlocco(t){ edAddBlocco('com',t); }
+// Blocco citazione già collegato alle note del contatto
+function edAddNoteCitazione(prefix){
+  edSyncDOM(prefix);
+  var arr = prefix==='com' ? comBlocchi : solBlocchi;
+  var b = edDeepCopy(BLOCCO_DEFAULTS['citazione']||{tipo:'citazione', html:''});
+  b.tipo='citazione'; b.html='{{note}}';
+  arr.push(b);
+  var i = arr.length - 1;
+  var cont = G(prefix+'-blocchi');
+  if(cont) cont.appendChild(edCreateBloccoEl(prefix, i, b));
+  var hint = G(prefix+'-empty-hint'); if(hint) hint.style.display='none';
+  edTriggerAutosave(prefix);
+  setTimeout(prefix==='com'?comRefreshPreview:solRefreshPreview, 100);
+  toast('Blocco note aggiunto: nell\'email mostrerà le note del contatto','success');
+}
 function solAddBlocco(t){ edAddBlocco('sol',t); }
 
 /* ── Sposta blocco ───────────────────────────────── */
@@ -6511,7 +6541,9 @@ function edBlocchiToHtml(arr, vars) {
       return '<div style="margin:0 0 12px;font-size:'+fs+'px;text-align:'+al+';color:'+col+';font-family:Inter,Arial,sans-serif;line-height:1.6;">'+subst(b.html)+'</div>';
     }
     if(b.tipo==='citazione') {
-      return '<blockquote style="border-left:4px solid #005ca9;padding:8px 16px;margin:0 0 12px;font-style:italic;color:#4B5563;font-family:Inter,Arial,sans-serif;">'+subst(b.html)+'</blockquote>';
+      var _cq = subst(b.html);
+      if(!String(_cq).replace(/<[^>]*>/g,'').replace(/&nbsp;/g,' ').trim()) return '';
+      return '<blockquote style="border-left:4px solid #005ca9;padding:8px 16px;margin:0 0 12px;font-style:italic;color:#4B5563;font-family:Inter,Arial,sans-serif;">'+_cq+'</blockquote>';
     }
     if(b.tipo==='separatore') {
       return '<hr style="border:none;border-top:1px solid '+(b.color||'#E5E7EB')+';margin:16px 0;">';
@@ -6599,7 +6631,7 @@ var COM_PREV_VARS = {
   stato:'In lavorazione', assegnato_a:'Giordano Rapaccioni',
   data_creazione:new Date().toLocaleDateString('it-IT'), fonte:'Anagrafiche',
   creato_da:'Alessandro Parrelli',
-  note:'01/01/2025: Prima nota di esempio.\n02/01/2025: Seconda nota.',
+  note:'Cliente interessato al rinnovo, richiamare dopo le 15.<br>Ha chiesto informazioni sui corsi di formazione.',
   associato:'Associato', pagante:'Pagante', mestiere_settore:'Commercio / Dettaglio',
 };
 
