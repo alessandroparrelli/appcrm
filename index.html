@@ -1444,6 +1444,7 @@ html.ios-fullbleed,html.ios-fullbleed body{height:calc(100% + var(--ios-gap,0px)
             <div class="com-card">
               <div class="com-card-title">Template email massiva</div>
               <div style="display:flex;gap:6px;">
+                <button class="btn-crm btn-crm-outline btn-crm-sm" onclick="edApriAnteprima('com')" style="justify-content:center;">Anteprima</button>
                 <button class="btn-crm btn-crm-outline btn-crm-sm" onclick="tplOpenVersions('com')" style="justify-content:center;">Versioni</button>
                 <button class="btn-crm btn-crm-outline btn-crm-sm" onclick="comSalvaTemplate()" style="flex:1;justify-content:center;">
                   <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13"/><polyline points="7 3 7 8 15 8"/></svg>
@@ -1553,6 +1554,7 @@ html.ios-fullbleed,html.ios-fullbleed body{height:calc(100% + var(--ios-gap,0px)
             </div>
 
             <div style="display:flex;gap:6px;">
+              <button class="btn-crm btn-crm-outline btn-crm-sm" onclick="edApriAnteprima('sol')" style="border-color:#7C3AED;color:#7C3AED;justify-content:center;padding:10px;">Anteprima</button>
               <button class="btn-crm btn-crm-outline btn-crm-sm" onclick="tplOpenVersions('sol')" style="border-color:#7C3AED;color:#7C3AED;justify-content:center;padding:10px;">Versioni</button>
               <button class="btn-crm btn-crm-outline btn-crm-sm" onclick="solSalvaTemplate()" style="border-color:#7C3AED;color:#7C3AED;flex:1;justify-content:center;padding:10px;">
                 <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13"/><polyline points="7 3 7 8 15 8"/></svg>
@@ -6352,28 +6354,93 @@ function comMoveBlocco(i,d){ edMove('com',i,d); }
 function solDeleteBlocco(i){ edDelete('sol',i); }
 function solMoveBlocco(i,d){ edMove('sol',i,d); }
 
-/* ── Inserisci variabile nel blocco attivo ─────────── */
-function edInserisciVar(prefix, varStr) {
-  // trova il contenteditable con focus (o l'ultimo usato)
-  var el = document.activeElement;
-  if(!el || !el.classList.contains('ed-content')) {
-    // fallback: cerca il primo contenteditable del prefix
-    el = document.querySelector('#'+prefix+'-blocchi .ed-content');
-  }
-  if(!el) return;
-  el.focus();
+/* ── Inserisci variabile nel punto esatto del cursore ─────────── */
+var _edCaret = { com:null, sol:null };
+function edPrefixOf(node){
+  var el = node && (node.nodeType===1 ? node : node.parentElement);
+  if(!el || !el.closest) return null;
+  if(el.closest('#com-blocchi')) return 'com';
+  if(el.closest('#sol-blocchi')) return 'sol';
+  return null;
+}
+// Memorizza continuamente l'ultima posizione del cursore dentro un blocco di testo
+document.addEventListener('selectionchange', function(){
   var sel = window.getSelection();
-  if(sel.rangeCount === 0){
-    var r = document.createRange();
-    r.selectNodeContents(el);
-    r.collapse(false);
-    sel.addRange(r);
+  if(!sel || !sel.rangeCount) return;
+  var r = sel.getRangeAt(0);
+  var node = r.startContainer, el = node.nodeType===1 ? node : node.parentElement;
+  var ed = el && el.closest ? el.closest('.ed-content') : null;
+  if(!ed) return;
+  var p = edPrefixOf(ed); if(!p) return;
+  _edCaret[p] = { el: ed, range: r.cloneRange() };
+});
+// Campo oggetto: ricorda che l'ultimo punto attivo era l'oggetto
+document.addEventListener('focusin', function(e){
+  var t = e.target; if(!t || !t.id) return;
+  if(t.id==='com-oggetto') _edCaret.com = { input: t };
+  if(t.id==='sol-tpl-oggetto') _edCaret.sol = { input: t };
+});
+// Il tocco sul pulsante variabile non deve togliere il focus al testo
+['mousedown'].forEach(function(evt){
+  document.addEventListener(evt, function(e){
+    if(e.target && e.target.closest && e.target.closest('.com-var-chip')) e.preventDefault();
+  }, {passive:false});
+});
+function edInserisciVar(prefix, varStr) {
+  var c = _edCaret[prefix];
+  // 1. Oggetto dell'email
+  if(c && c.input && document.contains(c.input)){
+    var inp = c.input, s = inp.selectionStart!=null ? inp.selectionStart : inp.value.length, e2 = inp.selectionEnd!=null ? inp.selectionEnd : s;
+    inp.value = inp.value.slice(0,s) + varStr + inp.value.slice(e2);
+    inp.focus(); inp.setSelectionRange(s+varStr.length, s+varStr.length);
+    inp.dispatchEvent(new Event('input',{bubbles:true}));
+    _edCaret[prefix] = { input: inp };
+    edTriggerAutosave(prefix);
+    return;
   }
-  document.execCommand('insertText', false, varStr);
-  edTriggerAutosave(prefix);
+  // 2. Blocco di testo: nel punto esatto del cursore
+  if(c && c.el && c.range && document.contains(c.el) && c.el.contains(c.range.startContainer)){
+    var el = c.el;
+    el.focus();
+    var sel = window.getSelection();
+    var range = c.range.cloneRange();
+    sel.removeAllRanges(); sel.addRange(range);
+    range.deleteContents();
+    var tn = document.createTextNode(varStr);
+    range.insertNode(tn);
+    range.setStartAfter(tn); range.collapse(true);
+    sel.removeAllRanges(); sel.addRange(range);
+    _edCaret[prefix] = { el: el, range: range.cloneRange() };
+    el.dispatchEvent(new Event('input',{bubbles:true}));
+    edTriggerAutosave(prefix);
+    return;
+  }
+  // 3. Nessun punto scelto: non indovinare (prima finiva nel titolo)
+  toast('Tocca prima il punto del testo in cui inserire la variabile', 'info');
 }
 function comInserisciVar(v){ edInserisciVar('com',v); }
 function solInserisciVar(v){ edInserisciVar('sol',v); }
+
+/* ── Anteprima a schermo intero (utile da cellulare) ── */
+function edApriAnteprima(prefix){
+  edSyncDOM(prefix);
+  var blocchi = prefix==='com' ? comBlocchi : solBlocchi;
+  if(!blocchi || !blocchi.length){ toast('Aggiungi almeno un blocco per vedere l\'anteprima','error'); return; }
+  var html = prefix==='com'
+    ? comBuildFullHtml(edBlocchiToHtml(comBlocchi, COM_PREV_VARS))
+    : comBuildFullHtml(edBlocchiToHtml(solBlocchi, COM_PREV_VARS), (G('sol-tpl-logo')||{}).value || _emailLogoUrl || '');
+  var ogg = ((G(prefix==='com'?'com-oggetto':'sol-tpl-oggetto')||{}).value||'').trim();
+  var old = G('ed-anteprima-bg'); if(old) old.remove();
+  var bg = document.createElement('div'); bg.id='ed-anteprima-bg';
+  bg.style.cssText='position:fixed;inset:0;z-index:3000;background:#f0f2f5;display:flex;flex-direction:column;';
+  bg.innerHTML='<div style="background:var(--primary);color:#fff;padding:calc(env(safe-area-inset-top,0px) + 12px) 16px 12px;display:flex;align-items:center;gap:12px;flex-shrink:0;">'
+    +'<button onclick="G(\'ed-anteprima-bg\').remove()" style="border:none;background:rgba(255,255,255,.2);color:#fff;border-radius:10px;padding:8px 14px;font-family:var(--font);font-size:14px;font-weight:700;cursor:pointer;">Chiudi</button>'
+    +'<div style="min-width:0;"><div style="font-size:15px;font-weight:800;">Anteprima '+(prefix==='com'?'email massiva':'sollecito')+'</div>'
+    +(ogg?'<div style="font-size:12px;opacity:.85;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">Oggetto: '+escHtml(ogg)+'</div>':'')+'</div></div>'
+    +'<iframe id="ed-anteprima-frame" title="Anteprima email" style="flex:1;width:100%;border:none;background:#fff;"></iframe>';
+  document.body.appendChild(bg);
+  G('ed-anteprima-frame').srcdoc = html;
+}
 
 /* ── Update helpers per blocchi statici ─────────── */
 function edUpdateSep(prefix, i, color) {
