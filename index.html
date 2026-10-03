@@ -927,9 +927,11 @@ html.ios-fullbleed,html.ios-fullbleed body{height:calc(100% + var(--ios-gap,0px)
   .crm-nav .crm-tab.active svg{stroke:var(--primary)!important;}
 }
 /* ── IMPOSTAZIONI / PROFILO / GESTIONE UTENTI ── */
-.imp-wrap{padding:16px;max-width:760px;width:100%;margin:0 auto;}
-.imp-card{background:#fff;border:1px solid var(--border);border-radius:16px;box-shadow:var(--shadow-sm);overflow:hidden;margin-bottom:16px;}
-.imp-hero{background:linear-gradient(160deg,#005ca9,#0176d4);padding:22px 18px;display:flex;align-items:center;gap:16px;color:#fff;}
+#view-impostazioni{overflow-y:auto;-webkit-overflow-scrolling:touch;}
+.imp-wrap{padding:0;width:100%;}
+.imp-card{background:transparent;}
+.imp-card + .imp-card .imp-body{border-top:1px solid var(--border);}
+.imp-hero{background:var(--primary);padding:6px 20px 26px;margin-top:-1px;display:flex;align-items:center;gap:16px;color:#fff;}
 .imp-av{width:72px;height:72px;border-radius:50%;background:rgba(255,255,255,.2);border:3px solid rgba(255,255,255,.5);display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:800;overflow:hidden;flex-shrink:0;cursor:pointer;position:relative;}
 .imp-av img{width:100%;height:100%;object-fit:cover;}
 .imp-av-edit{position:absolute;bottom:0;left:0;right:0;background:rgba(0,0,0,.45);font-size:8px;font-weight:700;text-align:center;padding:3px 0;letter-spacing:.05em;}
@@ -937,7 +939,7 @@ html.ios-fullbleed,html.ios-fullbleed body{height:calc(100% + var(--ios-gap,0px)
 .imp-hero-sub{font-size:12px;opacity:.85;margin-top:3px;}
 .imp-badges{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;}
 .imp-badge{font-size:10px;font-weight:700;padding:3px 9px;border-radius:999px;background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.35);text-transform:uppercase;letter-spacing:.06em;}
-.imp-body{padding:16px;}
+.imp-body{padding:18px 16px;max-width:760px;margin:0 auto;}
 .imp-sec-title{font-size:11px;font-weight:800;color:var(--primary);text-transform:uppercase;letter-spacing:.08em;margin:4px 0 12px;}
 .imp-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
 .imp-f{margin-bottom:10px;}
@@ -964,7 +966,8 @@ html.ios-fullbleed,html.ios-fullbleed body{height:calc(100% + var(--ios-gap,0px)
 .imp-pill{font-size:10px;font-weight:700;padding:3px 8px;border-radius:999px;text-transform:uppercase;letter-spacing:.05em;flex-shrink:0;}
 .imp-pill.on{background:#f0fdf4;color:#166534;border:1px solid #86efac;}
 .imp-pill.off{background:#fef2f2;color:#b91c1c;border:1px solid #fecaca;}
-.imp-back{display:inline-flex;align-items:center;gap:6px;background:none;border:none;color:var(--primary);font-family:var(--font);font-size:14px;font-weight:700;cursor:pointer;padding:4px 0 12px;}
+.imp-back{display:inline-flex;align-items:center;gap:6px;background:none;border:none;color:#fff;font-family:var(--font);font-size:14px;font-weight:700;cursor:pointer;padding:0;}
+.imp-backbar{background:var(--primary);padding:4px 20px 6px;margin-top:-1px;}
 @media(max-width:480px){.imp-grid,.imp-info{grid-template-columns:1fr;}}
 </style>
   <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
@@ -3065,7 +3068,7 @@ function impOpenUser(id){
   if(id===session.id){ G('view-impostazioni').scrollTop=0; return; }
   var u=impUsers.find(function(x){return x.id===id;}); if(!u) return;
   var w=G('imp-wrap');
-  w.innerHTML='<button class="imp-back" onclick="loadImpostazioni()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>Tutti gli utenti</button>'
+  w.innerHTML='<div class="imp-backbar"><button class="imp-back" onclick="loadImpostazioni()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>Tutti gli utenti</button></div>'
     +'<div class="imp-card"><div class="imp-hero"><div class="imp-av" style="cursor:default">'+impAv(u)+'</div>'
     +'<div><div class="imp-hero-name">'+escHtml((u.nome||'')+' '+(u.cognome||''))+'</div><div class="imp-hero-sub">'+escHtml(u.email||'')+'</div></div></div>'
     +'<div class="imp-body">'+impUserForm(u,false)+'</div></div>';
