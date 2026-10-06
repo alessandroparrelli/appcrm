@@ -2657,7 +2657,7 @@ function renderPartecipazioniEventi(d){
   else pres=pevKpi(t+'%','Presenze',(s.persone_presenti||0)+' presenti');
   var nx=ev.filter(function(e){return !e.concluso;}).map(function(e){return e.data;}).filter(Boolean).sort()[0];
   var last=ev.map(function(e){return e.data;}).filter(Boolean).sort().pop();
-  var dK=nx||last, dL=nx?'Prossimo':'Ultimo evento';
+  var dK=d.prima_iscrizione||nx||last, dL=d.prima_iscrizione?'Prima iscr.':(nx?'Prossimo':'Ultimo evento');
   var dT=dK?new Date(dK).toLocaleDateString('it-IT',{day:'numeric',month:'short',year:'numeric',timeZone:'Europe/Rome'}):'—';
   var h='<div class="pev-kpis">'
     +pevKpi(s.eventi_iscritti||ev.length,'Eventi')
