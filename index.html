@@ -855,9 +855,10 @@ html.ios-fullbleed,html.ios-fullbleed body{height:calc(100% + var(--ios-gap,0px)
 .scheda-kpi-card{background:#fff;border:1px solid #e6ebf2;border-radius:12px;padding:12px 8px;text-align:center;box-shadow:0 6px 20px -8px rgba(15,23,42,.2);}
 .scheda-kpi-lbl{font-size:9px;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:.1em;}
 .scheda-kpi-val{font-size:22px;font-weight:800;letter-spacing:-.03em;margin-top:4px;color:#005ca9;}
-.scheda-tab-bar{display:flex;background:#fff;border-bottom:1px solid #e6ebf2;overflow-x:auto;-webkit-overflow-scrolling:touch;padding:0 12px;flex-shrink:0;scrollbar-width:none;}
+.scheda-tab-bar{position:sticky;top:0;z-index:20;display:flex;gap:6px;margin:4px 12px 10px;padding:5px;background:#E9EEF7;border-radius:14px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;box-shadow:0 2px 8px rgba(15,23,42,.06);}
 .scheda-tab-bar::-webkit-scrollbar{display:none;}
-.scheda-tab-btn{padding:12px 14px;font:700 12px/1 'Inter',sans-serif;color:#94a3b8;background:none;border:none;border-bottom:2px solid transparent;cursor:pointer;white-space:nowrap;transition:color .15s;margin-bottom:-1px;}
+.scheda-tab-btn{flex:1 0 auto;display:flex;align-items:center;justify-content:center;gap:6px;padding:10px 14px;font:700 13px/1 'Inter',sans-serif;color:#334155;background:transparent;border:none;border-radius:10px;cursor:pointer;white-space:nowrap;transition:background .15s,color .15s,box-shadow .15s;}
+.scheda-tab-btn svg{width:15px;height:15px;flex-shrink:0;opacity:.8}
 .pev-wrap{margin:12px;border-radius:22px;padding:14px;background:linear-gradient(160deg,#1E3FAE 0%,#2F5FD0 100%);box-shadow:0 8px 24px rgba(30,63,174,.25);font-family:'Inter',sans-serif}
 .pev-top{display:flex;align-items:center;justify-content:space-between;gap:8px;color:#fff;margin:0 2px 12px}
 .pev-top-t{font-size:13px;font-weight:800;letter-spacing:.06em;text-transform:uppercase}
@@ -894,8 +895,9 @@ html.ios-fullbleed,html.ios-fullbleed body{height:calc(100% + var(--ios-gap,0px)
 .pev-p-mail{font-size:12px;color:#94A3B8;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .pev-chip{font-size:11px;font-weight:700;color:#1E3FAE;background:#EEF3FF;border-radius:20px;padding:4px 10px;white-space:nowrap}
 .pev-acc{font-size:10px;color:#6B7280;background:#F3F4F6;border-radius:6px;padding:1px 6px}
-.scheda-tab-btn.active{color:#005ca9;border-bottom-color:#005ca9;}
-.scheda-tab-btn:hover{color:#005ca9;}
+.scheda-tab-btn.active{color:#fff;background:linear-gradient(160deg,#1E3FAE,#2F5FD0);box-shadow:0 3px 10px rgba(30,63,174,.35);}
+.scheda-tab-btn.active svg{opacity:1}
+.scheda-tab-btn:not(.active):hover{background:rgba(255,255,255,.75);color:#1E3FAE;}
 .scheda-wrap .s-card{margin:0 16px 10px;border-radius:14px;}
 .crm-contact-card{display:flex;align-items:stretch;padding:0;overflow:hidden;border-radius:14px;}
 .crm-contact-card-inner{flex:1;padding:12px 14px;min-width:0;}
@@ -2830,12 +2832,12 @@ async function openScheda(idx){
 
     /* ── TAB BAR scheda ── */
     html+='<div class="scheda-tab-bar" id="scheda-tabs">'
-      +'<button class="scheda-tab-btn active" onclick="schedaTab(this,\'anagrafica\')">Anagrafica</button>'
-      +'<button class="scheda-tab-btn" onclick="schedaTab(this,\'addetti\')">Addetti</button>'
-      +'<button class="scheda-tab-btn" onclick="schedaTab(this,\'contratti\')">Contratti</button>'
-      +'<button class="scheda-tab-btn" onclick="schedaTab(this,\'pagamenti\')">Pagamenti</button>'
-      +'<button class="scheda-tab-btn" onclick="schedaTab(this,\'eventi\')">Eventi</button>'
-      +'<button class="scheda-tab-btn" onclick="schedaTab(this,\'mappa\')">Mappa</button>'
+      +'<button class="scheda-tab-btn active" onclick="schedaTab(this,\'anagrafica\')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>Anagrafica</button>'
+      +'<button class="scheda-tab-btn" onclick="schedaTab(this,\'addetti\')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>Addetti</button>'
+      +'<button class="scheda-tab-btn" onclick="schedaTab(this,\'contratti\')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="13" y2="17"/></svg>Contratti</button>'
+      +'<button class="scheda-tab-btn" onclick="schedaTab(this,\'pagamenti\')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>Pagamenti</button>'
+      +'<button class="scheda-tab-btn" onclick="schedaTab(this,\'eventi\')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>Eventi</button>'
+      +'<button class="scheda-tab-btn" onclick="schedaTab(this,\'mappa\')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>Mappa</button>'
       +'</div>';
 
     /* ── DATI ANAGRAFICI ── */
@@ -8388,6 +8390,7 @@ function updateCrmKpi(contacts) {
 function schedaTab(btn, tab) {
   document.querySelectorAll('.scheda-tab-btn').forEach(function(b){ b.classList.remove('active'); });
   btn.classList.add('active');
+  try{ btn.scrollIntoView({behavior:'smooth',block:'nearest',inline:'center'}); }catch(e){}
   var sectionMap = {
     anagrafica: ['dati-anagrafici'],
     addetti:    ['addetti-dipendenti'],
