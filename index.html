@@ -858,30 +858,41 @@ html.ios-fullbleed,html.ios-fullbleed body{height:calc(100% + var(--ios-gap,0px)
 .scheda-tab-bar{display:flex;background:#fff;border-bottom:1px solid #e6ebf2;overflow-x:auto;-webkit-overflow-scrolling:touch;padding:0 12px;flex-shrink:0;scrollbar-width:none;}
 .scheda-tab-bar::-webkit-scrollbar{display:none;}
 .scheda-tab-btn{padding:12px 14px;font:700 12px/1 'Inter',sans-serif;color:#94a3b8;background:none;border:none;border-bottom:2px solid transparent;cursor:pointer;white-space:nowrap;transition:color .15s;margin-bottom:-1px;}
-.pev-refresh{font:600 11px/1 'Inter',sans-serif;color:#5B5FEF;background:#EEF0FF;border:none;border-radius:20px;padding:5px 10px;cursor:pointer}
-.pev-empty{padding:20px 16px;text-align:center;color:var(--text-secondary);font-size:13px}
-.pev-kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;padding:12px 14px}
-@media(max-width:640px){.pev-kpis{grid-template-columns:repeat(2,1fr)}}
-.pev-kpi{background:#F8FAFC;border:1px solid #E5E7EB;border-radius:10px;padding:10px 12px}
-.pev-kpi-lbl{font-size:11px;font-weight:600;color:var(--text-secondary)}
-.pev-kpi-val{font-size:22px;font-weight:800;color:var(--text-primary);margin:2px 0}
-.pev-kpi-sub{font-size:11px;color:var(--text-tertiary)}
-.pev-ev{border-top:1px solid #EEF0F3}
-.pev-ev-head{display:flex;align-items:center;gap:10px;padding:11px 14px;cursor:pointer}
-.pev-ev-head:hover{background:#FAFAFF}
+.pev-wrap{margin:12px;border-radius:22px;padding:14px;background:linear-gradient(160deg,#1E3FAE 0%,#2F5FD0 100%);box-shadow:0 8px 24px rgba(30,63,174,.25);font-family:'Inter',sans-serif}
+.pev-top{display:flex;align-items:center;justify-content:space-between;gap:8px;color:#fff;margin:0 2px 12px}
+.pev-top-t{font-size:13px;font-weight:800;letter-spacing:.06em;text-transform:uppercase}
+.pev-refresh{font:600 11px/1 'Inter',sans-serif;color:#fff;background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.3);border-radius:20px;padding:6px 11px;cursor:pointer}
+.pev-kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px}
+.pev-kpi{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.22);border-radius:16px;padding:12px 6px;text-align:center;color:#fff;display:flex;flex-direction:column;justify-content:center;min-height:86px}
+.pev-kpi-val{font-size:24px;font-weight:800;line-height:1.1}
+.pev-kpi-val.sm{font-size:15px}
+.pev-kpi-lbl{font-size:12px;font-weight:600;margin-top:4px}
+.pev-kpi-sub{font-size:10px;opacity:.75;margin-top:2px;line-height:1.25}
+.pev-box{background:#fff;border-radius:18px;padding:14px 16px;margin-top:10px}
+.pev-box-t{font-size:12px;font-weight:800;letter-spacing:.08em;color:#1E3FAE;text-transform:uppercase;margin-bottom:8px}
+.pev-empty{padding:16px;text-align:center;color:#64748B;font-size:13px}
+.pev-ev{padding:10px 0;border-top:1px solid #EEF0F3;cursor:pointer}
+.pev-ev:first-of-type{border-top:none}
+.pev-ev-row{display:flex;gap:10px;align-items:flex-start}
 .pev-ev-main{flex:1;min-width:0}
-.pev-ev-tit{font-size:13px;font-weight:700;color:var(--text-primary);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.pev-ev-meta{font-size:11px;color:var(--text-secondary);margin-top:2px}
-.pev-ev-side{text-align:right;min-width:120px}
-.pev-cnt{font-size:11px;color:var(--text-secondary);margin-top:4px}
-.pev-bar{height:4px;background:#E5E7EB;border-radius:4px;margin-top:4px;overflow:hidden}
-.pev-bar>i{display:block;height:100%;background:#16A34A}
-.pev-badge{display:inline-block;font-size:10px;font-weight:700;padding:2px 9px;border-radius:20px;white-space:nowrap}
-.pev-people{display:none;padding:0 14px 10px 14px}
+.pev-ev-tit{font-size:15px;font-weight:700;color:#0F172A}
+.pev-ev-meta{font-size:12px;color:#94A3B8;margin-top:2px}
+.pev-prog{display:flex;align-items:center;gap:10px;margin-top:10px}
+.pev-bar{flex:1;height:6px;background:#EEF0F5;border-radius:6px;overflow:hidden}
+.pev-bar>i{display:block;height:100%;background:#16A34A;border-radius:6px}
+.pev-cnt{font-size:12px;color:#334155;white-space:nowrap}
+.pev-badge{display:inline-block;font-size:11px;font-weight:700;padding:4px 11px;border-radius:20px;white-space:nowrap}
+.pev-people{display:none;margin-top:8px;background:#F8FAFC;border-radius:10px;padding:4px 10px}
 .pev-ev.open .pev-people{display:block}
-.pev-p{display:flex;align-items:center;gap:8px;padding:6px 0;border-top:1px dashed #EEF0F3;font-size:12px}
-.pev-p-name{font-weight:600;color:var(--text-primary)}
-.pev-p-mail{color:var(--text-secondary);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pev-pp{display:flex;align-items:center;gap:8px;padding:6px 0;font-size:12px;border-top:1px dashed #E5E7EB}
+.pev-pp:first-child{border-top:none}
+.pev-p{display:flex;align-items:center;gap:12px;padding:10px 0;border-top:1px solid #EEF0F3}
+.pev-p:first-of-type{border-top:none}
+.pev-av{width:40px;height:40px;border-radius:50%;background:#E6EDFB;color:#1E3FAE;font-weight:800;font-size:13px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.pev-p-main{flex:1;min-width:0}
+.pev-p-name{font-size:14px;font-weight:700;color:#0F172A}
+.pev-p-mail{font-size:12px;color:#94A3B8;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pev-chip{font-size:11px;font-weight:700;color:#1E3FAE;background:#EEF3FF;border-radius:20px;padding:4px 10px;white-space:nowrap}
 .pev-acc{font-size:10px;color:#6B7280;background:#F3F4F6;border-radius:6px;padding:1px 6px}
 .scheda-tab-btn.active{color:#005ca9;border-bottom-color:#005ca9;}
 .scheda-tab-btn:hover{color:#005ca9;}
@@ -2606,7 +2617,7 @@ async function caricaPartecipazioniEventi(partitaIva){
 function pevBadgeEvento(e){
   var m={partecipato:['Partecipato','background:#DCFCE7;color:#166534'],
     non_partecipato:['Non partecipato','background:#FEE2E2;color:#991B1B'],
-    iscritto:['Iscritto \u00b7 in programma','background:#DBEAFE;color:#1E40AF'],
+    iscritto:['In programma','background:#E6EDFB;color:#1E3FAE'],
     rinuncia:['Rinuncia','background:#F3F4F6;color:#4B5563']}[e]||[e||'—','background:#F3F4F6;color:#4B5563'];
   return '<span class="pev-badge" style="'+m[1]+'">'+esc(m[0])+'</span>';
 }
@@ -2627,62 +2638,83 @@ function pevOra(s){
   var d=new Date(s); if(isNaN(d)) return '';
   return d.toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit',timeZone:'Europe/Rome'});
 }
-function pevKpi(lbl,val,sub,col){
-  return '<div class="pev-kpi"><div class="pev-kpi-lbl">'+lbl+'</div><div class="pev-kpi-val"'+(col?' style="color:'+col+'"':'')+'>'+val+'</div><div class="pev-kpi-sub">'+sub+'</div></div>';
+function pevKpi(val,lbl,sub,sm){
+  return '<div class="pev-kpi"><div class="pev-kpi-val'+(sm?' sm':'')+'">'+val+'</div><div class="pev-kpi-lbl">'+lbl+'</div>'+(sub?'<div class="pev-kpi-sub">'+sub+'</div>':'')+'</div>';
 }
+function pevIniz(n,c){ return ((n||'').charAt(0)+(c||'').charAt(0)).toUpperCase()||'?'; }
 function renderPartecipazioniEventi(d){
   var s=d.riepilogo||{}, ev=d.eventi||[];
-  if(!ev.length) return '<div class="pev-empty">Nessuna iscrizione agli eventi CNA Roma</div>';
-  var t=s.tasso_presenza, tCol=null, tVal='—';
-  if(t!==null&&t!==undefined){ tVal=t+'%'; tCol=t>=70?'#16A34A':(t>=40?'#D97706':'#DC2626'); }
+  if(!ev.length) return '<div class="pev-box"><div class="pev-empty">Nessuna iscrizione agli eventi CNA Roma</div></div>';
+  // persone aggregate
+  var pm={}, po=[];
+  ev.forEach(function(e){ (e.persone||[]).forEach(function(p){
+    var k=((p.nome||'')+'|'+(p.cognome||'')+'|'+(p.email||'')).toLowerCase();
+    if(!pm[k]){ pm[k]={nome:p.nome,cognome:p.cognome,email:p.email,acc:p.accompagnatore,iscr:0,pres:0}; po.push(pm[k]); }
+    pm[k].iscr++; if(p.esito==='presente') pm[k].pres++;
+  }); });
+  var t=s.tasso_presenza, pres;
+  if(t===null||t===undefined) pres=pevKpi(s.persone_presenti||0,'Presenze','nessun evento concluso');
+  else pres=pevKpi(t+'%','Presenze',(s.persone_presenti||0)+' presenti');
+  var nx=ev.filter(function(e){return !e.concluso;}).map(function(e){return e.data;}).filter(Boolean).sort()[0];
+  var last=ev.map(function(e){return e.data;}).filter(Boolean).sort().pop();
+  var dK=nx||last, dL=nx?'Prossimo':'Ultimo evento';
+  var dT=dK?new Date(dK).toLocaleDateString('it-IT',{day:'numeric',month:'short',year:'numeric',timeZone:'Europe/Rome'}):'—';
   var h='<div class="pev-kpis">'
-    +pevKpi('Eventi partecipati',s.eventi_partecipati||0,'su '+(s.eventi_iscritti||0)+' a cui si \u00e8 iscritta')
-    +pevKpi('Persone presenti',s.persone_presenti||0,'su '+(s.persone_iscritte||0)+' iscritte')
-    +pevKpi('Tasso di presenza',tVal,'sugli eventi conclusi',tCol)
-    +pevKpi('Prossimi eventi',s.eventi_futuri||0,(s.persone_in_attesa||0)+' persone iscritte')
+    +pevKpi(s.eventi_iscritti||ev.length,'Eventi')
+    +pevKpi(po.length,'Persone')
+    +pres
+    +pevKpi(esc(dT),dL,'',true)
     +'</div>';
+  h+='<div class="pev-box"><div class="pev-box-t">Eventi ('+ev.length+')</div>';
   ev.forEach(function(e){
     var meta=[pevData(e.data),e.luogo].filter(Boolean).map(esc).join(' \u00b7 ');
-    var side;
-    if(e.esito_evento==='iscritto'){
-      side='<div class="pev-cnt">'+(e.iscritti||0)+' iscritti</div>';
-    } else {
-      var pct=e.iscritti?Math.round((e.presenti||0)*100/e.iscritti):0;
-      side='<div class="pev-cnt">'+(e.presenti||0)+' presenti su '+(e.iscritti||0)+' iscritti</div>'
-        +'<div class="pev-bar"><i style="width:'+pct+'%"></i></div>';
-    }
+    var fut=e.esito_evento==='iscritto';
+    var pct=(!fut&&e.iscritti)?Math.round((e.presenti||0)*100/e.iscritti):0;
+    var cnt=fut?(e.iscritti||0)+' iscritti':(e.presenti||0)+' presenti su '+(e.iscritti||0);
     var pp='';
     (e.persone||[]).forEach(function(p){
-      var ora=(p.esito==='presente'&&p.checkin_at)?' <span style="color:var(--text-secondary);font-size:11px">check-in '+pevOra(p.checkin_at)+'</span>':'';
-      pp+='<div class="pev-p"><span class="pev-p-name">'+esc(((p.nome||'')+' '+(p.cognome||'')).trim()||'—')+'</span>'
+      var ora=(p.esito==='presente'&&p.checkin_at)?'<span style="color:#64748B;font-size:11px">'+pevOra(p.checkin_at)+'</span>':'';
+      pp+='<div class="pev-pp"><span style="font-weight:600;color:#0F172A">'+esc(((p.nome||'')+' '+(p.cognome||'')).trim()||'—')+'</span>'
         +(p.accompagnatore?'<span class="pev-acc">accompagnatore</span>':'')
-        +'<span class="pev-p-mail">'+esc(p.email||'')+'</span>'
-        +pevBadgePersona(p.esito)+ora+'</div>';
+        +'<span style="flex:1"></span>'+ora+pevBadgePersona(p.esito)+'</div>';
     });
-    h+='<div class="pev-ev"><div class="pev-ev-head" onclick="this.parentNode.classList.toggle(\'open\')">'
+    h+='<div class="pev-ev" onclick="this.classList.toggle(\'open\')"><div class="pev-ev-row">'
       +'<div class="pev-ev-main"><div class="pev-ev-tit">'+esc(e.titolo||'Evento')+'</div><div class="pev-ev-meta">'+meta+'</div></div>'
-      +'<div class="pev-ev-side">'+pevBadgeEvento(e.esito_evento)+side+'</div>'
-      +'</div><div class="pev-people">'+(pp||'<div class="pev-empty">Nessun nominativo</div>')+'</div></div>';
+      +pevBadgeEvento(e.esito_evento)+'</div>'
+      +'<div class="pev-prog"><div class="pev-bar"><i style="width:'+pct+'%"></i></div><span class="pev-cnt">'+cnt+'</span></div>'
+      +'<div class="pev-people">'+(pp||'<div class="pev-empty">Nessun nominativo</div>')+'</div></div>';
   });
+  h+='</div>';
+  h+='<div class="pev-box"><div class="pev-box-t">Persone ('+po.length+')</div>';
+  po.forEach(function(p){
+    h+='<div class="pev-p"><div class="pev-av">'+esc(pevIniz(p.nome,p.cognome))+'</div>'
+      +'<div class="pev-p-main"><div class="pev-p-name">'+esc(((p.nome||'')+' '+(p.cognome||'')).trim()||'—')+(p.acc?' <span class="pev-acc">accompagnatore</span>':'')+'</div>'
+      +'<div class="pev-p-mail">'+esc(p.email||'')+'</div></div>'
+      +'<span class="pev-chip">'+p.iscr+' iscr.'+(p.pres?' \u00b7 '+p.pres+' pres.':'')+'</span></div>';
+  });
+  h+='</div>';
   return h;
 }
 async function caricaEventiScheda(piva){
   var body=G('pev-body'); if(!body) return;
-  if(!piva){ body.innerHTML='<div class="pev-empty">P.IVA non presente: impossibile collegare gli eventi</div>'; return; }
+  if(!piva){ body.innerHTML='<div class="pev-box"><div class="pev-empty">P.IVA non presente: impossibile collegare gli eventi</div></div>'; return; }
   var my=++_pevReq;
-  body.innerHTML='<div class="pev-empty">Caricamento eventi\u2026</div>';
+  body.innerHTML='<div class="pev-box"><div class="pev-empty">Caricamento eventi\u2026</div></div>';
   var d;
   try{ d=await caricaPartecipazioniEventi(piva); }catch(e){ d={errore:String(e)}; }
   if(my!==_pevReq) return;
   body=G('pev-body'); if(!body) return;
   if(!d||d.errore){
-    var msg=(d&&d.errore==='partita_iva_non_valida')?'P.IVA non valida: impossibile collegare gli eventi':'Impossibile caricare gli eventi.';
-    body.innerHTML='<div class="pev-empty">'+msg+' <button type="button" class="pev-refresh" id="pev-retry">Riprova</button></div>';
+    var er=d&&d.errore;
+    var msg=er==='partita_iva_non_valida'?'P.IVA non valida: impossibile collegare gli eventi'
+      :er==='configurazione_mancante'?'Collegamento al portale eventi non ancora configurato'
+      :er==='non_autorizzato'?'Utente non autorizzato':'Impossibile caricare gli eventi';
+    body.innerHTML='<div class="pev-box"><div class="pev-empty">'+msg+'<br><button type="button" class="pev-refresh" id="pev-retry" style="color:#1E3FAE;background:#EEF3FF;border:none;margin-top:8px">Riprova</button></div></div>';
     var rt=G('pev-retry'); if(rt) rt.onclick=function(){ caricaEventiScheda(piva); };
     return;
   }
   try{ body.innerHTML=renderPartecipazioniEventi(d); }
-  catch(e){ body.innerHTML='<div class="pev-empty">Errore nella visualizzazione degli eventi</div>'; }
+  catch(e){ body.innerHTML='<div class="pev-box"><div class="pev-empty">Errore nella visualizzazione degli eventi</div></div>'; }
 }
 
 async function openScheda(idx){
@@ -2962,13 +2994,11 @@ async function openScheda(idx){
     }
 
     /* \u2500\u2500 PARTECIPAZIONE EVENTI (caricata async) \u2500\u2500 */
-    html+='<div class="s-card" data-tab-section="partecipazione-eventi">'
-      +'<div class="s-card-title" style="display:flex;align-items:center;justify-content:space-between;gap:8px">'
-      +'<span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> Partecipazione eventi</span>'
-      +'<button type="button" class="pev-refresh" id="pev-refresh" title="Aggiorna">\u21bb Aggiorna</button>'
-      +'</div>'
-      +'<div id="pev-body"><div class="pev-empty">Caricamento eventi\u2026</div></div>'
-      +'</div>';
+    html+='<div class="s-card" data-tab-section="partecipazione-eventi" style="background:transparent;box-shadow:none;border:none;padding:0">'
+      +'<div class="pev-wrap"><div class="pev-top"><span class="pev-top-t">Partecipazione eventi</span>'
+      +'<button type="button" class="pev-refresh" id="pev-refresh">\u21bb Aggiorna</button></div>'
+      +'<div id="pev-body"><div class="pev-box"><div class="pev-empty">Caricamento eventi\u2026</div></div></div>'
+      +'</div></div>';
 
     /* \u2500\u2500 MAPPA \u2500\u2500 */
     if(ana.indirizzo||ana.comune){
