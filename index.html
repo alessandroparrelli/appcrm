@@ -1028,6 +1028,8 @@ html.ios-fullbleed,html.ios-fullbleed body{height:calc(100% + var(--ios-gap,0px)
 #scheda-content .addetto-cell.tot{background:linear-gradient(160deg,#1E3FAE,#2F5FD0);box-shadow:0 4px 12px rgba(30,63,174,.3);}
 #scheda-content .addetto-lbl{font-size:10px;letter-spacing:.06em;}
 #scheda-content .addetto-val{font-size:26px;color:#1E3FAE;line-height:1.1;}
+#scheda-content .addetto-cell.tot .addetto-val{color:#fff;}
+#scheda-content .addetto-cell.tot .addetto-lbl{color:rgba(255,255,255,.85);}
 /* Stato associativo / servizi: chip */
 #scheda-content .servizi-list{display:flex;flex-wrap:wrap;gap:8px;padding:14px;}
 #scheda-content .servizio-row{border:none;padding:7px 13px;background:#EEF3FF;color:#1E3FAE;border-radius:20px;font-size:13px;}
@@ -2679,9 +2681,12 @@ function renderPartecipazioniEventi(d){
   // persone aggregate
   var pm={}, po=[];
   ev.forEach(function(e){ (e.persone||[]).forEach(function(p){
-    var k=((p.nome||'')+'|'+(p.cognome||'')+'|'+(p.email||'')).toLowerCase();
-    if(!pm[k]){ pm[k]={nome:p.nome,cognome:p.cognome,email:p.email,acc:p.accompagnatore,iscr:0,pres:0}; po.push(pm[k]); }
-    pm[k].iscr++; if(p.esito==='presente') pm[k].pres++;
+    var k=((p.nome||'')+' '+(p.cognome||'')).toLowerCase().replace(/\s+/g,' ').trim()||String(p.email||'').toLowerCase();
+    if(!pm[k]){ pm[k]={nome:p.nome,cognome:p.cognome,emails:[],acc:p.accompagnatore,iscr:0,pres:0,ev:{}}; po.push(pm[k]); }
+    var em=String(p.email||'').trim();
+    if(em && pm[k].emails.map(function(x){return x.toLowerCase();}).indexOf(em.toLowerCase())<0) pm[k].emails.push(em);
+    if(!p.accompagnatore) pm[k].acc=false;
+    if(!pm[k].ev[e.event_id]){ pm[k].ev[e.event_id]=1; pm[k].iscr++; if(p.esito==='presente') pm[k].pres++; }
   }); });
   var t=s.tasso_presenza, pres;
   if(t===null||t===undefined) pres=pevKpi(s.persone_presenti||0,'Presenze','nessun evento concluso');
@@ -2720,7 +2725,7 @@ function renderPartecipazioniEventi(d){
   po.forEach(function(p){
     h+='<div class="pev-p"><div class="pev-av">'+esc(pevIniz(p.nome,p.cognome))+'</div>'
       +'<div class="pev-p-main"><div class="pev-p-name">'+esc(((p.nome||'')+' '+(p.cognome||'')).trim()||'—')+(p.acc?' <span class="pev-acc">accompagnatore</span>':'')+'</div>'
-      +'<div class="pev-p-mail">'+esc(p.email||'')+'</div></div>'
+      +'<div class="pev-p-mail">'+esc(p.emails.join(' \u00b7 '))+'</div></div>'
       +'<span class="pev-chip">'+p.iscr+' iscr.'+(p.pres?' \u00b7 '+p.pres+' pres.':'')+'</span></div>';
   });
   h+='</div>';
