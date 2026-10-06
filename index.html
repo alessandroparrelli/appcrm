@@ -199,6 +199,9 @@ html.ios-fullbleed,html.ios-fullbleed body{height:calc(100% + var(--ios-gap,0px)
 .scheda-hero-logo{height:44px;width:auto;max-width:160px;margin-bottom:14px;display:block;object-fit:contain;}
 .scheda-hero-name{font-size:22px;font-weight:900;color:#fff;line-height:1.15;margin-bottom:6px;letter-spacing:-.03em;font-family:'Inter',var(--font);}
 .scheda-hero-sub{font-size:13px;color:rgba(255,255,255,.88);font-weight:500;}
+.scheda-hero-row{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:14px;}
+.scheda-hero-id{flex:1;min-width:0;text-align:right;}
+.scheda-hero-id .scheda-hero-name{margin-bottom:4px;word-break:break-word;}
 .scheda-badges{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px;}
 .sbadge{padding:5px 12px;text-align:center;border-radius:20px!important;display:inline-block;}
 
@@ -2826,13 +2829,16 @@ async function openScheda(idx){
         +'</button>'
         +'<div id="scheda-hero-crm-btn"></div>'
       +'</div>'
-      +'<img class="scheda-hero-logo" src="logo-hero.png" style="height:44px;max-width:180px;width:auto;display:block;margin-bottom:14px;object-fit:contain;" alt="CNA">'
+      +'<div class="scheda-hero-row">'
+      +'<img class="scheda-hero-logo" src="logo-hero.png" style="height:44px;max-width:180px;width:auto;display:block;margin:0;object-fit:contain;flex-shrink:0;" alt="CNA">'
+      +'<div class="scheda-hero-id">'
       +'<div style="font:500 10px/1 \'Inter\',sans-serif;text-transform:uppercase;letter-spacing:.16em;color:rgba(255,255,255,.8);margin-bottom:6px;">'
       +  'P.IVA '+esc(ana.partitaiva||'—')
       +'</div>'
       +'<div class="scheda-hero-name">'+esc(ana.ragionesociale||'—')+'</div>';
     var tit=[ana.nometitolare,ana.cognometitolare].filter(Boolean).join(' ');
     if(tit) html+='<div class="scheda-hero-sub">Titolare: '+esc(tit)+'</div>';
+    html+='</div></div>';
     // Badges — pill sotto il nome
     html+='<div class="scheda-badges">';
     if(cciaa&&cciaa.stato_attivita!==null&&cciaa.stato_attivita!==undefined){
