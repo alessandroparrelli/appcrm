@@ -1007,6 +1007,35 @@ html.ios-fullbleed,html.ios-fullbleed body{height:calc(100% + var(--ios-gap,0px)
 .imp-back{display:inline-flex;align-items:center;gap:6px;background:none;border:none;color:#fff;font-family:var(--font);font-size:14px;font-weight:700;cursor:pointer;padding:0;}
 .imp-backbar{background:var(--primary);padding:4px 20px 6px;margin-top:-1px;}
 @media(max-width:480px){.imp-grid,.imp-info{grid-template-columns:1fr;}}
+
+/* ══ RESKIN v3 — Scheda impresa: card a tessere ══ */
+#scheda-content .s-card{border:none;border-radius:18px;margin:0 12px 14px;box-shadow:0 1px 2px rgba(15,23,42,.04),0 6px 20px rgba(15,23,42,.06);}
+#scheda-content .s-card-title{background:linear-gradient(160deg,#1E3FAE,#2F5FD0);font-size:12px;letter-spacing:.07em;padding:13px 16px;}
+#scheda-content .s-card[data-tab-section="partecipazione-eventi"]{margin:0;box-shadow:none;}
+/* Tabella etichetta/valore → griglia di tessere */
+#scheda-content .data-table:has(td.dt-label){display:block;width:auto;padding:12px;}
+#scheda-content .data-table:has(td.dt-label) > tbody{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:8px;}
+#scheda-content .data-table:has(td.dt-label) tr{display:flex;flex-direction:column;justify-content:center;gap:3px;padding:10px 12px!important;background:#F6F8FC;border:1px solid #EDF1F7!important;border-radius:12px;min-height:58px;}
+#scheda-content .data-table:has(td.dt-label) td{display:block;width:auto!important;padding:0!important;border:none!important;background:transparent!important;}
+#scheda-content .data-table:has(td.dt-label) td.dt-label{font-size:10px!important;font-weight:700;letter-spacing:.06em;color:#64748B!important;white-space:normal;}
+#scheda-content .data-table:has(td.dt-label) td.dt-value{font-size:14px!important;font-weight:600!important;color:#0F172A;line-height:1.35;word-break:break-word;}
+#scheda-content .data-table:has(td.dt-label) td.dt-value a{font-size:14px!important;color:#1E3FAE;display:inline-flex;align-items:center;gap:6px;}
+@media(max-width:420px){#scheda-content .data-table:has(td.dt-label) > tbody{grid-template-columns:1fr 1fr;}}
+/* Addetti: tre tessere */
+#scheda-content .addetti-row{gap:8px;padding:12px;}
+#scheda-content .addetto-cell{border:1px solid #EDF1F7;border-radius:14px;background:#F6F8FC;padding:14px 8px;}
+#scheda-content .addetto-cell:last-child{border:none;}
+#scheda-content .addetto-cell.tot{background:linear-gradient(160deg,#1E3FAE,#2F5FD0);box-shadow:0 4px 12px rgba(30,63,174,.3);}
+#scheda-content .addetto-lbl{font-size:10px;letter-spacing:.06em;}
+#scheda-content .addetto-val{font-size:26px;color:#1E3FAE;line-height:1.1;}
+/* Stato associativo / servizi: chip */
+#scheda-content .servizi-list{display:flex;flex-wrap:wrap;gap:8px;padding:14px;}
+#scheda-content .servizio-row{border:none;padding:7px 13px;background:#EEF3FF;color:#1E3FAE;border-radius:20px;font-size:13px;}
+#scheda-content .servizio-dot{background:#22C55E;box-shadow:0 0 0 3px rgba(34,197,94,.18);}
+/* Sotto-intestazioni contratto */
+#scheda-content .contratto-band:not([style]){margin:12px 12px 0;padding:10px 14px;border-radius:12px;background:#EEF3FF;color:#1E3FAE;font-size:13px;border-left:4px solid #1E3FAE;}
+#scheda-content .contratto-band.serv:not([style]){background:#FFF4EC;color:#C2410C;border-left-color:#EA580C;}
+#scheda-content .contratto-band:not([style]) + .data-table:has(td.dt-label){padding-top:8px;}
 </style>
   <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
 </head>
