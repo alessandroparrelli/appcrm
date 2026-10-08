@@ -1041,6 +1041,26 @@ html.ios-fullbleed,html.ios-fullbleed body{height:calc(100% + var(--ios-gap,0px)
 #scheda-content .contratto-band:not([style]){margin:12px 12px 0;padding:10px 14px;border-radius:12px;background:#EEF3FF;color:#1E3FAE;font-size:13px;border-left:4px solid #1E3FAE;}
 #scheda-content .contratto-band.serv:not([style]){background:#FFF4EC;color:#C2410C;border-left-color:#EA580C;}
 #scheda-content .contratto-band:not([style]) + .data-table:has(td.dt-label){padding-top:8px;}
+
+/* Pandora: righe comprimibili + card su mobile */
+.pd-wrap[data-open="0"][data-mode="all"] .pd-extra{display:none}
+.pd-wrap[data-mode="due"] .pd-row:not(.pd-due){display:none}
+.pd-wrap[data-mode="due"] .pd-more{display:none}
+.pd-filtri{display:flex;gap:6px;margin-bottom:8px;flex-wrap:wrap}
+.pd-chip{font-family:var(--font);font-size:12px;font-weight:600;padding:6px 12px;border-radius:20px;border:1px solid #E5E7EB;background:#fff;color:#6B7280;cursor:pointer}
+.pd-chip.on{background:#2563EB;border-color:#2563EB;color:#fff}
+.pd-more{display:block;width:100%;margin-top:8px;padding:10px;border:1px dashed #CBD5E1;border-radius:8px;background:#F8FAFC;color:#2563EB;font-family:var(--font);font-size:13px;font-weight:700;cursor:pointer}
+@media (max-width:640px){
+ .pd-wrap table,.pd-wrap tbody{display:block}
+ .pd-wrap thead{display:none}
+ .pd-wrap tr.pd-row{display:grid;grid-template-columns:1fr 1fr;gap:2px 10px;padding:10px 12px;margin-bottom:8px;border:1px solid #E5E7EB!important;border-radius:10px;background:#fff}
+ .pd-wrap[data-open="0"][data-mode="all"] tr.pd-extra,.pd-wrap[data-mode="due"] tr.pd-row:not(.pd-due){display:none}
+ .pd-wrap tr.pd-due{border-left:4px solid #DC2626!important}
+ .pd-wrap td{padding:2px 0!important;text-align:left!important;max-width:none!important}
+ .pd-wrap td[data-l]::before{content:attr(data-l);display:block;font-family:var(--font);font-size:10px;font-weight:700;text-transform:uppercase;color:#9CA3AF}
+ .pd-wrap td.pd-rif{grid-column:1/-1;order:-1;font-weight:600;white-space:normal!important}
+ .pd-wrap td.pd-st{grid-column:1/-1;order:-1}
+}
 </style>
   <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
 </head>
@@ -2697,6 +2717,8 @@ function renderDaIncassare(g1,g3,insoluti){
   return html+'</tbody></table></div></div>';
 }
 
+function pdFiltro(b){var w=b.closest('.pd-wrap');w.dataset.mode=b.dataset.f;w.querySelectorAll('.pd-chip').forEach(function(x){x.classList.toggle('on',x===b);});}
+function pdMostraTutte(b){var w=b.closest('.pd-wrap'),o=w.dataset.open==='1';w.dataset.open=o?'0':'1';var n=w.querySelectorAll('.pd-row').length;b.textContent=o?'Mostra tutte ('+n+') \u25be':'Mostra meno \u25b4';}
 function renderPandoraBlock(rows,label){
   if(!rows||!rows.length){
     return '<p style="color:#9CA3AF;font-size:13px;font-style:italic;padding:8px 0">Nessun documento per '+label+'</p>';
@@ -2711,20 +2733,25 @@ function renderPandoraBlock(rows,label){
     +'<span style="'+bs+G+'">✓ '+nPag+' pagati</span>'
     +(totSal>0?'<span style="'+bs+R+'">⚠ Insoluto '+pdEur(totSal)+'</span>':'<span style="'+bs+G+'">Tutto saldato</span>')
     +'<span style="'+bs+'font-weight:500;background:#F3F4F6;color:#6B7280">Fatturato '+pdEur(totFat)+'</span></div>';
+  var nDa=rows.length-nPag, LIM=5;
+  html+='<div class="pd-wrap" data-mode="all" data-open="0">';
+  if(nDa>0&&nDa<rows.length) html+='<div class="pd-filtri"><button type="button" class="pd-chip on" data-f="all" onclick="pdFiltro(this)">Tutte ('+rows.length+')</button><button type="button" class="pd-chip" data-f="due" onclick="pdFiltro(this)">Solo da pagare ('+nDa+')</button></div>';
   var th=function(t,a){return '<th style="text-align:'+a+';padding:8px 10px;font-size:11px;font-weight:700;text-transform:uppercase;color:#6B7280;border-bottom:1px solid #E5E7EB">'+t+'</th>';};
   html+='<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:13px"><thead><tr style="background:#F9FAFB">'
     +th('Data','left')+th('Scadenza','left')+th('Riferimento','left')+th('Importo','right')+th('Saldo','right')+th('Stato','center')+'</tr></thead><tbody>';
-  rows.forEach(function(r){
+  rows.forEach(function(r,idx){
     var st=pdStato(r);
-    html+='<tr style="border-bottom:1px solid #F3F4F6">'
-      +'<td style="padding:7px 10px;white-space:nowrap;font-size:12px;font-family:monospace;color:var(--text-primary)">'+pdData(r.data_fattura)+'</td>'
-      +'<td style="padding:7px 10px;white-space:nowrap;font-size:12px;font-family:monospace;color:var(--text-secondary)">'+pdData(r.data_scadenza)+'</td>'
-      +'<td style="padding:7px 10px;font-size:12px;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text-primary)" title="'+esc(r.riferimento||'')+'">'+esc((r.riferimento||'').toLowerCase())+'</td>'
-      +'<td style="padding:7px 10px;text-align:right;font-size:12px;font-weight:600;color:var(--text-primary);white-space:nowrap">'+pdEur(parseFloat(r.totale_fattura)||0)+'</td>'
-      +'<td style="padding:7px 10px;text-align:right;font-size:12px;font-weight:700;white-space:nowrap;color:'+(st.saldo>0?'#DC2626':'#16A34A')+'">'+pdEur(st.saldo)+'</td>'
-      +'<td style="padding:7px 10px;text-align:center"><span style="font-size:10px;font-weight:700;padding:2px 9px;border-radius:20px;'+(st.stato==='PAGATO'?G:R)+'">'+st.stato+'</span></td></tr>';
+    html+='<tr class="pd-row'+(idx>=LIM?' pd-extra':'')+(st.stato!=='PAGATO'?' pd-due':'')+'" style="border-bottom:1px solid #F3F4F6">'
+      +'<td data-l="Data" style="padding:7px 10px;white-space:nowrap;font-size:12px;font-family:monospace;color:var(--text-primary)">'+pdData(r.data_fattura)+'</td>'
+      +'<td data-l="Scadenza" style="padding:7px 10px;white-space:nowrap;font-size:12px;font-family:monospace;color:var(--text-secondary)">'+pdData(r.data_scadenza)+'</td>'
+      +'<td class="pd-rif" style="padding:7px 10px;font-size:12px;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text-primary)" title="'+esc(r.riferimento||'')+'">'+esc((r.riferimento||'').toLowerCase())+'</td>'
+      +'<td data-l="Importo" style="padding:7px 10px;text-align:right;font-size:12px;font-weight:600;color:var(--text-primary);white-space:nowrap">'+pdEur(parseFloat(r.totale_fattura)||0)+'</td>'
+      +'<td data-l="Saldo" style="padding:7px 10px;text-align:right;font-size:12px;font-weight:700;white-space:nowrap;color:'+(st.saldo>0?'#DC2626':'#16A34A')+'">'+pdEur(st.saldo)+'</td>'
+      +'<td class="pd-st" style="padding:7px 10px;text-align:center"><span style="font-size:10px;font-weight:700;padding:2px 9px;border-radius:20px;'+(st.stato==='PAGATO'?G:R)+'">'+st.stato+'</span></td></tr>';
   });
-  return html+'</tbody></table></div>';
+  html+='</tbody></table></div>';
+  if(rows.length>LIM) html+='<button type="button" class="pd-more" onclick="pdMostraTutte(this)">Mostra tutte ('+rows.length+') \u25be</button>';
+  return html+'</div>';
 }
 
 /* ── PARTECIPAZIONE EVENTI (proxy partecipazioni-impresa) ── */
