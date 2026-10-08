@@ -194,7 +194,7 @@ html.ios-fullbleed,html.ios-fullbleed body{height:calc(100% + var(--ios-gap,0px)
 .scheda-wrap{padding:0 0 80px 0;width:100%;margin:0;max-width:none;}
 
 /* Card titolo impresa */
-.scheda-hero{background:var(--primary);border:none;border-radius:0;box-shadow:none;padding:24px 20px 32px;padding-top:calc(env(safe-area-inset-top) + 20px);margin:0;width:100%;position:relative;overflow:hidden;display:block;box-sizing:border-box;}
+.scheda-hero{background:var(--primary);border:none;border-radius:0;box-shadow:none;padding:24px 20px 32px;padding-top:calc(env(safe-area-inset-top,0px) + 20px);margin:0;width:100%;position:relative;overflow:hidden;display:block;box-sizing:border-box;}
 .scheda-hero-left{display:contents;}
 .scheda-hero-logo{height:44px;width:auto;max-width:160px;margin-bottom:14px;display:block;object-fit:contain;}
 .scheda-hero-name{font-size:22px;font-weight:900;color:#fff;line-height:1.15;margin-bottom:6px;letter-spacing:-.03em;font-family:'Inter',var(--font);}
@@ -323,7 +323,7 @@ html.ios-fullbleed,html.ios-fullbleed body{height:calc(100% + var(--ios-gap,0px)
   .btn-logout{display:none;}
 
   /* ── SCHEDA HERO: layout verticale su mobile ── */
-  .scheda-hero{padding:18px 16px 28px;}
+  .scheda-hero{padding:18px 16px 28px;padding-top:calc(env(safe-area-inset-top,0px) + 18px);}
   .scheda-hero-name{font-size:20px;font-weight:900;color:#fff;}
   .scheda-hero-logo{height:40px;max-width:150px;margin-bottom:8px;}
   .scheda-badges{align-self:stretch;margin-top:2px;}
@@ -937,7 +937,7 @@ html.ios-fullbleed,html.ios-fullbleed body{height:calc(100% + var(--ios-gap,0px)
 .scheda-tab{padding:12px 16px;font-size:12px;font-weight:700;color:#94a3b8;background:none;border:none;border-bottom:2px solid transparent;cursor:pointer;white-space:nowrap;}
 .scheda-tab.active{color:#005ca9;border-bottom-color:#005ca9;}
 @media(max-width:640px){
-  .scheda-hero{padding:18px 16px 28px;}
+  .scheda-hero{padding:18px 16px 28px;padding-top:calc(env(safe-area-inset-top,0px) + 18px);}
   .scheda-kpi-row{margin-top:-14px;}
   .scheda-wrap .s-card{margin:0 12px 10px;}
 }
