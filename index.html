@@ -1047,6 +1047,8 @@ html.ios-fullbleed,html.ios-fullbleed body{height:calc(100% + var(--ios-gap,0px)
 .pd-wrap[data-mode="due"] .pd-row:not(.pd-due){display:none}
 .pd-wrap[data-mode="due"] .pd-more{display:none}
 .pd-wrap table{width:100%;table-layout:auto}
+.pd-soc .pd-wrap table{background:#fff;border-radius:8px;overflow:hidden}
+.pd-soc .pd-chip:not(.on){background:#fff}
 .pd-wrap th,.pd-wrap td{padding:6px 8px!important}
 .pd-filtri{display:flex;gap:6px;margin-bottom:8px;flex-wrap:wrap}
 .pd-chip{font-family:var(--font);font-size:12px;font-weight:600;padding:6px 12px;border-radius:20px;border:1px solid #E5E7EB;background:#fff;color:#6B7280;cursor:pointer}
@@ -3128,22 +3130,23 @@ async function openScheda(idx){
 
     /* ── PAGAMENTI PANDORA ── */
     var _pdHdr=function(bg,col,pillBg,pillCol,ico,titolo,cod,n){
-      return '<div style="display:flex;align-items:center;gap:8px;padding:12px 14px;background:'+bg+';border-radius:8px;margin:4px 0 10px">'
-        +pdIco(ico,col,18)
-        +'<span style="font-size:13px;font-weight:800;color:'+col+'">'+titolo+'</span>'
-        +'<span style="font-family:monospace;font-size:10px;color:#9CA3AF;margin-left:auto">'+cod+'</span>'
-        +'<span style="font-size:11px;font-weight:700;padding:2px 9px;border-radius:20px;background:'+pillBg+';color:'+pillCol+'">'+n+' doc</span></div>';
+      return '<div style="display:flex;align-items:center;gap:8px;padding:12px 14px;background:'+bg+';border-radius:8px;margin:0 0 12px">'
+        +pdIco(ico,'#fff',18)
+        +'<span style="font-size:13px;font-weight:800;color:#fff;min-width:0">'+titolo+'</span>'
+        +'<span style="font-family:monospace;font-size:10px;color:rgba(255,255,255,.7);margin-left:auto">'+cod+'</span>'
+        +'<span style="font-size:11px;font-weight:700;padding:2px 9px;border-radius:20px;background:rgba(255,255,255,.22);color:#fff;white-space:nowrap">'+n+' doc</span></div>';
     };
     html+='<div class="s-card" data-tab-section="pagamenti-pandora">'
       +'<div style="display:flex;align-items:center;gap:8px;padding:10px 14px;background:#EFF6FF;border-radius:8px;margin-bottom:12px">'+pdIco('card','#2563EB')+'<span style="font-size:14px;font-weight:800;color:#2563EB">Pagamenti Pandora</span>'
       +(_isPagante?'<span style="font-size:11px;font-weight:700;padding:2px 10px;border-radius:20px;background:linear-gradient(135deg,#15803D,#4ADE80);color:#fff;margin-left:auto">✓ PAGANTE</span>':'')
       +'</div>';
     if(pandoraCNA.length||pandoraCAF.length||insolutiPd.length){
-      html+=_pdHdr('#EFF6FF','#2563EB','#DBEAFE','#2563EB','bank','CNA Roma — Tesseramento','G1000001',pandoraCNA.length);
-      html+=renderPandoraBlock(pandoraCNA,'CNA Roma');
-      html+='<hr style="margin:16px 0;border:none;border-top:1px solid #E5E7EB">';
-      html+=_pdHdr('#FFFBEB','#D97706','#FDE68A','#92400E','doc','CNA CAF Lazio — Servizi fiscali','G1000003',pandoraCAF.length);
-      html+=renderPandoraBlock(pandoraCAF,'CNA CAF Lazio');
+      html+='<div class="pd-soc" style="background:#EAF2FB;border:1px solid #B9D3EE;border-radius:12px;padding:10px;margin-bottom:14px">';
+      html+=_pdHdr('#005ca9','','','','bank','CNA Roma — Tesseramento','G1000001',pandoraCNA.length);
+      html+=renderPandoraBlock(pandoraCNA,'CNA Roma')+'</div>';
+      html+='<div class="pd-soc" style="background:#ECF8F0;border:1px solid #B7E2C4;border-radius:12px;padding:10px">';
+      html+=_pdHdr('#15803D','','','','doc','CNA CAF LAZIO — Servizi Fiscali Sicurezza e ambiente','G1000003',pandoraCAF.length);
+      html+=renderPandoraBlock(pandoraCAF,'CNA CAF Lazio')+'</div>';
     } else {
       html+='<p style="color:#9CA3AF;font-size:13px;font-style:italic;padding:8px 0">Nessun dato di pagamento disponibile.</p>';
     }
