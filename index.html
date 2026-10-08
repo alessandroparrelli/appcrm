@@ -2650,6 +2650,12 @@ function renderInsolutiBlock(rows,label){
 }
 
 /* ── PANDORA: collegamento insoluti ↔ fatture (customer_trx_id + codice_azienda) ── */
+function pdIco(k,col,sz){sz=sz||16;var p={
+ bank:'<path d="M3 21h18"/><path d="M5 21V10"/><path d="M19 21V10"/><path d="M9 21V10"/><path d="M15 21V10"/><path d="M12 3 3 8h18z"/>',
+ doc:'<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M8 13h8"/><path d="M8 17h5"/>',
+ card:'<rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/>',
+ warn:'<path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><path d="M12 9v4"/><path d="M12 17h.01"/>'}[k];
+ return '<svg width="'+sz+'" height="'+sz+'" viewBox="0 0 24 24" fill="none" stroke="'+col+'" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;vertical-align:middle">'+p+'</svg>';}
 function pdEur(n){return '€ '+(n||0).toLocaleString('it-IT',{minimumFractionDigits:2,maximumFractionDigits:2});}
 function pdData(d){if(!d)return '–';var m=String(d).substring(0,10).split('-');return m.length===3?m[2]+'/'+m[1]+'/'+m[0]:esc(d);}
 function pdMarcaInsoluti(fatture,insoluti){
@@ -2687,7 +2693,7 @@ function renderDaIncassare(g1,g3,insoluti){
   var ins=voci.filter(function(v){return v.motivo==='INSOLUTO';}),ap=voci.filter(function(v){return v.motivo==='APERTA';});
   var sum=function(a){return a.reduce(function(s,v){return s+v.importo;},0);};
   var html='<div class="s-card" data-tab-section="insoluti-pandora" style="border-left:4px solid #DC2626">'
-    +'<div style="display:flex;align-items:center;gap:8px;padding:10px 14px;background:#FEF2F2;border-radius:8px;margin-bottom:12px"><span style="font-size:14px;font-weight:800;color:#DC2626">⚠ Da incassare</span></div>'
+    +'<div style="display:flex;align-items:center;gap:8px;padding:10px 14px;background:#FEF2F2;border-radius:8px;margin-bottom:12px">'+pdIco('warn','#DC2626')+'<span style="font-size:14px;font-weight:800;color:#DC2626">Da incassare</span></div>'
     +'<div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px">';
   if(voci.length){
     html+='<span style="'+bs+'background:#DC2626;color:#fff;border:1px solid #DC2626">Totale da incassare '+pdEur(sum(voci))+'</span>'
@@ -2730,9 +2736,9 @@ function renderPandoraBlock(rows,label){
   var html='<div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px">'
     +'<span style="'+bs+'background:#EFF6FF;color:#2563EB;border:1px solid #BFDBFE">'+rows.length+' documenti</span>'
     +'<span style="'+bs+G+'">✓ '+nPag+' pagati</span>'
-    +(totSal>0?'<span style="'+bs+R+'">⚠ Insoluto '+pdEur(totSal)+'</span>':'<span style="'+bs+G+'">Tutto saldato</span>')
+    +(totSal>0?'<span style="'+bs+R+';display:inline-flex;align-items:center;gap:5px">'+pdIco('warn','#DC2626',13)+'Insoluto '+pdEur(totSal)+'</span>':'<span style="'+bs+G+'">Tutto saldato</span>')
     +'<span style="'+bs+'font-weight:500;background:#F3F4F6;color:#6B7280">Fatturato '+pdEur(totFat)+'</span></div>';
-  var nDa=rows.length-nPag, LIM=5;
+  var nDa=rows.length-nPag, LIM=10;
   html+='<div class="pd-wrap" data-mode="all" data-open="0">';
   if(nDa>0&&nDa<rows.length) html+='<div class="pd-filtri"><button type="button" class="pd-chip on" data-f="all" onclick="pdFiltro(this)">Tutte ('+rows.length+')</button><button type="button" class="pd-chip" data-f="due" onclick="pdFiltro(this)">Solo da pagare ('+nDa+')</button></div>';
   var th=function(t,a){return '<th style="text-align:'+a+';padding:8px 10px;font-size:11px;font-weight:700;text-transform:uppercase;color:#6B7280;border-bottom:1px solid #E5E7EB">'+t+'</th>';};
@@ -3123,20 +3129,20 @@ async function openScheda(idx){
     /* ── PAGAMENTI PANDORA ── */
     var _pdHdr=function(bg,col,pillBg,pillCol,ico,titolo,cod,n){
       return '<div style="display:flex;align-items:center;gap:8px;padding:12px 14px;background:'+bg+';border-radius:8px;margin:4px 0 10px">'
-        +'<span style="font-size:15px">'+ico+'</span>'
+        +pdIco(ico,col,18)
         +'<span style="font-size:13px;font-weight:800;color:'+col+'">'+titolo+'</span>'
         +'<span style="font-family:monospace;font-size:10px;color:#9CA3AF;margin-left:auto">'+cod+'</span>'
         +'<span style="font-size:11px;font-weight:700;padding:2px 9px;border-radius:20px;background:'+pillBg+';color:'+pillCol+'">'+n+' doc</span></div>';
     };
     html+='<div class="s-card" data-tab-section="pagamenti-pandora">'
-      +'<div style="display:flex;align-items:center;gap:8px;padding:10px 14px;background:#EFF6FF;border-radius:8px;margin-bottom:12px"><span style="font-size:14px;font-weight:800;color:#2563EB">💳 Pagamenti Pandora</span>'
+      +'<div style="display:flex;align-items:center;gap:8px;padding:10px 14px;background:#EFF6FF;border-radius:8px;margin-bottom:12px">'+pdIco('card','#2563EB')+'<span style="font-size:14px;font-weight:800;color:#2563EB">Pagamenti Pandora</span>'
       +(_isPagante?'<span style="font-size:11px;font-weight:700;padding:2px 10px;border-radius:20px;background:linear-gradient(135deg,#15803D,#4ADE80);color:#fff;margin-left:auto">✓ PAGANTE</span>':'')
       +'</div>';
     if(pandoraCNA.length||pandoraCAF.length||insolutiPd.length){
-      html+=_pdHdr('#EFF6FF','#2563EB','#DBEAFE','#2563EB','🏛','CNA Roma — Tesseramento','G1000001',pandoraCNA.length);
+      html+=_pdHdr('#EFF6FF','#2563EB','#DBEAFE','#2563EB','bank','CNA Roma — Tesseramento','G1000001',pandoraCNA.length);
       html+=renderPandoraBlock(pandoraCNA,'CNA Roma');
       html+='<hr style="margin:16px 0;border:none;border-top:1px solid #E5E7EB">';
-      html+=_pdHdr('#FFFBEB','#D97706','#FDE68A','#92400E','📋','CNA CAF Lazio — Servizi fiscali','G1000003',pandoraCAF.length);
+      html+=_pdHdr('#FFFBEB','#D97706','#FDE68A','#92400E','doc','CNA CAF Lazio — Servizi fiscali','G1000003',pandoraCAF.length);
       html+=renderPandoraBlock(pandoraCAF,'CNA CAF Lazio');
     } else {
       html+='<p style="color:#9CA3AF;font-size:13px;font-style:italic;padding:8px 0">Nessun dato di pagamento disponibile.</p>';
