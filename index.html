@@ -1053,15 +1053,12 @@ html.ios-fullbleed,html.ios-fullbleed body{height:calc(100% + var(--ios-gap,0px)
 .pd-chip.on{background:#2563EB;border-color:#2563EB;color:#fff}
 .pd-more{display:block;width:100%;margin-top:8px;padding:10px;border:1px dashed #CBD5E1;border-radius:8px;background:#F8FAFC;color:#2563EB;font-family:var(--font);font-size:13px;font-weight:700;cursor:pointer}
 @media (max-width:760px){
- .pd-wrap table,.pd-wrap tbody{display:block}
- .pd-wrap thead{display:none}
- .pd-wrap tr.pd-row{display:grid;grid-template-columns:1fr 1fr;gap:2px 10px;padding:10px 12px;margin-bottom:8px;border:1px solid #E5E7EB!important;border-radius:10px;background:#fff}
- .pd-wrap[data-open="0"][data-mode="all"] tr.pd-extra,.pd-wrap[data-mode="due"] tr.pd-row:not(.pd-due){display:none}
- .pd-wrap tr.pd-due{border-left:4px solid #DC2626!important}
- .pd-wrap td{padding:2px 0!important;text-align:left!important;max-width:none!important}
- .pd-wrap td[data-l]::before{content:attr(data-l);display:block;font-family:var(--font);font-size:10px;font-weight:700;text-transform:uppercase;color:#9CA3AF}
- .pd-wrap td.pd-rif{grid-column:1/-1;order:-1;font-weight:600;white-space:normal!important}
- .pd-wrap td.pd-st{grid-column:1/-1;order:-1}
+ .pd-wrap th,.pd-wrap td{padding:5px 4px!important;font-size:11px!important}
+ .pd-wrap th{font-size:9px!important;letter-spacing:0}
+ .pd-wrap th:nth-child(4),.pd-wrap td:nth-child(4){display:none}
+ .pd-wrap tr.pd-due td.pd-imp{color:#DC2626!important;font-weight:700!important}
+ .pd-wrap td.pd-st span{font-size:8px!important;padding:1px 5px!important}
+ .pd-chip{padding:4px 10px;font-size:11px}
 }
 </style>
   <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
@@ -2745,8 +2742,8 @@ function renderPandoraBlock(rows,label){
     var st=pdStato(r);
     html+='<tr class="pd-row'+(idx>=LIM?' pd-extra':'')+(st.stato!=='PAGATO'?' pd-due':'')+'" style="border-bottom:1px solid #F3F4F6">'
       +'<td data-l="Data" style="padding:7px 10px;white-space:nowrap;font-size:12px;font-family:monospace;color:var(--text-primary)">'+pdData(r.data_fattura)+'</td>'
-      +'<td class="pd-rif" style="padding:7px 10px;font-size:12px;width:100%;white-space:normal;word-break:break-word;color:var(--text-primary)" title="'+esc(r.riferimento||'')+'">'+esc((r.riferimento||'').toLowerCase())+'</td>'
-      +'<td data-l="Importo" style="padding:7px 10px;text-align:right;font-size:12px;font-weight:600;color:var(--text-primary);white-space:nowrap">'+pdEur(parseFloat(r.totale_fattura)||0)+'</td>'
+      +'<td class="pd-rif" style="padding:7px 10px;font-size:12px;width:100%;max-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text-primary)" title="'+esc(r.riferimento||'')+'">'+esc((r.riferimento||'').toLowerCase())+'</td>'
+      +'<td data-l="Importo" class="pd-imp" style="padding:7px 10px;text-align:right;font-size:12px;font-weight:600;color:var(--text-primary);white-space:nowrap">'+pdEur(parseFloat(r.totale_fattura)||0)+'</td>'
       +'<td data-l="Saldo" style="padding:7px 10px;text-align:right;font-size:12px;font-weight:700;white-space:nowrap;color:'+(st.saldo>0?'#DC2626':'#16A34A')+'">'+pdEur(st.saldo)+'</td>'
       +'<td class="pd-st" style="padding:7px 10px;text-align:center"><span style="font-size:10px;font-weight:700;padding:2px 9px;border-radius:20px;'+(st.stato==='PAGATO'?G:R)+'">'+st.stato+'</span></td></tr>';
   });
