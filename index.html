@@ -1096,7 +1096,7 @@ html.ios-fullbleed,html.ios-fullbleed body{height:calc(100% + var(--ios-gap,0px)
       <div style="margin-bottom:8px">
         <button onclick="openRichiestaAccesso()" style="background:none;border:none;color:var(--primary);font-size:12px;font-weight:600;cursor:pointer;font-family:var(--font);padding:0;text-decoration:underline;text-underline-offset:2px;">Richiedi accesso</button>
       </div>
-      <div style="margin-bottom:3px">CRM CNA Roma v2026.07</div>
+      <div style="margin-bottom:3px">CRM CNA Roma v2026.08</div>
       <div>© 2026 CNA Roma — Confederazione Nazionale dell'Artigianato</div>
     </div>
   </div>
@@ -2938,11 +2938,10 @@ async function openScheda(idx){
 
     /* ── CALCOLO isPagante per badge hero ── */
     var _annoNow=new Date().getFullYear();
-    var _isPagante=pandoraCNA.some(function(p){
-      if(!p.data_fattura||pdStato(p).stato!=='PAGATO') return false;
-      var _ay=parseInt(p.data_fattura.substring(0,4));
-      return _ay>=_annoNow-2&&_ay<=_annoNow;
-    });
+    /* PAGANTE: >=50€ tesseramento negli ultimi 2 anni oppure nessun insoluto (RPC get_paganti_tesseramento) */
+    var _isPagante=false;
+    try{var _rp=await fetch(SB+'/rest/v1/rpc/get_paganti_tesseramento',{method:'POST',headers:Object.assign({},H(),{'Content-Type':'application/json'}),body:JSON.stringify({p_codici:[ana.codiceanagrafica]})});
+      if(_rp.ok){var _pj=await _rp.json();_isPagante=!!(_pj[0]&&_pj[0].pagante);}}catch(_e){}
 
     /* ── HERO v2 full-bleed ── */
     html+='<div class="scheda-hero">'
@@ -2982,6 +2981,9 @@ async function openScheda(idx){
     html+='<div class="sbadge" style="background:'+(_isIscrittoCna?'#16A34A':'#DC2626')+'"><div class="slbl" style="color:white">Tesseramento</div><div class="sval" style="color:white">'+(_isIscrittoCna?'\u2713 Iscritto CNA':'\u2717 Non iscritto CNA')+'</div></div>';
     if(_isPagante){
       html+='<div class="sbadge" style="background:#D1FAE5;border:1.5px solid #6EE7B7;"><div class="slbl" style="color:#065F46">Tessera</div><div class="sval" style="color:#065F46">\u2713 Pagante</div></div>';
+    }
+    else{
+      html+='<div class="sbadge" style="background:#DC2626"><div class="slbl" style="color:white">Tessera</div><div class="sval" style="color:white">\u2717 Non pagante</div></div>';
     }
     html+='</div>';
     html+='</div>'; // fine scheda-hero
@@ -5657,7 +5659,10 @@ async function enrichContactData(contactData) {
     var isAssociato = serviziSet.length > 0 ? 'Associato' : 'Non associato';
     // Pagante: ha pagamenti Pandora CNA
     var pandoraRows = pandoraRes.ok ? await pandoraRes.json() : [];
-    var isPagante = pandoraRows.length > 0 ? 'Pagante' : 'Non pagante';
+    var _pg=false;
+    try{var _rp2=await fetch(SB+'/rest/v1/rpc/get_paganti_tesseramento',{method:'POST',headers:Object.assign({},H(),{'Content-Type':'application/json'}),body:JSON.stringify({p_codici:[codice]})});
+      if(_rp2.ok){var _pj2=await _rp2.json();_pg=!!(_pj2[0]&&_pj2[0].pagante);}}catch(_e2){}
+    var isPagante = _pg ? 'Pagante' : 'Non pagante';
     var nomeCompleto = ((a.nometitolare||'')+' '+(a.cognometitolare||'')).trim();
     return Object.assign({}, contactData, {
       contact_name:     contactData.contact_name || nomeCompleto,
@@ -8265,9 +8270,9 @@ function renderSchedaPubblica(d, id) {
     + '</div>'
 
     // TESSERA — verde chiaro (con testo scuro come nel mockup)
-    + '<div style="background:' + (isPagante?'#d1fae5':'rgba(255,255,255,0.12)') + ';border-radius:12px;padding:12px 8px;text-align:center;">'
-    + '<div style="font-size:9px;font-weight:700;color:' + (isPagante?'#065f46':'rgba(255,255,255,0.6)') + ';text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">Tessera</div>'
-    + '<div style="font-size:13px;font-weight:900;color:' + (isPagante?'#065f46':'rgba(255,255,255,0.4)') + ';">' + (isPagante?'\u2713 Pagante':'—') + '</div>'
+    + '<div style="background:' + (isPagante?'#d1fae5':'#dc2626') + ';border-radius:12px;padding:12px 8px;text-align:center;">'
+    + '<div style="font-size:9px;font-weight:700;color:' + (isPagante?'#065f46':'rgba(255,255,255,0.75)') + ';text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">Tessera</div>'
+    + '<div style="font-size:13px;font-weight:900;color:' + (isPagante?'#065f46':'#fff') + ';">' + (isPagante?'\u2713 Pagante':'\u2717 Non pagante') + '</div>'
     + '</div>'
 
     + '</div>'
