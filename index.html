@@ -1096,7 +1096,7 @@ html.ios-fullbleed,html.ios-fullbleed body{height:calc(100% + var(--ios-gap,0px)
       <div style="margin-bottom:8px">
         <button onclick="openRichiestaAccesso()" style="background:none;border:none;color:var(--primary);font-size:12px;font-weight:600;cursor:pointer;font-family:var(--font);padding:0;text-decoration:underline;text-underline-offset:2px;">Richiedi accesso</button>
       </div>
-      <div style="margin-bottom:3px">CRM CNA Roma v2026.05</div>
+      <div style="margin-bottom:3px">CRM CNA Roma v2026.06</div>
       <div>© 2026 CNA Roma — Confederazione Nazionale dell'Artigianato</div>
     </div>
   </div>
@@ -2909,7 +2909,7 @@ async function openScheda(idx){
       fetch(SB+'/rest/v1/incassipandora?codice_cliente=eq.'+encodeURIComponent(ana.codiceanagrafica)+'&codice_azienda=eq.G1000003&order=data_fattura.desc&limit=200',{headers:H()}),
       fetch(SB+'/rest/v1/insolutipandora?codice_cliente=eq.'+encodeURIComponent(ana.codiceanagrafica)+'&order=data_fattura.desc&limit=400',{headers:H()}).catch(function(){return null;})
     ]);
-    var diretti=dirRes.ok?await dirRes.json():[];
+    var diretti=(dirRes.ok?await dirRes.json():[]).filter(function(d){return !(d.datadisdetta&&String(d.datadisdetta).trim()!=='');}); /* contratti con data cessazione = non attivi (ISCRITTO disdettato = NON iscritto) */
     var cciaaArr=cciaaRes&&cciaaRes._data?cciaaRes._data:(cciaaRes&&cciaaRes.ok?await cciaaRes.json():[]);
     var contratti=csRes.ok?await csRes.json():[];
     var cciaa=cciaaArr[0]||null;
@@ -5638,7 +5638,7 @@ async function enrichContactData(contactData) {
     var [anaRes, direttiRes, pandoraRes] = await Promise.all([
       fetch(SB+'/rest/v1/anagrafiche?codiceanagrafica=eq.'+encodeURIComponent(codice)
         +'&select=nometitolare,cognometitolare,telefono,cellulare,email,mestiere,settore&limit=1', {headers:H()}),
-      fetch(SB+'/rest/v1/diretti?codiceanagrafica=eq.'+encodeURIComponent(codice)+'&select=servizio', {headers:H()}),
+      fetch(SB+'/rest/v1/diretti?codiceanagrafica=eq.'+encodeURIComponent(codice)+'&select=servizio,datadisdetta', {headers:H()}),
       fetch(SB+'/rest/v1/incassipandora?codice_cliente=eq.'+encodeURIComponent(codice)+'&codice_azienda=eq.G1000001&limit=1', {headers:H()}),
     ]);
     var aa = anaRes.ok ? await anaRes.json() : [];
@@ -5647,7 +5647,7 @@ async function enrichContactData(contactData) {
     var mestParts = [a.mestiere, a.settore].filter(Boolean);
     var mestSett = mestParts.join(' / ');
     // Associato: ha contratti in diretti con servizio valido (stessa logica scheda anagrafica)
-    var direttiRows = direttiRes.ok ? await direttiRes.json() : [];
+    var direttiRows = (direttiRes.ok ? await direttiRes.json() : []).filter(function(d){ return !(d.datadisdetta&&String(d.datadisdetta).trim()!==''); });
     var serviziSet = [];
     direttiRows.forEach(function(d){ var s=(d.servizio||'').trim(); if(s&&s!=='NON ASSOCIABILE'&&s!=="CONTABILITA'"&&serviziSet.indexOf(s)===-1) serviziSet.push(s); });
     var isAssociato = serviziSet.length > 0 ? 'Associato' : 'Non associato';
