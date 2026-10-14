@@ -1096,7 +1096,7 @@ html.ios-fullbleed,html.ios-fullbleed body{height:calc(100% + var(--ios-gap,0px)
       <div style="margin-bottom:8px">
         <button onclick="openRichiestaAccesso()" style="background:none;border:none;color:var(--primary);font-size:12px;font-weight:600;cursor:pointer;font-family:var(--font);padding:0;text-decoration:underline;text-underline-offset:2px;">Richiedi accesso</button>
       </div>
-      <div style="margin-bottom:3px">CRM CNA Roma v2026.06</div>
+      <div style="margin-bottom:3px">CRM CNA Roma v2026.07</div>
       <div>© 2026 CNA Roma — Confederazione Nazionale dell'Artigianato</div>
     </div>
   </div>
@@ -2967,7 +2967,7 @@ async function openScheda(idx){
     html+='<div class="scheda-badges">';
     if(cciaa&&cciaa.stato_attivita!==null&&cciaa.stato_attivita!==undefined){
       var st=traduciStato(cciaa.stato_attivita);
-      html+='<div class="sbadge" style="background:'+st.col+'"><div class="slbl" style="color:white">Stato</div><div class="sval" style="color:white">'+st.t+'</div></div>';
+      html+='<div class="sbadge" style="background:'+st.col+'"><div class="slbl" style="color:white">Stato Infocamere</div><div class="sval" style="color:white">'+st.t+'</div></div>';
     }
     if(cciaa&&cciaa.art_com_tur){
       var ti=traduciTipo(cciaa.art_com_tur);
@@ -2976,6 +2976,10 @@ async function openScheda(idx){
     if(!cciaa){
       html+='<div class="sbadge" style="background:#64748B"><div class="slbl" style="color:rgba(255,255,255,.8)">CCIAA</div><div class="sval" style="color:white">Non iscritta</div></div>';
     }
+    /* ISCRITTO CNA: servizio ISCRITTO senza data cessazione (diretti già filtrati, contratti con datadisdetta null) */
+    var _isIscrittoCna=(diretti||[]).some(function(d){return (d.servizio||'').trim().toUpperCase()==='ISCRITTO';})
+      ||(contratti||[]).some(function(c){return (c.tipocontratto||'').trim().toUpperCase()==='ISCRITTO';});
+    html+='<div class="sbadge" style="background:'+(_isIscrittoCna?'#16A34A':'#DC2626')+'"><div class="slbl" style="color:white">Tesseramento</div><div class="sval" style="color:white">'+(_isIscrittoCna?'\u2713 Iscritto CNA':'\u2717 Non iscritto CNA')+'</div></div>';
     if(_isPagante){
       html+='<div class="sbadge" style="background:#D1FAE5;border:1.5px solid #6EE7B7;"><div class="slbl" style="color:#065F46">Tessera</div><div class="sval" style="color:#065F46">\u2713 Pagante</div></div>';
     }
@@ -8140,6 +8144,9 @@ function renderSchedaPubblica(d, id) {
   var nContratti = d.nContratti || 0;
   var nServizi   = d.nServizi   || 0;
   var isPagante  = d.isPagante  || false;
+  // ISCRITTO CNA: servizio ISCRITTO attivo (senza data cessazione)
+  var isIscrittoCna = (d.servizi||[]).some(function(x){return String(x||'').trim().toUpperCase()==='ISCRITTO';})
+    || (d.contratti||[]).some(function(c){return String(c.tipocontratto||'').trim().toUpperCase()==='ISCRITTO';});
   var rea        = (cciaa.prov_rea && cciaa.num_iscrizione_rea) ? cciaa.prov_rea + '\u00a0' + cciaa.num_iscrizione_rea : '';
   var dataIscr   = cciaa.data_iscrizione_rea ? new Date(cciaa.data_iscrizione_rea).toLocaleDateString('it-IT') : '';
   var indir      = [d.indirizzo, d.cap, d.comune, d.provincia].filter(Boolean).join(', ');
@@ -8237,12 +8244,18 @@ function renderSchedaPubblica(d, id) {
       : '<div style="margin-bottom:20px;"></div>')
 
     // ── 3 BADGE rettangolari come nel mockup ──
-    + '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:16px;">'
+    + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px;">'
 
     // STATO — verde pieno
     + '<div style="background:' + (statoIsAttiva?'#27a047':'#dc2626') + ';border-radius:12px;padding:12px 8px;text-align:center;">'
-    + '<div style="font-size:9px;font-weight:700;color:rgba(255,255,255,0.75);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">Stato</div>'
+    + '<div style="font-size:9px;font-weight:700;color:rgba(255,255,255,0.75);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">Stato Infocamere</div>'
     + '<div style="font-size:14px;font-weight:900;color:#fff;text-transform:uppercase;">' + statoLabel + '</div>'
+    + '</div>'
+
+    // ISCRITTO CNA — verde se iscritto, rosso se non iscritto
+    + '<div style="background:' + (isIscrittoCna?'#16a34a':'#dc2626') + ';border-radius:12px;padding:12px 8px;text-align:center;">'
+    + '<div style="font-size:9px;font-weight:700;color:rgba(255,255,255,0.75);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">Tesseramento</div>'
+    + '<div style="font-size:14px;font-weight:900;color:#fff;text-transform:uppercase;">' + (isIscrittoCna?'\u2713 Iscritto CNA':'\u2717 Non iscritto CNA') + '</div>'
     + '</div>'
 
     // TIPO — rosso pieno
