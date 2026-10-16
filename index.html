@@ -3345,8 +3345,8 @@ function attImgToDataUrl(url){
 async function attLoadAssets(){
   await attLoadScript('attestato/jspdf.umd.min.js');
   if(!_attImgs){
-    var r=await Promise.all([attImgToDataUrl('attestato/logo.jpg'),attImgToDataUrl('attestato/timbro.jpg'),attImgToDataUrl('attestato/firma.png')]);
-    _attImgs={logo:r[0],timbro:r[1],firma:r[2]};
+    var r=await Promise.all([attImgToDataUrl('attestato/logo.png'),attImgToDataUrl('attestato/timbro.png'),attImgToDataUrl('attestato/firma.png'),attImgToDataUrl('attestato/sfondo.jpg')]);
+    _attImgs={logo:r[0],timbro:r[1],firma:r[2],sfondo:r[3]};
   }
 }
 
@@ -3384,7 +3384,8 @@ function attSegments(d){
 function attBuildPdf(d){
   var doc=new window.jspdf.jsPDF({unit:'pt',format:'a4'});
   var BLUE=[31,78,121];
-  doc.addImage(_attImgs.logo,'JPEG',35.8,39.4,234.7,73.9);
+  doc.addImage(_attImgs.sfondo,'JPEG',0,0,595.28,841.89);
+  doc.addImage(_attImgs.logo,'PNG',35.8,39.4,234.7,73.9,'logo','FAST');
 
   doc.setTextColor(0,0,0);
   doc.setFont('helvetica','normal'); doc.setFontSize(13.5);
@@ -3429,12 +3430,12 @@ function attBuildPdf(d){
   });
 
   // Firma: timbro sotto, testo, firma autografa sopra
-  doc.addImage(_attImgs.timbro,'JPEG',304.1,543.1,207.9,89.8);
+  doc.addImage(_attImgs.timbro,'PNG',304.1,543.1,207.9,89.8,'timbro','FAST');
   doc.setFont('helvetica','normal'); doc.setFontSize(12);
   doc.text('Il responsabile del Tesseramento',408,546,{align:'center'});
   doc.setFont('helvetica','bold');
   doc.text('Alessandro Parrelli',408,560,{align:'center'});
-  doc.addImage(_attImgs.firma,'PNG',224.4,560.1,339,64.9);
+  doc.addImage(_attImgs.firma,'PNG',224.4,560.1,339,64.9,'firma','FAST');
 
   // Footer
   doc.setFontSize(7); doc.setFont('helvetica','bold');
@@ -3464,13 +3465,13 @@ function attRenderPreview(){
   var d=_attData;
   var par=attSegments(d).map(function(s){ return s.b?'<b>'+esc(s.t)+'</b>':esc(s.t); }).join('');
   var S='position:absolute;margin:0;font-family:Helvetica,Arial,sans-serif;color:#000;';
-  var html='<div id="att-sheet" style="position:relative;width:595px;height:842px;background:#fff;transform-origin:0 0;">'
-    +'<img src="attestato/logo.jpg" style="position:absolute;left:35.8px;top:39.4px;width:234.7px;height:73.9px">'
+  var html='<div id="att-sheet" style="position:relative;width:595px;height:842px;background:#fff url(attestato/sfondo.jpg) 0 0/595px 842px no-repeat;transform-origin:0 0;">'
+    +'<img src="attestato/logo.png" style="position:absolute;left:35.8px;top:39.4px;width:234.7px;height:73.9px">'
     +'<div style="'+S+'left:35.5px;top:163px;font-size:13.5px">Roma, '+esc(d.data)+'</div>'
     +'<div style="'+S+'left:35.5px;top:188px;font-size:13.5px;font-weight:700">Codice associato: '+esc(d.codice)+'</div>'
     +'<div style="'+S+'left:0;width:595px;top:258px;text-align:center;font-size:21px;font-weight:700;color:#1F4E79">Attestato d’iscrizione alla CNA di Roma</div>'
     +'<div style="'+S+'left:35.5px;width:524px;top:337px;font-size:12px;line-height:21.4px;text-align:justify;text-indent:35.4px">'+par+'</div>'
-    +'<img src="attestato/timbro.jpg" style="position:absolute;left:304.1px;top:543.1px;width:207.9px;height:89.8px">'
+    +'<img src="attestato/timbro.png" style="position:absolute;left:304.1px;top:543.1px;width:207.9px;height:89.8px">'
     +'<div style="'+S+'left:258px;width:300px;top:534px;text-align:center;font-size:12px;line-height:14px">Il responsabile del Tesseramento<br><b>Alessandro Parrelli</b></div>'
     +'<img src="attestato/firma.png" style="position:absolute;left:224.4px;top:560.1px;width:339px;height:64.9px">'
     +'<div style="'+S+'left:28.4px;top:793px;font-size:7px;line-height:9.8px"><b>CNA di Roma</b><br>Via Cristoforo Colombo, 283A - 00147 Roma<br>Tel.06570151 • info@cnaroma.it • www.cnaroma.it</div>'
