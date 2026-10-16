@@ -2163,6 +2163,42 @@ html.ios-fullbleed,html.ios-fullbleed body{height:calc(100% + var(--ios-gap,0px)
 </div>
 
 <!-- MODALE: SOLLECITO -->
+<div class="crm-modal-bg" id="modal-attestato-bg">
+  <div class="crm-modal" style="max-width:640px;width:95%;max-height:94vh;display:flex;flex-direction:column;">
+    <div class="crm-modal-header">
+      <h3><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="vertical-align:middle"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><path d="M9 15l2 2 4-4"/></svg> Attestato d&rsquo;iscrizione</h3>
+      <button class="modal-close" onclick="closeModal('modal-attestato-bg')">&times;</button>
+    </div>
+    <div class="crm-modal-body" style="overflow-y:auto;flex:1;">
+      <div id="att-preview" style="background:#E5E7EB;border-radius:10px;padding:12px;overflow:hidden;margin-bottom:14px;box-shadow:inset 0 0 0 1px var(--border);"></div>
+      <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;">
+        <button class="btn-crm btn-crm-outline" style="flex:1;min-width:140px;" onclick="attStampa()">&#128424;&#65039; Stampa</button>
+        <button class="btn-crm btn-crm-outline" style="flex:1;min-width:140px;" onclick="attScarica()">&#11015;&#65039; Scarica PDF</button>
+      </div>
+      <div style="font-size:12px;font-weight:700;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.3px;margin-bottom:8px;">Invia attestato</div>
+      <div style="display:flex;background:var(--surface2);border-radius:10px;padding:4px;gap:4px;margin-bottom:12px;">
+        <button type="button" id="att-tab-email" onclick="attSetChannel('email')" style="flex:1;border:none;border-radius:8px;padding:9px;font-family:var(--font);font-size:13px;font-weight:700;cursor:pointer;">&#9993;&#65039; Email</button>
+        <button type="button" id="att-tab-wa" onclick="attSetChannel('wa')" style="flex:1;border:none;border-radius:8px;padding:9px;font-family:var(--font);font-size:13px;font-weight:700;cursor:pointer;">&#128172; WhatsApp</button>
+      </div>
+      <div id="att-pane-email">
+        <div class="crm-field" style="margin-bottom:6px;">
+          <label style="font-size:12px;font-weight:700;color:var(--text-secondary);">Destinatario</label>
+          <input type="email" class="crm-input" id="att-email-to" placeholder="email@impresa.it" style="font-size:13px;">
+        </div>
+        <div id="att-email-hint" style="font-size:11px;color:var(--text-tertiary);margin-bottom:10px;"></div>
+        <button class="btn-crm" id="att-btn-email" style="width:100%;background:#5B5FEF;color:#fff;" onclick="attInviaEmail()">Invia via email con PDF allegato</button>
+      </div>
+      <div id="att-pane-wa" style="display:none;">
+        <div class="crm-field" style="margin-bottom:6px;">
+          <label style="font-size:12px;font-weight:700;color:var(--text-secondary);">Numero WhatsApp</label>
+          <input type="tel" class="crm-input" id="att-wa-to" placeholder="es. 333 1234567" style="font-size:13px;">
+        </div>
+        <div style="font-size:11px;color:var(--text-tertiary);margin-bottom:10px;">Da smartphone si apre la condivisione con il PDF gi&agrave; allegato; da computer il PDF viene scaricato e si apre la chat da allegare.</div>
+        <button class="btn-crm" style="width:100%;background:#16A34A;color:#fff;" onclick="attInviaWhatsApp()">Invia via WhatsApp</button>
+      </div>
+    </div>
+  </div>
+</div>
 <div class="crm-modal-bg" id="modal-sollecito-bg">
   <div class="crm-modal" style="max-width:560px;width:95%;">
     <div class="crm-modal-header">
@@ -3237,6 +3273,25 @@ async function openScheda(idx){
       kpiRow.insertAdjacentElement('afterend', btnDiv);
     })();
 
+    /* ── BOTTONE ATTESTATO D'ISCRIZIONE (admin/supervisore, iscritta + pagante) ── */
+    _attData = null; _attPdfCache = null;
+    if(attCanUse() && _isIscrittoCna && _isPagante){
+      _attData = attBuildData(ana);
+      (function(){
+        var kpiRow = G('scheda-content').querySelector('.scheda-kpi-row');
+        if(!kpiRow) return;
+        var d = document.createElement('div');
+        d.style.cssText = 'padding:0 16px 12px;';
+        var b = document.createElement('button');
+        b.style.cssText = 'width:100%;display:flex;align-items:center;justify-content:center;gap:8px;background:#16A34A;border:none;color:#fff;padding:11px 16px;border-radius:10px;font-family:var(--font);font-size:14px;font-weight:700;cursor:pointer;';
+        b.innerHTML = '&#128196; Attestato d&rsquo;iscrizione';
+        b.onclick = openAttestato;
+        d.appendChild(b);
+        var after = kpiRow.nextElementSibling || kpiRow;
+        after.insertAdjacentElement('afterend', d);
+      })();
+    }
+
     // Init tab default: mostra solo anagrafica
     document.querySelectorAll('.s-card[data-tab-section]').forEach(function(el){
       var _ts=el.getAttribute('data-tab-section'); el.style.display = (_ts === 'dati-anagrafici' || _ts === 'addetti-dipendenti' || _ts === 'localizzazione') ? '' : 'none';
@@ -3265,6 +3320,276 @@ async function openScheda(idx){
 
   } catch(e){ console.error(e); toast('Errore caricamento scheda','error'); }
   finally{ hideLoad(); }
+}
+
+/* ══════════════════════════════════════════════════
+   ATTESTATO D'ISCRIZIONE (solo admin / supervisore, impresa iscritta e pagante)
+══════════════════════════════════════════════════ */
+var _attData = null;      // dati impresa correnti
+var _attImgs = null;      // cache immagini (dataURL)
+var _attPdfCache = null;  // {key, blob, b64}
+
+function attCanUse(){ return !!(session && (session.ruolo==='admin' || session.ruolo==='supervisore')); }
+
+function attLoadScript(src){
+  return new Promise(function(res,rej){
+    if(window.jspdf && window.jspdf.jsPDF) return res();
+    var s=document.createElement('script'); s.src=src; s.onload=function(){res();}; s.onerror=function(){rej(new Error('Impossibile caricare '+src));};
+    document.head.appendChild(s);
+  });
+}
+function attImgToDataUrl(url){
+  return fetch(url).then(function(r){ if(!r.ok) throw new Error('Immagine non trovata: '+url); return r.blob(); })
+    .then(function(b){ return new Promise(function(res){ var fr=new FileReader(); fr.onload=function(){res(fr.result);}; fr.readAsDataURL(b); }); });
+}
+async function attLoadAssets(){
+  await attLoadScript('attestato/jspdf.umd.min.js');
+  if(!_attImgs){
+    var r=await Promise.all([attImgToDataUrl('attestato/logo.jpg'),attImgToDataUrl('attestato/timbro.jpg'),attImgToDataUrl('attestato/firma.png')]);
+    _attImgs={logo:r[0],timbro:r[1],firma:r[2]};
+  }
+}
+
+function attBuildData(ana){
+  var tit=[ana.nometitolare,ana.cognometitolare].filter(Boolean).join(' ').trim();
+  var loc=[ana.indirizzo, [ana.cap,ana.comune].filter(Boolean).join(' '), ana.provincia?'('+ana.provincia+')':''].filter(Boolean).join(', ').replace(', (',' (');
+  return {
+    codice:   String(ana.codiceanagrafica||'').trim(),
+    impresa:  String(ana.ragionesociale||'').trim(),
+    titolare: tit,
+    luogo:    loc,
+    piva:     String(ana.partitaiva||'').trim(),
+    email:    String(ana.email||'').trim(),
+    telefono: String(ana.cellulare||ana.telefono||'').trim(),
+    data:     new Date().toLocaleDateString('it-IT',{day:'2-digit',month:'2-digit',year:'numeric'})
+  };
+}
+
+/* Segmenti del paragrafo: b=true → dato impresa in grassetto */
+function attSegments(d){
+  return [
+    {t:'A richiesta dell’interessato e per gli usi consentiti dalla Legge, si certifica che l’impresa '},
+    {t:d.impresa||'—',b:true},
+    {t:', nella persona del titolare '},
+    {t:d.titolare||'—',b:true},
+    {t:' esercente la propria attività in '},
+    {t:d.luogo||'—',b:true},
+    {t:', Partita Iva '},
+    {t:d.piva||'—',b:true},
+    {t:' è regolarmente iscritta alla nostra Associazione ed in regola con il pagamento della quota associativa.'}
+  ];
+}
+
+/* ── Generazione PDF (coordinate in pt dal modello originale A4) ── */
+function attBuildPdf(d){
+  var doc=new window.jspdf.jsPDF({unit:'pt',format:'a4'});
+  var BLUE=[31,78,121];
+  doc.addImage(_attImgs.logo,'JPEG',35.8,39.4,234.7,73.9);
+
+  doc.setTextColor(0,0,0);
+  doc.setFont('helvetica','normal'); doc.setFontSize(13.5);
+  doc.text('Roma, '+d.data,35.5,175);
+  doc.setFont('helvetica','bold');
+  doc.text('Codice associato: '+d.codice,35.5,200);
+
+  doc.setFontSize(21); doc.setTextColor(BLUE[0],BLUE[1],BLUE[2]);
+  doc.text('Attestato d’iscrizione alla CNA di Roma',297.6,277,{align:'center'});
+
+  // Paragrafo giustificato con dati in grassetto
+  doc.setTextColor(0,0,0); doc.setFontSize(12);
+  var X0=35.5, W=524, INDENT=35.4, LH=21.4, y=352;
+  var words=[];
+  attSegments(d).forEach(function(s){
+    String(s.t).split(/(\s+)/).forEach(function(w){ if(w && !/^\s+$/.test(w)) words.push({t:w,b:!!s.b}); });
+  });
+  // la virgola/punto subito dopo un dato va attaccata alla parola precedente
+  var merged=[];
+  words.forEach(function(w){
+    if(merged.length && /^[,.;:]/.test(w.t) && merged[merged.length-1].b!==w.b){ merged[merged.length-1].tail=(merged[merged.length-1].tail||'')+w.t; }
+    else merged.push(w);
+  });
+  function wWidth(w){ doc.setFont('helvetica',w.b?'bold':'normal'); var x=doc.getTextWidth(w.t); if(w.tail){ doc.setFont('helvetica','normal'); x+=doc.getTextWidth(w.tail);} return x; }
+  doc.setFont('helvetica','normal'); var SP=doc.getTextWidth(' ');
+  var lines=[], cur=[], curW=0, first=true;
+  merged.forEach(function(w){
+    var ww=wWidth(w), avail=W-(first?INDENT:0);
+    if(cur.length && curW+SP+ww>avail){ lines.push({words:cur,first:first,w:curW}); cur=[]; curW=0; first=false; avail=W; }
+    curW+=(cur.length?SP:0)+ww; cur.push(w);
+  });
+  if(cur.length) lines.push({words:cur,first:first,w:curW,last:true});
+  lines.forEach(function(L){
+    var x=X0+(L.first?INDENT:0), avail=W-(L.first?INDENT:0);
+    var gap=SP; if(!L.last && L.words.length>1) gap=SP+(avail-L.w)/(L.words.length-1);
+    L.words.forEach(function(w){
+      doc.setFont('helvetica',w.b?'bold':'normal'); doc.text(w.t,x,y); x+=doc.getTextWidth(w.t);
+      if(w.tail){ doc.setFont('helvetica','normal'); doc.text(w.tail,x,y); x+=doc.getTextWidth(w.tail); }
+      x+=gap;
+    });
+    y+=LH;
+  });
+
+  // Firma: timbro sotto, testo, firma autografa sopra
+  doc.addImage(_attImgs.timbro,'JPEG',304.1,543.1,207.9,89.8);
+  doc.setFont('helvetica','normal'); doc.setFontSize(12);
+  doc.text('Il responsabile del Tesseramento',408,546,{align:'center'});
+  doc.setFont('helvetica','bold');
+  doc.text('Alessandro Parrelli',408,560,{align:'center'});
+  doc.addImage(_attImgs.firma,'PNG',224.4,560.1,339,64.9);
+
+  // Footer
+  doc.setFontSize(7); doc.setFont('helvetica','bold');
+  doc.text('CNA di Roma',28.4,800);
+  doc.setFont('helvetica','normal');
+  doc.text('Via Cristoforo Colombo, 283A - 00147 Roma',28.4,809.6);
+  doc.text('Tel.06570151 • info@cnaroma.it • www.cnaroma.it',28.4,819.5);
+  return doc;
+}
+
+function attFileName(d){
+  return 'Attestato_iscrizione_CNA_Roma_'+(d.impresa||d.codice||'impresa').replace(/[^A-Za-z0-9]+/g,'_').replace(/^_|_$/g,'').slice(0,60)+'.pdf';
+}
+async function attGetPdf(){
+  var key=JSON.stringify(_attData);
+  if(_attPdfCache && _attPdfCache.key===key) return _attPdfCache;
+  await attLoadAssets();
+  var doc=attBuildPdf(_attData);
+  var blob=doc.output('blob');
+  var uri=doc.output('datauristring');
+  _attPdfCache={key:key,doc:doc,blob:blob,b64:uri.substring(uri.indexOf(',')+1)};
+  return _attPdfCache;
+}
+
+/* ── Anteprima HTML (stesso layout del PDF, foglio A4 scalato) ── */
+function attRenderPreview(){
+  var d=_attData;
+  var par=attSegments(d).map(function(s){ return s.b?'<b>'+esc(s.t)+'</b>':esc(s.t); }).join('');
+  var S='position:absolute;margin:0;font-family:Helvetica,Arial,sans-serif;color:#000;';
+  var html='<div id="att-sheet" style="position:relative;width:595px;height:842px;background:#fff;transform-origin:0 0;">'
+    +'<img src="attestato/logo.jpg" style="position:absolute;left:35.8px;top:39.4px;width:234.7px;height:73.9px">'
+    +'<div style="'+S+'left:35.5px;top:163px;font-size:13.5px">Roma, '+esc(d.data)+'</div>'
+    +'<div style="'+S+'left:35.5px;top:188px;font-size:13.5px;font-weight:700">Codice associato: '+esc(d.codice)+'</div>'
+    +'<div style="'+S+'left:0;width:595px;top:258px;text-align:center;font-size:21px;font-weight:700;color:#1F4E79">Attestato d’iscrizione alla CNA di Roma</div>'
+    +'<div style="'+S+'left:35.5px;width:524px;top:337px;font-size:12px;line-height:21.4px;text-align:justify;text-indent:35.4px">'+par+'</div>'
+    +'<img src="attestato/timbro.jpg" style="position:absolute;left:304.1px;top:543.1px;width:207.9px;height:89.8px">'
+    +'<div style="'+S+'left:258px;width:300px;top:534px;text-align:center;font-size:12px;line-height:14px">Il responsabile del Tesseramento<br><b>Alessandro Parrelli</b></div>'
+    +'<img src="attestato/firma.png" style="position:absolute;left:224.4px;top:560.1px;width:339px;height:64.9px">'
+    +'<div style="'+S+'left:28.4px;top:793px;font-size:7px;line-height:9.8px"><b>CNA di Roma</b><br>Via Cristoforo Colombo, 283A - 00147 Roma<br>Tel.06570151 • info@cnaroma.it • www.cnaroma.it</div>'
+    +'</div>';
+  var wrap=G('att-preview'); wrap.innerHTML=html;
+  attFitPreview();
+}
+function attFitPreview(){
+  var wrap=G('att-preview'), sh=G('att-sheet'); if(!wrap||!sh) return;
+  var w=wrap.clientWidth-24; if(w<=0) return;
+  var sc=Math.min(1,w/595);
+  sh.style.transform='scale('+sc+')';
+  wrap.style.height=(842*sc+24)+'px';
+}
+window.addEventListener('resize',function(){ if(G('modal-attestato-bg')&&G('modal-attestato-bg').classList.contains('open')) attFitPreview(); });
+
+function openAttestato(){
+  if(!attCanUse()){ toast('Funzione riservata ad admin e supervisori','error'); return; }
+  if(!_attData){ toast('Dati impresa non disponibili','error'); return; }
+  _attData.data=new Date().toLocaleDateString('it-IT',{day:'2-digit',month:'2-digit',year:'numeric'});
+  G('att-email-to').value=_attData.email||'';
+  G('att-email-hint').textContent=_attData.email?('Email impresa: '+_attData.email):'Nessuna email in anagrafica: inserisci un indirizzo';
+  G('att-wa-to').value=_attData.telefono||'';
+  attSetChannel('email');
+  openModal('modal-attestato-bg');
+  attRenderPreview();
+  setTimeout(attFitPreview,50);
+  attLoadAssets().catch(function(e){ console.error(e); toast('Errore caricamento risorse attestato','error'); });
+}
+
+function attSetChannel(ch){
+  ['email','wa'].forEach(function(c){
+    var b=G('att-tab-'+c), p=G('att-pane-'+c); if(!b||!p) return;
+    var on=(c===ch);
+    b.style.background=on?'#5B5FEF':'transparent';
+    b.style.color=on?'#fff':'var(--text-secondary)';
+    p.style.display=on?'':'none';
+  });
+}
+
+async function attStampa(){
+  try{
+    showLoad('Preparazione PDF…');
+    var p=await attGetPdf();
+    p.doc.autoPrint();
+    var url=URL.createObjectURL(p.doc.output('blob'));
+    var w=window.open(url,'_blank');
+    if(!w){ attDownload(p.blob); toast('Popup bloccato: PDF scaricato','info'); }
+  }catch(e){ console.error(e); toast('Errore generazione PDF: '+e.message,'error'); }
+  finally{ hideLoad(); }
+}
+function attDownload(blob){
+  var a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=attFileName(_attData);
+  document.body.appendChild(a); a.click(); setTimeout(function(){ a.remove(); },500);
+}
+async function attScarica(){
+  try{ showLoad('Preparazione PDF…'); var p=await attGetPdf(); attDownload(p.blob); }
+  catch(e){ console.error(e); toast('Errore generazione PDF: '+e.message,'error'); }
+  finally{ hideLoad(); }
+}
+
+async function attInviaEmail(){
+  var to=(G('att-email-to').value||'').trim();
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(to)){ toast('Indirizzo email non valido','error'); return; }
+  var btn=G('att-btn-email'); if(btn) btn.disabled=true;
+  showLoad('Invio attestato…');
+  try{
+    var p=await attGetPdf();
+    var d=_attData;
+    var corpo='<p>Gentile '+esc(d.titolare||d.impresa)+',</p>'
+      +'<p>in allegato trova l’<b>attestato d’iscrizione alla CNA di Roma</b> relativo all’impresa <b>'+esc(d.impresa)+'</b> (codice associato '+esc(d.codice)+').</p>'
+      +'<p>Restiamo a disposizione per qualsiasi necessità.</p>'
+      +'<p>Cordiali saluti,<br><b>CNA di Roma</b><br>Ufficio Tesseramento</p>';
+    var _ct={}; try{ _ct=JSON.parse(localStorage.getItem('crm_com_template')||'{}'); }catch(e){}
+    var payload={
+      oggetto:'Attestato d’iscrizione CNA di Roma – '+d.impresa,
+      blocchi:[{tipo:'testo',html:corpo}],
+      destinatari:[{operatore_email:to, company_name:d.impresa,
+        attachments:[{filename:attFileName(d), content:p.b64}]}],
+      logo_url:(_ct.logo_url||(typeof _comLogoUrl!=='undefined'&&_comLogoUrl)||(typeof _emailLogoUrl!=='undefined'&&_emailLogoUrl)||null),
+      header_color:(_ct.header_color||(typeof _comHeaderColor!=='undefined'&&_comHeaderColor)||'#005ca9'),
+      logo_height:String(_ct.logo_height||(typeof _comLogoHeight!=='undefined'&&_comLogoHeight)||'44')
+    };
+    var resp=await fetch(SB+'/functions/v1/crm-bulk-email',{method:'POST',headers:H({'Content-Type':'application/json'}),body:JSON.stringify(payload)});
+    var data={}; try{ data=await resp.json(); }catch(e){}
+    if(!resp.ok) throw new Error(data.error||('HTTP '+resp.status));
+    if(!data.sent) throw new Error((data.errors&&data.errors[0])||'Invio non riuscito');
+    toast('Attestato inviato a '+to,'success');
+    closeModal('modal-attestato-bg');
+  }catch(e){ console.error('attInviaEmail',e); toast('Errore invio: '+e.message,'error'); }
+  finally{ hideLoad(); if(btn) btn.disabled=false; }
+}
+
+function attNormPhone(t){
+  var n=String(t||'').replace(/[^\d+]/g,'');
+  if(n.indexOf('+')===0) n=n.slice(1);
+  else if(n.indexOf('00')===0) n=n.slice(2);
+  else if(n.length>=6 && n.length<=11) n='39'+n;
+  return n.replace(/\D/g,'');
+}
+async function attInviaWhatsApp(){
+  var d=_attData;
+  var tel=attNormPhone(G('att-wa-to').value);
+  var msg='Gentile '+(d.titolare||d.impresa)+', le inviamo l’attestato d’iscrizione alla CNA di Roma dell’impresa '+d.impresa+'. Cordiali saluti, CNA di Roma';
+  try{
+    showLoad('Preparazione PDF…');
+    var p=await attGetPdf();
+    hideLoad();
+    var file=null; try{ file=new File([p.blob],attFileName(d),{type:'application/pdf'}); }catch(e){}
+    // Mobile: condivisione nativa con il PDF allegato (scegli WhatsApp dal menu)
+    if(file && navigator.canShare && navigator.canShare({files:[file]})){
+      try{ await navigator.share({files:[file],title:'Attestato iscrizione CNA Roma',text:msg}); return; }
+      catch(e){ if(e && e.name==='AbortError') return; }
+    }
+    // Desktop: scarica il PDF e apre la chat WhatsApp da allegare manualmente
+    attDownload(p.blob);
+    window.open('https://wa.me/'+(tel||'')+'?text='+encodeURIComponent(msg),'_blank');
+    toast('PDF scaricato: allegalo nella chat WhatsApp appena aperta','info');
+  }catch(e){ hideLoad(); console.error(e); toast('Errore: '+e.message,'error'); }
 }
 
 /* ══════════════════════════════════════════════════
@@ -4009,7 +4334,7 @@ function closeModal(id){ G(id).classList.remove('open'); }
 function openModal(id){ G(id).classList.add('open'); }
 
 /* Chiudi modal cliccando sfondo */
-['modal-chiamata-bg','modal-appuntamento-bg','modal-stato-bg','modal-assegna-bg','modal-new-company-bg','modal-nota-bg','modal-sollecito-bg'].forEach(function(id){
+['modal-chiamata-bg','modal-appuntamento-bg','modal-stato-bg','modal-assegna-bg','modal-new-company-bg','modal-nota-bg','modal-sollecito-bg','modal-attestato-bg'].forEach(function(id){
   var el = G(id);
   if(el) el.addEventListener('click', function(e){ if(e.target===this) closeModal(id); });
 });
