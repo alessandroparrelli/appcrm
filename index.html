@@ -2193,7 +2193,7 @@ html.ios-fullbleed,html.ios-fullbleed body{height:calc(100% + var(--ios-gap,0px)
           <label style="font-size:12px;font-weight:700;color:var(--text-secondary);">Numero WhatsApp</label>
           <input type="tel" class="crm-input" id="att-wa-to" placeholder="es. 333 1234567" style="font-size:13px;">
         </div>
-        <div style="font-size:11px;color:var(--text-tertiary);margin-bottom:10px;">Da smartphone si apre la condivisione con il PDF gi&agrave; allegato; da computer il PDF viene scaricato e si apre la chat da allegare.</div>
+        <div style="font-size:11px;color:var(--text-tertiary);margin-bottom:10px;">Si apre la chat WhatsApp con questo numero e un messaggio pronto con il link per scaricare il PDF. Lascia vuoto per scegliere il contatto in WhatsApp.</div>
         <button class="btn-crm" style="width:100%;background:#16A34A;color:#fff;" onclick="attInviaWhatsApp()">Invia via WhatsApp</button>
       </div>
     </div>
@@ -3572,25 +3572,31 @@ function attNormPhone(t){
   else if(n.length>=6 && n.length<=11) n='39'+n;
   return n.replace(/\D/g,'');
 }
+async function attUploadPdf(p,d){
+  var rnd=(window.crypto&&crypto.randomUUID)?crypto.randomUUID():(Date.now().toString(36)+Math.random().toString(36).slice(2)+Math.random().toString(36).slice(2));
+  var path=new Date().getFullYear()+'/'+rnd+'/'+attFileName(d);
+  var r=await fetch(SB+'/storage/v1/object/attestati/'+encodeURI(path),{method:'POST',
+    headers:{'apikey':KEY,'Authorization':'Bearer '+KEY,'Content-Type':'application/pdf','x-upsert':'false'},body:p.blob});
+  if(!r.ok){ var t=''; try{t=await r.text();}catch(e){} throw new Error('Caricamento PDF non riuscito ('+r.status+') '+t); }
+  return SB+'/storage/v1/object/public/attestati/'+encodeURI(path);
+}
 async function attInviaWhatsApp(){
   var d=_attData;
   var tel=attNormPhone(G('att-wa-to').value);
-  var msg='Gentile '+(d.titolare||d.impresa)+', le inviamo l’attestato d’iscrizione alla CNA di Roma dell’impresa '+d.impresa+'. Cordiali saluti, CNA di Roma';
+  // Apro subito la finestra (nel gesto del click) per non farla bloccare dal browser dopo l'upload
+  var w=null; try{ w=window.open('about:blank','_blank'); }catch(e){}
   try{
-    showLoad('Preparazione PDF…');
+    showLoad('Preparazione attestato…');
     var p=await attGetPdf();
-    hideLoad();
-    var file=null; try{ file=new File([p.blob],attFileName(d),{type:'application/pdf'}); }catch(e){}
-    // Mobile: condivisione nativa con il PDF allegato (scegli WhatsApp dal menu)
-    if(file && navigator.canShare && navigator.canShare({files:[file]})){
-      try{ await navigator.share({files:[file],title:'Attestato iscrizione CNA Roma',text:msg}); return; }
-      catch(e){ if(e && e.name==='AbortError') return; }
-    }
-    // Desktop: scarica il PDF e apre la chat WhatsApp da allegare manualmente
-    attDownload(p.blob);
-    window.open('https://wa.me/'+(tel||'')+'?text='+encodeURIComponent(msg),'_blank');
-    toast('PDF scaricato: allegalo nella chat WhatsApp appena aperta','info');
-  }catch(e){ hideLoad(); console.error(e); toast('Errore: '+e.message,'error'); }
+    if(!p.url) p.url=await attUploadPdf(p,d);
+    var msg='Gentile '+(d.titolare||d.impresa)+',\nle inviamo l’attestato d’iscrizione alla CNA di Roma dell’impresa '+d.impresa+'.\n\nScarica il PDF: '+p.url+'\n\nCordiali saluti,\nCNA di Roma';
+    var url='https://wa.me/'+(tel||'')+'?text='+encodeURIComponent(msg);
+    if(w && !w.closed){ w.location.href=url; } else { window.location.href=url; }
+    toast(tel?'Chat WhatsApp aperta con il link al PDF':'Scegli il contatto su WhatsApp','success');
+  }catch(e){
+    if(w && !w.closed) try{ w.close(); }catch(_e){}
+    console.error('attInviaWhatsApp',e); toast('Errore WhatsApp: '+e.message,'error');
+  }finally{ hideLoad(); }
 }
 
 /* ══════════════════════════════════════════════════
