@@ -1062,6 +1062,39 @@ html.ios-fullbleed,html.ios-fullbleed body{height:calc(100% + var(--ios-gap,0px)
  .pd-wrap td.pd-st span{font-size:8px!important;padding:1px 5px!important}
  .pd-chip{padding:4px 10px;font-size:11px}
 }
+
+/* ═══ DESKTOP: barra superiore stile Intranet / Signature ═══ */
+.logo-desk{display:none;}
+@media(min-width:641px){
+  #hdr-main-wrap{padding:14px 20px 10px;background:#f4f6fa!important;}
+  #hdr-main.app-header{background:#fff!important;border:none!important;border-radius:30px;box-shadow:0 4px 20px rgba(15,23,42,.07);height:80px;padding:0 16px 0 28px!important;gap:24px;position:relative;top:auto;}
+  #hdr-main .header-left{gap:22px;flex-shrink:0;}
+  #hdr-main .logo-img,#hdr-main .logo-fallback{display:none!important;}
+  #hdr-main .logo-desk{display:block;height:48px;width:auto;}
+  #hdr-main .header-title{color:#0f172a!important;font-size:26px;font-weight:800;letter-spacing:-.035em;white-space:nowrap;}
+  #tab-title-bar{display:none!important;}
+  #view-crm{background:#f4f6fa!important;}
+  .crm-list-hero{background:transparent!important;padding:0 20px 18px!important;}
+  #crm-nav.in-header{display:flex!important;position:static!important;background:none!important;border:none!important;box-shadow:none!important;padding:0!important;margin:0 auto!important;gap:6px;flex:0 1 auto;min-width:0;overflow-x:auto;-webkit-backdrop-filter:none;backdrop-filter:none;}
+  #crm-nav.in-header::before,#crm-nav.in-header::after{display:none;}
+  #crm-nav.in-header .crm-tab{flex:0 0 auto;font-size:15px!important;font-weight:600;color:#0f172a!important;padding:12px 22px!important;border-radius:999px!important;background:none!important;border:1.5px solid transparent;gap:0!important;white-space:nowrap;}
+  #crm-nav.in-header .crm-tab svg{display:none;}
+  #crm-nav.in-header .crm-tab:hover{background:#f1f5f9!important;}
+  #crm-nav.in-header .crm-tab.active{background:#0f1b33!important;color:#fff!important;box-shadow:none;}
+  #crm-nav.in-header #tab-admin{border-color:#cbd5e1;margin-left:6px;}
+  #crm-nav.in-header #tab-admin.active{border-color:#0f1b33;}
+  #hdr-main .header-right{gap:10px;flex-shrink:0;}
+  #hdr-main #btn-notif-bell{background:#f1f5f9!important;border:none!important;color:#0f172a!important;border-radius:50%;width:44px;height:44px;justify-content:center;}
+  #hdr-main .user-chip{background:none!important;border:none!important;padding:0;}
+  #hdr-main .user-name{display:none;}
+  #hdr-main .user-avatar{width:52px;height:52px;font-size:16px;background:var(--primary)!important;color:#fff!important;border:none!important;}
+  #hdr-main .btn-logout{background:none!important;border:1.5px solid #cbd5e1!important;color:#0f172a!important;padding:10px 16px;font-size:13px;}
+  #hdr-main .btn-logout:hover{background:#f1f5f9!important;}
+}
+@media(min-width:641px) and (max-width:1180px){
+  #hdr-main .header-title{display:none;}
+  #crm-nav.in-header .crm-tab{padding:10px 14px!important;font-size:14px!important;}
+}
 </style>
   <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
 </head>
@@ -1163,6 +1196,7 @@ html.ios-fullbleed,html.ios-fullbleed body{height:calc(100% + var(--ios-gap,0px)
         <div class="logo-link" onclick="goHome()" title="Home" style="display:flex;align-items:center;gap:10px;cursor:pointer;">
           <img class="logo-img" src="logo-header.png" alt="CNA Roma" onerror="this.style.display='none';document.getElementById('logo-fb').style.display='flex';">
           <div id="logo-fb" class="logo-fallback" style="display:none">CNA Roma</div>
+          <img class="logo-desk" src="logo-desktop.png" alt="CNA Roma">
         </div>
         <span class="header-title">CRM</span>
       </div>
@@ -3262,7 +3296,8 @@ function showView(name){
   var isAdmin      = (name==='admin');
   var isStandalone = isScheda||isLog||isCrmContatto;
   var mainWrap = G('hdr-main-wrap');
-  if(mainWrap) mainWrap.style.display = (!isStandalone) ? 'block' : 'none';
+  if(mainWrap) mainWrap.style.display = (!isStandalone || isDeskNav()) ? 'block' : 'none';
+  placeCrmNav();
   G('hdr-scheda').style.display        = 'none'; // rimpiazzato dall'hero inline
   G('hdr-log').style.display           = isLog    ? 'flex' : 'none';
   G('hdr-crm-contatto').style.display  = isCrmContatto ? 'flex' : 'none';
@@ -3302,6 +3337,23 @@ function showView(name){
     ttBar.style.display=ttTitle?'block':'none';
   }
 }
+
+function isDeskNav(){return window.matchMedia('(min-width:641px)').matches;}
+var _navHome=null;
+function placeCrmNav(){
+  var nav=G('crm-nav'),hdr=G('hdr-main');
+  if(!nav||!hdr) return;
+  if(!_navHome) _navHome={p:nav.parentNode,n:nav.nextSibling};
+  if(isDeskNav()){
+    if(nav.parentNode!==hdr) hdr.insertBefore(nav,hdr.querySelector('.header-right'));
+    nav.classList.add('in-header');
+  } else {
+    if(nav.parentNode===hdr) _navHome.p.insertBefore(nav,_navHome.n);
+    nav.classList.remove('in-header');
+  }
+}
+window.addEventListener('resize',function(){placeCrmNav();var mw=G('hdr-main-wrap');if(mw&&isDeskNav())mw.style.display='block';});
+document.addEventListener('DOMContentLoaded',placeCrmNav);
 
 function goBack(){
   if(G('view-crm-contatto').classList.contains('active')){
