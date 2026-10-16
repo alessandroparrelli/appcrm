@@ -3394,7 +3394,7 @@ function attBuildPdf(d){
   doc.text('Codice associato: '+d.codice,35.5,200);
 
   doc.setFontSize(21); doc.setTextColor(BLUE[0],BLUE[1],BLUE[2]);
-  var _tt='Attestato d\u2019iscrizione alla CNA di Roma', _cs=-1.5;
+  var _tt='Attestato d\u2019iscrizione alla CNA di Roma', _cs=-1.2;
   var _tw=doc.getTextWidth(_tt)+_cs*(_tt.length-1);
   doc.text(_tt,297.64-_tw/2,277,{charSpace:_cs});
 
@@ -3471,7 +3471,7 @@ function attRenderPreview(){
     +'<img src="attestato/logo.png" style="position:absolute;left:35.8px;top:39.4px;width:234.7px;height:73.9px">'
     +'<div style="'+S+'left:35.5px;top:163px;font-size:13.5px">Roma, '+esc(d.data)+'</div>'
     +'<div style="'+S+'left:35.5px;top:188px;font-size:13.5px;font-weight:700">Codice associato: '+esc(d.codice)+'</div>'
-    +'<div style="'+S+'left:0;width:595px;top:258px;text-align:center;font-size:21px;font-weight:700;letter-spacing:-1.5px;color:#1F4E79">Attestato d’iscrizione alla CNA di Roma</div>'
+    +'<div style="'+S+'left:0;width:595px;top:258px;text-align:center;font-size:21px;font-weight:700;letter-spacing:-1.2px;color:#1F4E79">Attestato d’iscrizione alla CNA di Roma</div>'
     +'<div style="'+S+'left:35.5px;width:524px;top:337px;font-size:12px;line-height:21.4px;text-align:justify;text-indent:35.4px">'+par+'</div>'
     +'<img src="attestato/timbro.png" style="position:absolute;left:304.1px;top:543.1px;width:207.9px;height:89.8px">'
     +'<div style="'+S+'left:258px;width:300px;top:534px;text-align:center;font-size:12px;line-height:14px">Il responsabile del Tesseramento<br><b>Alessandro Parrelli</b></div>'
